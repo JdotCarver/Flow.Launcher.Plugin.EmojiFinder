@@ -28,7 +28,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-/** Our plugin ID, as in plugin.json. Used to find the settings folder Flow owns for us. */
+/** Our plugin ID, as in plugin.json. Tests pin it against the manifest. */
 export const PLUGIN_ID = 'd50362aa29f04cd59032bb44a5d5f7e5';
 
 /**
@@ -40,18 +40,6 @@ export const PLUGIN_ID = 'd50362aa29f04cd59032bb44a5d5f7e5';
  */
 export const USAGE_FILE_NAME = 'user-frecency.json';
 export const ALIASES_FILE_NAME = 'user-aliases.json';
-
-/**
- * What earlier builds called the same two files, and the folder they were kept in.
- *
- * Both were renamed once, and both are still read so nobody loses data on upgrade; the first
- * write moves the contents over and deletes the old copies. `LEGACY_SETTINGS_FOLDER` is the
- * plugin ID - the folder this plugin used before it noticed that Flow files non-.NET plugins
- * under their *name* (`PluginManager.UpdatePluginDirectory`).
- */
-const LEGACY_USAGE_FILE_NAME = 'usage.json';
-const LEGACY_ALIASES_FILE_NAME = 'aliases.json';
-const LEGACY_SETTINGS_FOLDER = PLUGIN_ID;
 
 /**
  * How many emoji the history may contain.
@@ -176,36 +164,6 @@ export function resolvePluginSettingsDirectory (
   return null;
 }
 
-/**
- * The Enter Mode value a reworded dropdown should show, or null when nothing needs doing.
- *
- * Flow renders a dropdown by matching the stored value against the option strings, and a dropdown
- * whose value matches none of them shows *nothing* - which is what happened when the options were
- * reworded from `copy`/`paste` to `Copy Mode`/`Paste Mode`: every existing install showed an
- * empty box. The value *is* the label, so the only migration is to rewrite it.
- *
- * The rewrite is handed to Flow in the query response (`settingsChange`, see `JsonRpcResponse`),
- * never written to `Settings.json` by this plugin: Flow keeps its own copy in memory and in an
- * open settings page, and a file written behind its back would be ignored until a restart.
- *
- * @param stored The value Flow sent us with the query.
- * @returns The value to store, or null when the stored one is current.
- */
-export function resolveEnterModeMigration (stored: string | undefined): string | null {
-  if (stored === undefined) {
-    return null;
-  }
-
-  const migrated = LEGACY_ENTER_MODE_VALUES[stored];
-
-  return migrated ?? null;
-}
-
-const LEGACY_ENTER_MODE_VALUES: Record<string, string> = {
-  copy: 'Copy Mode',
-  paste: 'Paste Mode'
-};
-
 /** Reads JSON, or null when the file is missing or is not JSON. */
 function readJsonFile<T> (filePath: string): T | null {
   try {
@@ -232,9 +190,7 @@ function writeFileAtomically (filePath: string, contents: string): void {
  * entries", not to a query that throws.
  */
 export function readUsage (settingsDirectory: string): UsageRecord {
-  const [currentFile, legacyFile] = usageFileCandidates(settingsDirectory);
-  const stored = readJsonFile<Record<string, unknown>>(currentFile ?? '') ??
-    readJsonFile<Record<string, unknown>>(legacyFile ?? '');
+  const stored = readJsonFile<Record<string, unknown>>(path.join(settingsDirectory, USAGE_FILE_NAME));
   const usage: UsageRecord = {};
 
   if (stored === null || typeof stored !== 'object') {
@@ -283,7 +239,6 @@ export function recordUsage (settingsDirectory: string, emoji: string, now: numb
   }
 
   writeFileAtomically(path.join(settingsDirectory, USAGE_FILE_NAME), JSON.stringify(usage));
-  removeLegacyCopies(settingsDirectory, usageFileCandidates(settingsDirectory).slice(1));
 
   return usage;
 }
@@ -313,81 +268,15 @@ export function readAliases (settingsDirectory: string): AliasRecord {
   return aliases;
 }
 
-/** Everything in the file, documentation keys included, or null when it cannot be read. */
+/**
+ * Everything in the file, documentation keys included, or null when it cannot be read.
+ *
+ * @param settingsDirectory Flow's settings folder for this plugin.
+ */
 function readRawAliases (settingsDirectory: string): Record<string, unknown> | null {
-  const [currentFile] = aliasFileCandidates(settingsDirectory);
-  const stored = readJsonFile<Record<string, unknown>>(currentFile ?? '');
+  const stored = readJsonFile<Record<string, unknown>>(path.join(settingsDirectory, ALIASES_FILE_NAME));
 
-  if (stored !== null && typeof stored === 'object') {
-    return stored;
-  }
-
-  // Nothing at today's location: try what an earlier build left behind, so an upgrade does not
-  // lose anything before the first write moves it.
-  for (const file of aliasFileCandidates(settingsDirectory).slice(1)) {
-    const legacy = readJsonFile<Record<string, unknown>>(file);
-
-    if (legacy !== null && typeof legacy === 'object') {
-      return legacy;
-    }
-  }
-
-  return null;
-}
-
-/** Where the history may be, newest first. Same shape as the aliases, same reason. */
-function usageFileCandidates (settingsDirectory: string): string[] {
-  const legacyDirectory = legacySettingsDirectory(settingsDirectory);
-
-  return [
-    path.join(settingsDirectory, USAGE_FILE_NAME),
-    path.join(legacyDirectory, LEGACY_USAGE_FILE_NAME)
-  ];
-}
-
-/**
- * Where the aliases may be, newest first.
- *
- * [0] is where they are written. The rest are the copies earlier builds left: the same file under
- * its old name, then both names in the folder this plugin used before it moved to the one Flow
- * names after the plugin.
- */
-function aliasFileCandidates (settingsDirectory: string): string[] {
-  const legacyDirectory = legacySettingsDirectory(settingsDirectory);
-
-  return [
-    path.join(settingsDirectory, ALIASES_FILE_NAME),
-    path.join(settingsDirectory, LEGACY_ALIASES_FILE_NAME),
-    path.join(legacyDirectory, LEGACY_ALIASES_FILE_NAME)
-  ];
-}
-
-/** The folder an earlier build used: same parent, named after the plugin ID. */
-function legacySettingsDirectory (settingsDirectory: string): string {
-  return path.resolve(settingsDirectory, '..', LEGACY_SETTINGS_FOLDER);
-}
-
-/**
- * Deletes the copies an earlier build left behind, once the new file has been written.
- *
- * Only ever called from a write, so a read never changes anything. The old folder is removed too
- * when that leaves it empty - otherwise it stays behind as a GUID-shaped mystery in a folder the
- * user is being told to edit by hand.
- */
-function removeLegacyCopies (settingsDirectory: string, files: string[]): void {
-  for (const file of files) {
-    try {
-      fs.rmSync(file, { force: true });
-    } catch {
-      // A locked or missing file is not a reason to fail the write that just succeeded.
-    }
-  }
-
-  try {
-    fs.rmdirSync(legacySettingsDirectory(settingsDirectory));
-  } catch {
-    // Not empty, or not there: both are fine.
-  }
+  return stored === null || typeof stored !== 'object' ? null : stored;
 }
 
 /**
@@ -429,7 +318,6 @@ export function saveAlias (settingsDirectory: string, alias: string, emoji: stri
     path.join(settingsDirectory, ALIASES_FILE_NAME),
     JSON.stringify({ ...documentation, ...aliases })
   );
-  removeLegacyCopies(settingsDirectory, aliasFileCandidates(settingsDirectory).slice(1));
 
   return aliases;
 }

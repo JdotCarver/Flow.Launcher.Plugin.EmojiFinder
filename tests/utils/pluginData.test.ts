@@ -21,7 +21,6 @@ import {
   readUsage,
   recordUsage,
   removeAlias,
-  resolveEnterModeMigration,
   resolvePluginSettingsDirectory,
   saveAlias
 } from '../../src/utils/pluginData.js';
@@ -32,21 +31,6 @@ function createDirectory (): string {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'plugin-data-test-'));
 
   temporaryDirectories.push(directory);
-
-  return directory;
-}
-
-/**
- * A settings folder that looks like Flow's: `.../Settings/Plugins/Emoji Finder`.
- *
- * The nesting matters now that this plugin also knows where the *old* folder is (a sibling named
- * after the plugin ID): a bare temporary directory would put that sibling loose in the system's
- * temp folder, where tests could see each other's leftovers.
- */
-function createSettingsFolder (): string {
-  const directory = path.join(createDirectory(), 'Settings', 'Plugins', 'Emoji Finder');
-
-  fs.mkdirSync(directory, { recursive: true });
 
   return directory;
 }
@@ -128,75 +112,6 @@ describe('ensureAliasesFile', () => {
     expect(written.swole).toBe('💪');
 
     fs.rmSync(directory, { recursive: true, force: true });
-  });
-});
-
-describe('moving to the folder and file names Flow expects', () => {
-  test('reads aliases an earlier build left under the old name, in the same folder', () => {
-    const directory = createSettingsFolder();
-
-    fs.writeFileSync(path.join(directory, 'aliases.json'), JSON.stringify({ swole: '💪' }));
-
-    expect(readAliases(directory)).toEqual({ swole: '💪' });
-  });
-
-  test('reads aliases an earlier build left in the folder named after the plugin ID', () => {
-    const directory = createSettingsFolder();
-    const oldDirectory = path.join(path.dirname(directory), PLUGIN_ID);
-
-    fs.mkdirSync(oldDirectory, { recursive: true });
-    fs.writeFileSync(path.join(oldDirectory, 'aliases.json'), JSON.stringify({ swole: '💪' }));
-
-    expect(readAliases(directory)).toEqual({ swole: '💪' });
-  });
-
-  test('the first save moves them: new file written, old copies and folder gone', () => {
-    const directory = createSettingsFolder();
-    const oldDirectory = path.join(path.dirname(directory), PLUGIN_ID);
-
-    fs.mkdirSync(oldDirectory, { recursive: true });
-    fs.writeFileSync(path.join(oldDirectory, 'aliases.json'), JSON.stringify({ swole: '💪' }));
-
-    saveAlias(directory, 'shipit', '🚀');
-
-    expect(JSON.parse(fs.readFileSync(path.join(directory, ALIASES_FILE_NAME), 'utf8'))).toEqual({
-      swole: '💪',
-      shipit: '🚀'
-    });
-    // Nothing is lost, and the GUID folder - the thing that looked wrong in a file listing - is
-    // gone once it is empty.
-    expect(fs.existsSync(oldDirectory)).toBe(false);
-  });
-
-  test('the history moves the same way, on the next recorded pick', () => {
-    const directory = createSettingsFolder();
-    const oldDirectory = path.join(path.dirname(directory), PLUGIN_ID);
-
-    fs.mkdirSync(oldDirectory, { recursive: true });
-    fs.writeFileSync(path.join(oldDirectory, 'usage.json'), JSON.stringify({ '🚀': { count: 2, lastUsedAt: 1000 } }));
-
-    recordUsage(directory, '🙈', 2000);
-
-    expect(readUsage(directory)).toEqual({
-      '🚀': { count: 2, lastUsedAt: 1000 },
-      '🙈': { count: 1, lastUsedAt: 2000 }
-    });
-    expect(fs.existsSync(oldDirectory)).toBe(false);
-  });
-
-  test('a folder with anything else in it is left alone', () => {
-    const directory = createSettingsFolder();
-    const oldDirectory = path.join(path.dirname(directory), PLUGIN_ID);
-
-    fs.mkdirSync(oldDirectory, { recursive: true });
-    fs.writeFileSync(path.join(oldDirectory, 'aliases.json'), JSON.stringify({ swole: '💪' }));
-    // Flow's own Settings.json from a build that wrote into the wrong folder: not ours to delete.
-    fs.writeFileSync(path.join(oldDirectory, 'Settings.json'), '{}');
-
-    saveAlias(directory, 'shipit', '🚀');
-
-    expect(fs.existsSync(path.join(oldDirectory, 'aliases.json'))).toBe(false);
-    expect(fs.existsSync(path.join(oldDirectory, 'Settings.json'))).toBe(true);
   });
 });
 
@@ -322,25 +237,6 @@ describe('recordUsage', () => {
     recordUsage(directory, '🙈', 1000);
 
     expect(fs.readdirSync(directory)).toEqual([USAGE_FILE_NAME]);
-  });
-});
-
-describe('resolveEnterModeMigration', () => {
-  test('translates an old dropdown value, which Flow would otherwise show as an empty box', () => {
-    // The stored value *is* the label Flow matches against its options, so a reworded option
-    // leaves every existing install showing nothing.
-    expect(resolveEnterModeMigration('copy')).toBe('Copy Mode');
-    expect(resolveEnterModeMigration('paste')).toBe('Paste Mode');
-  });
-
-  test('leaves a value that is already current alone', () => {
-    expect(resolveEnterModeMigration('Copy Mode')).toBeNull();
-    expect(resolveEnterModeMigration('Paste Mode')).toBeNull();
-  });
-
-  test('does nothing when Flow sent no value at all', () => {
-    expect(resolveEnterModeMigration(undefined)).toBeNull();
-    expect(resolveEnterModeMigration('')).toBeNull();
   });
 });
 

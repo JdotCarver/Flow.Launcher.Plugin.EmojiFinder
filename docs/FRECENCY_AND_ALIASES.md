@@ -62,10 +62,7 @@ is `%APPDATA%\FlowLauncher\Settings\Plugins\Emoji Finder\`; for a portable Flow 
 The folder is named after the plugin, not after its ID, because that is what Flow does for every
 non-.NET plugin (`PluginManager.UpdatePluginDirectory`:
 `Path.Combine(PluginSettingsDirectory, metadata.Name)`; only .NET plugins use their
-`AssemblyName`). This plugin got it wrong at first and wrote into a folder named after its GUID,
-next to the tidy `Emoji Finder` folder Flow had made - so its own `Settings.json` migration went
-somewhere Flow never read. The name now comes from `plugin.json`, and anything an earlier build
-left in the GUID folder is read, moved on the next write, and the folder removed when empty.
+`AssemblyName`). The name comes from `plugin.json`, so it cannot drift from the manifest.
 
 Neither path can be assumed, but both are reachable the same way: the plugin knows its own
 folder (it is running from `<...>\Plugins\<folder name>\dist\main.js`), and
@@ -87,9 +84,12 @@ Files, both written atomically (temporary file + rename, like `request.json`):
 | `user-frecency.json` | `{ "🙈": { "count": 3, "lastUsedAt": 1792757171938 }, ... }`, capped |
 | `user-aliases.json` | `{ "_HowToUse": "...", "_Note": "...", "_examplealias": "💪", "shipit": "🚀" }` |
 
-Both names say whose data it is. An earlier build called them `usage.json` and `aliases.json`; those
-are still read, so nothing is lost on upgrade, and the first write moves the contents over and
-deletes the old copies.
+Both names say whose data it is, and a folder listing explains itself. There is no migration for
+the names this fork used while it was being built (`usage.json`, `aliases.json`): nobody ever had
+them installed except the author, and code that exists only to rescue one developer's scratch data
+is code carried forever. Nothing was shipped before the names settled, so there is nothing to
+rescue. The same reasoning removed the Enter Mode rewrite: upstream's `SettingsTemplate.yaml` has
+only ever had `enableNotification`, so no released install can hold a legacy `defaultAction`.
 
 Keys starting with `_` are documentation, not aliases: every reader skips them, every writer keeps
 them, so the file can explain itself to someone who would rather edit it by hand. A fresh install
@@ -260,13 +260,14 @@ feature needs:
   `StandardOutputEncoding`, so an emoji written literally arrives as mojibake - the context menu
   said "Add an alias for this emoji" only after the emoji was removed. Everything printed is now
   ASCII JSON (`\ud83d\udcaa`), which any code page carries and JSON restores.
-- **A dropdown's stored value is its label.** Renaming the options to "Copy Mode"/"Paste Mode"
-  left every existing install showing an empty box, because Flow renders a dropdown by matching
-  the stored string (`copy`) against the options. The query response now carries
-  `settingsChange: { defaultAction }`, which Flow applies to its live panel and saves itself
-  (`JsonRPCPluginBase.ParseResults` -> `Settings.UpdateSettings`). An earlier attempt wrote
-  `Settings.json` directly, into a folder Flow does not read, and Flow's in-memory copy would have
-  overwritten it anyway; `parseDefaultAction` accepts both spellings regardless.
+- **A dropdown's stored value is its label.** Flow renders a dropdown by matching the stored string
+  against the options, so a reworded option leaves the box blank. For shipped plugins the fix is
+  `settingsChange` in the query response - Flow applies it to the live panel and saves it
+  (`JsonRPCPluginBase.ParseResults` -> `Settings.UpdateSettings`) - which is better than writing
+  `Settings.json` ourselves, since Flow holds its own copy in memory. Nothing needs it today: the
+  upstream template has only `enableNotification`, so no released install can hold a stale
+  `defaultAction`. `parseDefaultAction` still accepts both spellings, so a fork user's old value
+  keeps behaving correctly even with a blank box.
 
 ## Hand-editing: one file, and it is not the database
 
