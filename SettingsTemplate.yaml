@@ -9,7 +9,7 @@ body:
     attributes:
       name: defaultAction
       label: Enter Mode
-      description: "Copy Mode only puts the emoji in your clipboard. Paste Mode also makes its best effort to paste it at your cursor location."
+      description: "What happens when pressing Enter? Copy Mode: only puts the emoji in your clipboard. Paste Mode: also makes its best effort to paste it at your cursor location."
       defaultValue: Copy Mode
       options:
         - Copy Mode
