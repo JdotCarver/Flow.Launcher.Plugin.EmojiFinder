@@ -96,6 +96,29 @@ The agent cannot be run from this repository's tests (no Windows, no PowerShell)
 script is asserted in `tests/utils/pasteAgent.test.ts` and exercised for real on the Windows
 runner by `npm run check:paste-agent`, which runs it under both PowerShell hosts.
 
+## What puts a build on the dogfooding machine
+
+The Windows job installs the freshly built plugin into Flow Launcher **whenever a commit
+changes `src/`, `plugin.json`, `SettingsTemplate.yaml` or `package.json`**, and also when the
+installation doctor finds the installed copy stale or missing. `[install]` in the commit message
+forces it for any other commit.
+
+This is not cosmetic. For an hour the machine ran a build from before the feature under test,
+while the repository looked right: the context menu had not changed, the settings had not
+changed, and the only clue was one FAIL line in a log the sandbox cannot open. Two things caused
+that and both are now guarded: the install was opt-in, and the decision step diffed `HEAD~1`,
+which a shallow checkout (default depth 1) cannot resolve - it reported "0 files changed" and
+skipped the install silently.
+
+Two consequences worth knowing:
+
+- **Restart Flow Launcher after an install that changed `SettingsTemplate.yaml`.** Plugin code is
+  reloaded per keystroke (Flow starts a new process for each query), but the settings page is
+  built once, at plugin init.
+- **A renamed dropdown value is a behaviour change.** `parseDefaultAction` matched the exact
+  string `paste`, so renaming the options to "Copy Mode"/"Paste Mode" turned Paste Mode into a
+  silent Copy Mode. It now matches the word inside the value, and a test says why.
+
 ## The tools build on demand
 
 The scripts under `tools/` are JavaScript, but they share the agent's protocol with the plugin by
