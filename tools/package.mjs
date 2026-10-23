@@ -31,6 +31,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { dependencyRelativePaths } from './package-paths.mjs';
 
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
 const PLUGIN_FOLDER_NAME = 'Flow.Launcher.Plugin.EmojiFinder';
@@ -54,6 +55,7 @@ function main () {
     enableTracing();
   }
 
+  assertRuntimeIsComplete(OUTPUT_DIR);
   report(shouldTrace);
 
   if (shouldInstall) {
@@ -106,32 +108,60 @@ function copyFiles () {
  *
  * `npm prune --omit=dev` would be simpler but it mutates the development install;
  * `npm ls` tells us the same tree without touching anything.
+ *
+ * Two Windows traps live here, both discovered the hard way on a real install:
+ *
+ *   1. `execFileSync('npm.cmd', ...)` throws EINVAL on Node 18.20+/20.12+ - the fix for a
+ *      command-injection bug refuses to run `.cmd` files without a shell. The failure used
+ *      to be swallowed by a catch, which meant *zero* dependencies were copied and the
+ *      plugin still "packaged successfully". It is passed through a shell instead, and a
+ *      failure is fatal.
+ *   2. `npm ls --parseable` mixes `\` and `/` in its paths, so the parsing lives in
+ *      tools/package-paths.mjs where it can be tested for both.
  */
 function copyProductionDependencies () {
-  const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const listing = listProductionDependencies();
+  const packagePaths = dependencyRelativePaths(listing);
 
-  let listing;
-  try {
-    listing = execFileSync(npmCommand, ['ls', '--omit=dev', '--all', '--parseable'], {
-      cwd: PLUGIN_ROOT,
-      encoding: 'utf8'
-    });
-  } catch (error) {
-    // npm ls exits non-zero on unmet peers while still printing a usable tree.
-    listing = String(error.stdout ?? '');
+  if (packagePaths.length === 0) {
+    fail('Could not find any production dependencies to copy.\n' +
+      'npm printed no packages, so the installed plugin would be missing node_modules.\n' +
+      `Output was:\n${listing.trim().slice(0, 2000) || '(empty)'}`);
   }
 
-  const packagePaths = listing
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line !== '' && line !== PLUGIN_ROOT)
-    .filter(line => line.includes(`${path.sep}node_modules${path.sep}`));
+  for (const relativePath of packagePaths) {
+    const source = path.join(PLUGIN_ROOT, 'node_modules', ...relativePath.split('/'));
+    const destination = path.join(OUTPUT_DIR, 'node_modules', ...relativePath.split('/'));
 
-  for (const packagePath of packagePaths) {
-    const relativePath = packagePath.slice(packagePath.lastIndexOf('node_modules') + 'node_modules'.length);
-    const destination = path.join(OUTPUT_DIR, 'node_modules', relativePath);
+    fs.cpSync(source, destination, { recursive: true, filter: isNotDevelopmentNoise });
+  }
+}
 
-    fs.cpSync(packagePath, destination, { recursive: true, filter: isNotDevelopmentNoise });
+/** Runs `npm ls` and returns its output, failing loudly rather than returning nothing. */
+function listProductionDependencies () {
+  const isWindows = process.platform === 'win32';
+
+  try {
+    return execFileSync(
+      isWindows ? 'npm.cmd' : 'npm',
+      ['ls', '--omit=dev', '--all', '--parseable'],
+      {
+        cwd: PLUGIN_ROOT,
+        encoding: 'utf8',
+        // Required on Windows since Node refuses to execute .cmd files without a shell.
+        shell: isWindows
+      }
+    );
+  } catch (error) {
+    // `npm ls` exits non-zero for unmet peers while still printing a usable tree, so only
+    // a run that produced no output at all is a real failure.
+    const output = String(error.stdout ?? '');
+
+    if (output.trim() === '') {
+      return fail(`Could not list production dependencies:\n${error.message}`);
+    }
+
+    return output;
   }
 }
 
@@ -148,6 +178,32 @@ function isNotDevelopmentNoise (source) {
  */
 function enableTracing () {
   fs.writeFileSync(path.join(OUTPUT_DIR, 'trace.on'), '');
+}
+
+/**
+ * Refuses to call a package successful when the folder cannot run.
+ *
+ * A plugin without its dependencies still passes every earlier step: `dist/main.js`
+ * exists, the manifest is there, the size looks plausible. It only fails inside Flow
+ * Launcher, where the error is a log line the user has to go looking for. Checking the one
+ * file emoji search cannot work without turns that into a packaging error.
+ */
+function assertRuntimeIsComplete (directory) {
+  const requiredFiles = [
+    path.join('dist', 'main.js'),
+    path.join('node_modules', 'emojilib', 'dist', 'emoji-en-US.json')
+  ];
+
+  for (const requiredFile of requiredFiles) {
+    if (!fs.existsSync(path.join(directory, requiredFile))) {
+      fail(`${directory} is missing ${requiredFile}; Flow Launcher could not use it.`);
+    }
+  }
+}
+
+function fail (message) {
+  console.error(`\n${message}`);
+  process.exit(1);
 }
 
 function report (tracing) {
@@ -195,6 +251,7 @@ function installIntoFlowLauncher () {
 
   fs.rmSync(destination, { recursive: true, force: true });
   fs.cpSync(OUTPUT_DIR, destination, { recursive: true });
+  assertRuntimeIsComplete(destination);
 
   console.log(`\ninstalled to ${destination}`);
   console.log('Restart Flow Launcher (right-click the tray icon, or run `Flow Launcher` and use the Refresh command).');
