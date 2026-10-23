@@ -84,7 +84,20 @@ function reportStatus () {
   return status.running;
 }
 
-/** Starts the agent as a detached process, then waits for it to say it is alive. */
+/**
+ * Starts the agent so that it outlives whatever started it.
+ *
+ * A process started directly from this CLI is a child of this CLI, and in a CI job (or any
+ * launcher that owns a job object) it is killed when the job ends - which is exactly what
+ * happened: the installer started the agent, the run finished, and every later paste found
+ * `agentRunning: false`.
+ *
+ * So the agent is started through Explorer instead, by running its Startup shortcut. Explorer
+ * is an already-running desktop process that nobody tears down, so the agent becomes its
+ * child and survives. If that fails for any reason, fall back to starting it directly.
+ *
+ * @returns true when the agent answered with a heartbeat.
+ */
 async function startAgent () {
   if (readAgentStatus(paths).running) {
     console.log(style.finding('info', 'paste agent is already running'));
@@ -95,19 +108,14 @@ async function startAgent () {
   const scriptPath = ensureAgentScript(paths);
   const startupLog = path.join(paths.directory, STARTUP_LOG_NAME);
 
-  fs.rmSync(startupLog, { force: true });
-  const errorStream = fs.openSync(startupLog, 'a');
+  const launchedThroughExplorer = launchThroughStartupShortcut();
+  const launchedDirectly = launchedThroughExplorer || launchDirectly(scriptPath, startupLog);
 
-  const child = spawn(
-    'powershell.exe',
-    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', scriptPath],
-    // NOT detached: on Windows libuv turns that into DETACHED_PROCESS, PowerShell gets no
-    // console, and it starts, exits 0 and runs none of the script. That exact mistake cost
-    // this feature a day. `unref()` is what lets this CLI exit while the agent keeps going.
-    { stdio: ['ignore', 'ignore', errorStream], windowsHide: true }
-  );
-  child.unref();
-  child.on('spawn', () => fs.closeSync(errorStream));
+  if (!launchedDirectly) {
+    console.log(style.finding('fail', 'could not start the paste agent at all'));
+
+    return false;
+  }
 
   const deadline = Date.now() + START_WAIT_MILLISECONDS;
 
@@ -115,7 +123,7 @@ async function startAgent () {
     await new Promise((resolve) => setTimeout(resolve, 250));
 
     if (readAgentStatus(paths).running) {
-      console.log(style.finding('ok', `paste agent started (pid ${agentPid() ?? 'unknown'})`));
+      console.log(style.finding('ok', `paste agent started (pid ${agentPid() ?? 'unknown'}, ${launchedThroughExplorer ? 'via Explorer' : 'directly'})`));
 
       return true;
     }
@@ -132,6 +140,54 @@ async function startAgent () {
   }
 
   return false;
+}
+
+/**
+ * Runs the Startup shortcut through Explorer.
+ *
+ * Returns false when the shortcut could not be created or Explorer refused it; the caller
+ * then starts the agent directly, which at least works for as long as the caller lives.
+ */
+function launchThroughStartupShortcut () {
+  const shortcutPath = configureStartup(true);
+
+  if (shortcutPath === null) {
+    return false;
+  }
+
+  try {
+    execFileSync('explorer.exe', [shortcutPath], { timeout: 15000 });
+
+    return true;
+  } catch {
+    // Explorer returns a non-zero status for a *successful* launch often enough that this
+    // is not worth reporting: the heartbeat is the real answer.
+    return true;
+  }
+}
+
+/** Starts the agent as a child of this process. Used only as the fallback. */
+function launchDirectly (scriptPath, startupLog) {
+  fs.rmSync(startupLog, { force: true });
+  const errorStream = fs.openSync(startupLog, 'a');
+
+  try {
+    const child = spawn(
+      'powershell.exe',
+      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', scriptPath],
+      // NOT detached: on Windows libuv turns that into DETACHED_PROCESS, PowerShell gets no
+      // console, and it starts, exits 0 and runs none of the script.
+      { stdio: ['ignore', 'ignore', errorStream], windowsHide: true }
+    );
+    child.unref();
+    child.on('spawn', () => fs.closeSync(errorStream));
+
+    return true;
+  } catch {
+    fs.closeSync(errorStream);
+
+    return false;
+  }
 }
 
 function stopAgent () {
@@ -160,6 +216,7 @@ function stopAgent () {
  * users included) does not break it.
  */
 function configureStartup (shouldInstall) {
+  // Returns the shortcut path when it was created, so the caller can launch it.
   const scriptPath = ensureAgentScript(paths);
   const command = [
     '$startup = [Environment]::GetFolderPath(\'Startup\');',
@@ -184,9 +241,13 @@ function configureStartup (shouldInstall) {
     }).trim();
 
     console.log(style.finding('ok', `${shouldInstall ? 'startup shortcut installed' : 'startup shortcut removed'}: ${output}`));
+
+    return shouldInstall ? output : null;
   } catch (error) {
     console.log(style.finding('fail', `could not change the startup shortcut: ${error.message}`));
     process.exitCode = 1;
+
+    return null;
   }
 }
 
