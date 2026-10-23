@@ -77,14 +77,16 @@ jobs:
         run: npm run doctor
         continue-on-error: true
 
-      - name: Windows environment probe
-        run: npm run diagnose
-        continue-on-error: true
-
       # The real experiment behind the paste bug: run the plugin's own spawn function and
       # compare it with the same script under one changed spawn option at a time.
       - name: Paste helper spawn probe
         run: npm run check:paste-spawn
+        continue-on-error: true
+
+      # Runs after the probe on purpose: diagnose copies the installed plugin's trace, and
+      # the probe writes to the repository's copy, so this order keeps the real evidence.
+      - name: Windows environment probe
+        run: npm run diagnose
         continue-on-error: true
 
       # Installs the freshly built plugin into this machine's Flow Launcher, with tracing

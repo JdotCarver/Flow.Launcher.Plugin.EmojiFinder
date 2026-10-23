@@ -198,18 +198,16 @@ function runWindowsDiagnostic () {
  * lives in the repository. Copying it back here is what makes "run diagnose, commit
  * dogfood/" a single step for the maintainer.
  *
- * The newest file wins, deliberately. Preferring the repository copy would be wrong: it is
- * committed, so it always exists, and diagnosis would keep reading yesterday's evidence
- * while the installed plugin's fresh trace sat ignored next to it.
+ * The installed copy always wins when it exists. It is the only file that contains what
+ * Flow Launcher actually did: the repository copy is committed (so it exists even when
+ * nothing has run) and the spawn probe writes to it too, which makes "newest" a poor
+ * tie-breaker - a probe would beat the real attempt that happened minutes earlier.
  */
 function collectRuntimeTrace () {
   const candidates = [
-    RUNTIME_LOG,
-    installedPluginTrace()
-  ]
-    .filter(candidate => candidate !== null && fs.existsSync(candidate))
-    .map(candidate => ({ path: candidate, modifiedAt: fs.statSync(candidate).mtimeMs }))
-    .sort((first, second) => second.modifiedAt - first.modifiedAt);
+    installedPluginTrace(),
+    RUNTIME_LOG
+  ].filter(candidate => candidate !== null && fs.existsSync(candidate));
 
   if (candidates.length === 0) {
     return {
@@ -218,7 +216,7 @@ function collectRuntimeTrace () {
     };
   }
 
-  const source = candidates[0].path;
+  const source = candidates[0];
 
   if (source !== RUNTIME_LOG) {
     fs.mkdirSync(REPORT_DIRECTORY, { recursive: true });
