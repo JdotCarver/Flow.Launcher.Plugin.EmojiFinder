@@ -14,13 +14,16 @@ export type Settings = {
   maxResults?: string
 };
 
+/** The action Flow runs when the user picks a result. */
+export type JsonRpcAction = {
+  method: string
+  parameters: Parameters
+};
+
 export type Result = {
   Title: string
   Subtitle: string
-  JsonRPCAction?: {
-    method: string
-    parameters: Parameters
-  }
+  JsonRPCAction?: JsonRpcAction
   IcoPath?: string
   score?: number
 };

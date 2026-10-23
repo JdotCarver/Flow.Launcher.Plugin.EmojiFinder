@@ -65,13 +65,49 @@ describe('query', () => {
     });
   });
 
-  test('carries the notification setting into the action parameters', () => {
-    const { result } = queryAndReadPayload('smile', {
-      enableNotification: false,
-      maxResults: '1'
+  describe('choosing the copy action', () => {
+    test('with notifications on, our own action is used so the emoji can be named', () => {
+      const { result } = queryAndReadPayload('smile', {
+        enableNotification: true,
+        maxResults: '1'
+      });
+
+      expect(result[0]?.JsonRPCAction).toEqual({
+        method: 'copy',
+        parameters: [expect.any(String), true]
+      });
     });
 
-    expect(result[0]?.JsonRPCAction?.parameters[1]).toBe(false);
+    test('with notifications off, Flow copies the emoji itself and no process starts', () => {
+      const { result } = queryAndReadPayload('smile', {
+        enableNotification: false,
+        maxResults: '1'
+      });
+
+      expect(result[0]?.JsonRPCAction).toEqual({
+        method: 'Flow.Launcher.CopyToClipboard',
+        parameters: [expect.any(String), false, false]
+      });
+    });
+
+    test('the native action always carries all three arguments', () => {
+      // Flow resolves Flow.Launcher.* by exact parameter types via reflection, and C#
+      // defaults do not take part in that lookup: a two-argument call is silently
+      // dropped. This test exists so nobody "simplifies" the call.
+      const { result } = queryAndReadPayload('smile', { enableNotification: false });
+      const parameters = result[0]?.JsonRPCAction?.parameters ?? [];
+
+      expect(parameters).toHaveLength(3);
+      expect(parameters[0]).toEqual(expect.any(String));
+      expect(parameters[1]).toBe(false);
+      expect(parameters[2]).toBe(false);
+    });
+
+    test('treats a missing notification setting as enabled, like Flow does', () => {
+      const { result } = queryAndReadPayload('smile', { maxResults: '1' });
+
+      expect(result[0]?.JsonRPCAction?.method).toBe('copy');
+    });
   });
 
   test('shows the emoji name as the title and its keywords as the subtitle', () => {

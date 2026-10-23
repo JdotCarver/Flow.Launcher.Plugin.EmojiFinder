@@ -1,6 +1,8 @@
 # Design: instant copy, and paste at the cursor
 
-Status: **proposal, not implemented.** Numbers below are measured in this repository or
+Status: **copy half implemented** (see §1 and docs/PERF_ANALYSIS.md §6); paste is
+still a proposal. Decisions taken: PowerShell injector to start with, a single setting
+for copy vs paste (no second keyword), copy landed first. Numbers below are measured in this repository or
 read from Flow Launcher's source; the Windows-specific latency is the one thing I cannot
 measure from here, so it is called out where it matters.
 

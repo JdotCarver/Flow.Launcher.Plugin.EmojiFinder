@@ -2,6 +2,7 @@
 
 import { describe, expect, test } from 'vitest';
 import {
+  DEFAULT_ENABLE_NOTIFICATION,
   DEFAULT_MAX_RESULTS,
   MAX_SELECTABLE_RESULTS,
   parseMaxResults,
@@ -41,10 +42,22 @@ describe('parseMaxResults', () => {
 
 describe('readSettings', () => {
   test('resolves the full settings object', () => {
-    expect(readSettings({ enableNotification: true, maxResults: '10' })).toEqual({ maxResults: 10 });
+    expect(readSettings({ enableNotification: false, maxResults: '10' })).toEqual({
+      maxResults: 10,
+      enableNotification: false
+    });
   });
 
   test('survives a missing settings object', () => {
-    expect(readSettings(undefined)).toEqual({ maxResults: DEFAULT_MAX_RESULTS });
+    expect(readSettings(undefined)).toEqual({
+      maxResults: DEFAULT_MAX_RESULTS,
+      enableNotification: DEFAULT_ENABLE_NOTIFICATION
+    });
+  });
+
+  test('only an explicit false disables notifications', () => {
+    expect(readSettings({ enableNotification: true }).enableNotification).toBe(true);
+    expect(readSettings({}).enableNotification).toBe(true);
+    expect(readSettings({ enableNotification: false }).enableNotification).toBe(false);
   });
 });

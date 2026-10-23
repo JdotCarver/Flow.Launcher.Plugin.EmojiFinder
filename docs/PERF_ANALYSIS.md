@@ -207,3 +207,29 @@ Deliberate behaviour changes (all documented in tests):
 
 Not done yet: the native `Flow.Launcher.CopyToClipboard` action (deferred with the
 "paste at cursor" feature), the precomputed index (deferred with user-defined aliases).
+
+---
+
+## 6. Enter (the copy action)
+
+Picking a result used to cost ~100–150 ms of dead time: a second `node` process, the
+`clipboardy` module graph (~30–40 ms), then `execaSync(clipboard_x86_64.exe --copy)`.
+
+Now the action depends on the notification setting:
+
+| Notifications | Action emitted | Cost after Enter |
+|---|---|---|
+| **off** | `Flow.Launcher.CopyToClipboard` (Flow runs it in-process, our plugin never starts) | **0 ms** |
+| on (default, upstream behaviour) | `copy` → our own process, so the toast can name the emoji | ~100–150 ms, accepted |
+
+Why not always native: Flow's `CopyToClipboard` shows Flow's generic localized message
+("Copy Text / Copy Text completed"), never the emoji. Naming the emoji is the whole point
+of this plugin's notification, so it stays opt-in slow rather than opt-in generic.
+
+Flow resolves `Flow.Launcher.*` actions by exact parameter types through reflection
+(`IPublicAPI.GetMethod`); C# optional parameters are invisible to that lookup, so a
+two-argument call is silently dropped. All three arguments are always sent, and a test
+guards it.
+
+`clipboardy` is still imported lazily inside `copy()`, so the query path never pays for
+it; with notifications off it is never imported at all.

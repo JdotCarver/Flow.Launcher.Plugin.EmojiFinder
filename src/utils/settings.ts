@@ -17,6 +17,17 @@ export const DEFAULT_MAX_RESULTS = 25;
 export const MAX_SELECTABLE_RESULTS = 250;
 
 /**
+ * Whether to show a notification after copying, when the user has not chosen otherwise.
+ * Matches SettingsTemplate.yaml, which offers it checked (upstream behaviour).
+ */
+export const DEFAULT_ENABLE_NOTIFICATION = true;
+
+export type ResolvedSettings = {
+  maxResults: number
+  enableNotification: boolean
+};
+
+/**
  * Resolves how many results the plugin may return.
  *
  * @param value Raw value from the settings object, or undefined when absent.
@@ -35,8 +46,9 @@ export function parseMaxResults (value: string | number | undefined): number {
 /**
  * Resolves every setting the query path needs, in one place.
  */
-export function readSettings (settings: Settings | undefined): { maxResults: number } {
+export function readSettings (settings: Settings | undefined): ResolvedSettings {
   return {
-    maxResults: parseMaxResults(settings?.maxResults)
+    maxResults: parseMaxResults(settings?.maxResults),
+    enableNotification: settings?.enableNotification !== false
   };
 }

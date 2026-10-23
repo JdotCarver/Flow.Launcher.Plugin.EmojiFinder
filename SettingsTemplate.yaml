@@ -3,7 +3,7 @@ body:
     attributes:
       name: enableNotification
       label: Show a system notification when selecting an emoji
-      description: "If checked, a system notification is shown when an emoji is copied to the clipboard."
+      description: "Shows which emoji was copied. Turn this off for the fastest possible copy: the clipboard is then filled directly by Flow Launcher instead of by an extra process."
       defaultValue: true
   - type: dropdown
     attributes:
