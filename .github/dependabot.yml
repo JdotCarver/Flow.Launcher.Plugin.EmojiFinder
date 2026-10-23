@@ -1,0 +1,40 @@
+# .github/dependabot.yml
+#
+# Weekly dependency updates, so the tree cannot silently drift back into the state where
+# `npm install` printed 25 vulnerabilities (reported 2026-10-23 and fixed the same day;
+# see docs/DEPENDENCIES.md).
+#
+# Grouped so a normal week is one pull request, not fifteen.
+
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      # Linters and their plugin trees move together; separate PRs conflict constantly.
+      lint:
+        patterns:
+          - eslint
+          - neostandard
+          - "@typescript-eslint/*"
+          - typescript-eslint
+      # Test runner and everything it drags in (vite, rollup, tinypool...).
+      test:
+        patterns:
+          - vitest
+          - "@vitest/*"
+          - vite
+          - rollup
+      # Everything else, one PR.
+      other:
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -24,7 +24,7 @@
     "eslint": "^9.10.0",
     "neostandard": "^0.12.1",
     "typescript": "^5.5.4",
-    "vitest": "^3.2.4"
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "clipboardy": "^4.0.0",

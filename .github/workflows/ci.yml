@@ -20,6 +20,14 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      # What ships to users must be clean: this fails the build.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+      # Dev tooling vulnerabilities cannot reach a user's machine, but they can reach
+      # the developer's: report them without blocking a release.
+      - name: Audit development dependencies
+        run: npm audit --audit-level=high
+        continue-on-error: true
       - name: Lint
         run: npm run lint
       - name: Test
