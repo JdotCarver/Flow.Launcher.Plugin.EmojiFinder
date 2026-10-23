@@ -38,8 +38,15 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
   portable). Scanned one level deep only. The store copy shares this plugin's ID, so
   only one of the two may exist.
 - Benchmarks live in `tools/bench.mjs`; methodology and results in `docs/PERF_ANALYSIS.md`.
+- Results whose action method starts with `Flow.Launcher.` are executed **in-process by
+  Flow**, without spawning the plugin at all. Flow resolves those by exact parameter
+  *types* (`IPublicAPI.GetMethod`), so optional C# parameters do not exist for us: send
+  every argument. `CopyToClipboard(string, bool directCopy, bool showDefaultNotification)`.
+- `IPublicAPI` has no key-injection/paste API (checked the whole interface). Paste at the
+  cursor requires synthesising Ctrl+V; design in `docs/PASTE_AT_CURSOR.md`.
+- Dependency policy and audit reasoning: `docs/DEPENDENCIES.md`.
 
-## Java/TS conventions in this repo
+## Code conventions in this repo
 
 - neostandard lint (2-space, semicolons, single quotes); `.editorconfig` matches.
 - Every file starts with a comment naming the file.
