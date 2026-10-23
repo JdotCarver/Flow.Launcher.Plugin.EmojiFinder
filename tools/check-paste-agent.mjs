@@ -42,6 +42,15 @@ const REQUEST_SETTLE_MILLISECONDS = 4000;
 
 const style = createStyle();
 
+/** Size of a file in bytes, or 0 when it does not exist. */
+function existingBytes (filePath) {
+  try {
+    return fs.statSync(filePath).size;
+  } catch {
+    return 0;
+  }
+}
+
 function readIfPresent (filePath) {
   try {
     return fs.readFileSync(filePath, 'utf8');
@@ -92,9 +101,10 @@ async function checkOnWindows () {
 
   const paths = resolveAgentPaths();
 
-  // Start from a clean log, so "the agent handled our request" cannot be an old line. The
-  // agent always logs now, into its own data folder, so this works without tracing.
-  fs.rmSync(paths.log, { force: true });
+  // Note where the log ends instead of deleting it: the shared log also holds what really
+  // happened when the user last tried, and deleting it erased exactly the evidence we came
+  // for. Only lines written after this point count as ours.
+  const logOffset = existingBytes(paths.log);
   ensureAgentScript(paths);
 
   // The check starts the agent itself and keeps the handle. The CLI would have exited, and
@@ -123,7 +133,7 @@ async function checkOnWindows () {
 
   await new Promise((resolve) => setTimeout(resolve, REQUEST_SETTLE_MILLISECONDS));
 
-  const log = readIfPresent(paths.log);
+  const log = readIfPresent(paths.log).slice(logOffset);
   findings.push({ label: 'agent logs the request with its sequence number', ok: log.includes(`request sequence=${request.sequence}`) });
   findings.push({ label: 'agent refuses to paste while the clipboard holds something else', ok: log.includes('decision paste=False') });
   findings.push({ label: 'agent is still alive after handling a request', ok: readAgentStatus(paths).running });
