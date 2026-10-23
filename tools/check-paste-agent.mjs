@@ -37,7 +37,6 @@ const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
 const DOGFOOD_DIRECTORY = path.join(PLUGIN_ROOT, 'dogfood');
 const REPORT_FILE = path.join(DOGFOOD_DIRECTORY, 'paste-agent-check.json');
 
-
 /** Long enough for the agent to see the request and finish its (refused) paste attempt. */
 const REQUEST_SETTLE_MILLISECONDS = 4000;
 
