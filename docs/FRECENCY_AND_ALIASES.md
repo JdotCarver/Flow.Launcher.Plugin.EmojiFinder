@@ -77,7 +77,12 @@ Files, both written atomically (temporary file + rename, like `request.json`):
 | file | contents |
 |---|---|
 | `usage.json` | `{ "🙈": { "count": 3, "lastUsedAt": 1792757171938 }, ... }`, capped |
-| `aliases.json` | `{ "shipit": "🚀", "shrug": "🤷" }` |
+| `aliases.json` | `{ "_comment": "...", "shipit": "🚀", "shrug": "🤷" }` |
+
+Keys starting with `_` are documentation, not aliases: every reader skips them, every writer keeps
+them, so the file can explain itself to someone who would rather edit it by hand. A fresh install
+has no file until something is saved, so "Open my aliases file" creates it with that guidance
+entry first - which is why opening it is an action of ours rather than a direct API call.
 
 Corrupt or unreadable files mean "no history" and "no aliases", never a broken query: the same
 rule `settings.ts` already follows for bad settings.
@@ -86,7 +91,7 @@ rule `settings.ts` already follows for bad settings.
 
 ```
 e addalias 💪 swole        save "swole" for 💪
-e aliases                  list them, plus "open my aliases file" and "open the emoji database"
+e aliases                  list them, plus "open my aliases file"
 e removealias swole        remove one
 ```
 
@@ -248,9 +253,26 @@ feature needs:
   the stored string (`copy`) against the options. `migrateEnterModeSetting` rewrites the legacy
   value in Flow's `Settings.json`; `parseDefaultAction` accepts both.
 
+## Hand-editing: one file, and it is not the database
+
+`aliases.json` is the only file a user should ever edit. The emoji database that ships with the
+plugin is `emojilib`'s `emoji-en-US.json`, an upstream dependency inside the plugin folder: it is
+replaced wholesale on every plugin update, so anything written there disappears - and recommending
+it invites issues about aliases vanishing. The entries point at the aliases file only, its subtitle
+says so, and the file's own `_comment` repeats it for anyone who opens it before saving anything.
+
+The open action was also broken, and silently. `Flow.Launcher.ShellRun('', path)` calls
+`ShellCommand.SetProcessStartInfo(filename: path, arguments: path)`, i.e. it starts the *file* as a
+program with itself as its argument; for a JSON file that fails with nothing to show. The entry now
+runs our own `openaliases` action - so the file can be created first - and asks Flow for
+`Flow.Launcher.OpenAppUri(path)`, which ends in `Process.Start(..., UseShellExecute = true)`, the
+real "open with the default program". `OpenAppUri` takes a single string, which matters:
+`ExecuteFlowLauncherAPI` resolves methods by exact parameter types, so `OpenUrl(string, bool?)`
+with its optional second parameter cannot be reached from a JSON result.
+
 ## The settings page cannot have the button (evidence)
 
-The maintainer asked for a settings button that opens the aliases file, and one for the database.
+The maintainer asked for a settings button that opens the aliases file.
 `JsonRPCPluginSettings` (Flow Launcher's settings renderer for JS plugins) knows exactly these
 item types:
 
@@ -269,8 +291,7 @@ There is no `button`. The two closest are:
 So the clickable "open it" lives one keystroke into Flow instead, where the path is known:
 
 ```
-e aliases      ->  "Open your aliases file"    (Flow.Launcher.ShellRun('', <path>))
-                   "Open the emoji database"   (same, the emojilib JSON)
+e aliases      ->  "Open my aliases file"   (our `openaliases` action, then Flow.Launcher.OpenAppUri)
                    one row per alias, Enter removes it
 ```
 

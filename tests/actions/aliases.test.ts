@@ -27,8 +27,8 @@ function createSettingsDirectory (): string {
   return directory;
 }
 
-function paths (settingsDirectory: string | null): { settingsDirectory: string | null, emojiDatabase: string } {
-  return { settingsDirectory, emojiDatabase: 'C:\\Plugin\\node_modules\\emojilib\\dist\\emoji-en-US.json' };
+function paths (settingsDirectory: string | null): { settingsDirectory: string | null } {
+  return { settingsDirectory };
 }
 
 afterEach(() => {
@@ -132,7 +132,7 @@ describe('buildAliasCommandResults', () => {
     expect(readAliases(directory)).toEqual({ swole: '💪' });
   });
 
-  test('listing shows the files first, then every alias', () => {
+  test('listing shows the file first, then every alias', () => {
     const directory = createSettingsDirectory();
 
     saveAlias(directory, 'swole', '💪');
@@ -141,11 +141,13 @@ describe('buildAliasCommandResults', () => {
     const listed = results({ kind: 'list' }, directory);
 
     expect(listed[0]?.Title).toBe('Open my aliases file');
-    expect(listed[1]?.Title).toBe('Open the emoji database');
-    expect(listed[2]?.Title).toContain('shipit');
-    expect(listed[2]?.Subtitle).toContain('remove');
-    expect(listed[3]?.Title).toContain('swole');
-    expect(listed[2]?.JsonRPCAction).toEqual({ method: 'removealias', parameters: ['shipit'] });
+    expect(listed[1]?.Title).toContain('shipit');
+    expect(listed[1]?.Subtitle.toLowerCase()).toContain('remove');
+    expect(listed[2]?.Title).toContain('swole');
+    expect(listed[1]?.JsonRPCAction).toEqual({ method: 'removealias', parameters: ['shipit'] });
+    // The emoji database is not offered: it ships with the plugin and updates replace it, so
+    // hand-edits there would vanish and turn into bug reports.
+    expect(listed.map((result) => result.Title)).not.toContain('Open the emoji database');
   });
 
   test('an empty list explains how to make one', () => {
@@ -155,13 +157,12 @@ describe('buildAliasCommandResults', () => {
     expect(listed.at(-1)?.Subtitle).toContain('addalias');
   });
 
-  test('the two open-file entries use a Flow Launcher method it can resolve', () => {
+  test('opening the file is our own action, so the file can be created first', () => {
     const listed = results({ kind: 'list' }, createSettingsDirectory());
 
-    for (const result of listed.slice(0, 2)) {
-      expect(result.JsonRPCAction?.method).toBe('Flow.Launcher.ShellRun');
-      expect(result.JsonRPCAction?.parameters).toHaveLength(2);
-    }
+    // ShellRun cannot open a data file - it starts the file name as a program - and the file has
+    // to exist before it can be opened, which is a write only an action may do.
+    expect(listed[0]?.JsonRPCAction).toEqual({ method: 'openaliases', parameters: [] });
   });
 });
 
@@ -190,7 +191,7 @@ describe('the context menu', () => {
       method: 'Flow.Launcher.CopyToClipboard',
       parameters: ['e addalias 💪 ', false, true]
     });
-    expect(add.Subtitle).toContain('paste');
+    expect(add.Subtitle.toLowerCase()).toContain('paste');
   });
 
   test('uses the keyword from the manifest, not a hard-coded e', () => {

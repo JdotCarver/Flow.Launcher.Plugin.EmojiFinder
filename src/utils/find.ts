@@ -9,7 +9,6 @@
 // the handful of entries that are actually returned.
 
 import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import type { AliasRecord, UsageRecord } from './pluginData.js';
 
 export type FindResult = {
@@ -23,11 +22,6 @@ export type FindResult = {
 
 /** `emojilib`'s data file, resolved next to the module so the cwd does not matter. */
 const EMOJI_DATA_URL = new URL('../../node_modules/emojilib/dist/emoji-en-US.json', import.meta.url);
-
-/** Where that data file is, as a path: the settings page and the alias list point at it. */
-export function emojiDatabasePath (): string {
-  return fileURLToPath(EMOJI_DATA_URL);
-}
 
 type EmojiEntry = [emoji: string, keywords: string[]];
 

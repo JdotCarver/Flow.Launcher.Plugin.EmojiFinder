@@ -9,9 +9,8 @@ import { buildContextMenu } from './actions/aliases.js';
 import { copy } from './actions/copy.js';
 import { paste } from './actions/paste.js';
 import { query } from './actions/query.js';
-import { emojiDatabasePath } from './utils/find.js';
 import { sendJsonRpcRequest } from './utils/flowLauncher.js';
-import { readActionKeyword, removeAlias, resolvePluginSettingsDirectory, saveAlias } from './utils/pluginData.js';
+import { ensureAliasesFile, readActionKeyword, removeAlias, resolvePluginSettingsDirectory, saveAlias } from './utils/pluginData.js';
 import { trace } from './utils/trace.js';
 
 const args: Arguments = JSON.parse(process.argv[2] ?? '{}');
@@ -34,11 +33,7 @@ if (method === 'context_menu') {
   const settingsDirectory = resolvePluginSettingsDirectory();
 
   sendJsonRpcRequest({
-    result: buildContextMenu(
-      emoji,
-      { settingsDirectory, emojiDatabase: emojiDatabasePath() },
-      readActionKeyword()
-    )
+    result: buildContextMenu(emoji, { settingsDirectory }, readActionKeyword())
   });
 }
 
@@ -90,4 +85,31 @@ if (method === 'removealias') {
     method: 'Flow.Launcher.ShowMsg',
     parameters: [`Removed the alias "${alias}"`, 'Flow Launcher Emoji Finder', 'img\\app.png']
   });
+}
+
+// Enter on "Open my aliases file": make sure the file exists (with its guidance entry) and open
+// it with whatever the user has associated with JSON.
+if (method === 'openaliases') {
+  const settingsDirectory = resolvePluginSettingsDirectory();
+
+  trace('aliases:open', { found: settingsDirectory !== null });
+
+  if (settingsDirectory === null) {
+    // Self-heal rather than fail silently: say what is wrong, in the one place they will look.
+    sendJsonRpcRequest({
+      method: 'Flow.Launcher.ShowMsg',
+      parameters: [
+        'Could not find the plugin\'s settings folder',
+        'Flow Launcher creates it next to its Plugins folder; restart Flow Launcher and try again',
+        'img\\app.png'
+      ]
+    });
+  } else {
+    // OpenAppUri(path) ends in Process.Start(UseShellExecute), i.e. the default program. It takes
+    // one string, which is what IPublicAPI.GetMethod's exact parameter-type lookup needs.
+    sendJsonRpcRequest({
+      method: 'Flow.Launcher.OpenAppUri',
+      parameters: [ensureAliasesFile(settingsDirectory)]
+    });
+  }
 }

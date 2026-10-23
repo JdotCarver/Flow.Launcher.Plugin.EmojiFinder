@@ -15,6 +15,7 @@ import {
   USAGE_FILE_NAME,
   ALIASES_FILE_NAME,
   FLOW_SETTINGS_FILE_NAME,
+  ensureAliasesFile,
   migrateEnterModeSetting,
   readActionKeyword,
   readAliases,
@@ -65,6 +66,52 @@ describe('readActionKeyword', () => {
   test('this plugin\'s own manifest declares e', () => {
     // The subtitle shows the command, so the constant and the file have to agree.
     expect(readActionKeyword()).toBe('e');
+  });
+});
+
+describe('ensureAliasesFile', () => {
+  test('creates the file with its guidance entry when it is not there yet', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'aliases-'));
+    const file = ensureAliasesFile(directory);
+
+    // A fresh install has no file: nothing has been saved. Opening it has to land in a file that
+    // exists and explains the format, or hand-editing starts with a puzzle.
+    const written = JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, string>;
+
+    expect(Object.keys(written)).toContain('_comment');
+    expect(written._comment).toContain('"name": "emoji"');
+    // The one warning worth having in the file itself.
+    expect(written._comment).toContain('emoji database');
+
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  test('never overwrites a file that already has aliases in it', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'aliases-'));
+
+    saveAlias(directory, 'swole', '💪');
+    ensureAliasesFile(directory);
+
+    expect(readAliases(directory)).toEqual({ swole: '💪' });
+
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  test('the guidance entry is not an alias, and survives the first save', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'aliases-'));
+
+    ensureAliasesFile(directory);
+    saveAlias(directory, 'swole', '💪');
+
+    // It must not show up in the list or in find()'s alias map...
+    expect(readAliases(directory)).toEqual({ swole: '💪' });
+    // ...and saving must not delete the only explanation of the format.
+    const written = JSON.parse(fs.readFileSync(path.join(directory, ALIASES_FILE_NAME), 'utf8')) as Record<string, string>;
+
+    expect(written._comment).toBeDefined();
+    expect(written.swole).toBe('💪');
+
+    fs.rmSync(directory, { recursive: true, force: true });
   });
 });
 

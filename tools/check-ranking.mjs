@@ -31,7 +31,7 @@ import process from 'node:process';
 import { performance } from 'node:perf_hooks';
 import { parseAliasCommand } from '../dist/actions/aliases.js';
 import { find } from '../dist/utils/find.js';
-import { readAliases, readUsage, recordUsage, saveAlias } from '../dist/utils/pluginData.js';
+import { ensureAliasesFile, readAliases, readUsage, recordUsage, saveAlias } from '../dist/utils/pluginData.js';
 import { createStyle } from './report-style.mjs';
 
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
@@ -298,9 +298,32 @@ function checkAliasCommands () {
   saveAlias(settings, 'swole', '💪');
   const saved = readAliases(settings);
 
+  // The template that "open my aliases file" leaves for a hand-editor: a fresh folder, because
+  // the file above already exists and must never be overwritten.
+  const fresh = createTemporarySettings();
+  const template = JSON.parse(fs.readFileSync(ensureAliasesFile(fresh), 'utf8'));
+
   fs.rmSync(settings, { recursive: true, force: true });
+  fs.rmSync(fresh, { recursive: true, force: true });
 
   finding(saved.swole === '💪' ? 'pass' : 'fail', 'saving an alias writes it where the query will read it');
+  finding(
+    typeof template._comment === 'string' && template._comment.includes('emoji database'),
+    'a fresh aliases file explains itself, and warns off the database',
+    String(template._comment ?? '').slice(0, 60)
+  );
+
+  // Opening the file is our own action: ShellRun would start a JSON file as a program, which is
+  // why nothing happened. Outside a Flow layout there is no settings folder, and the plugin has
+  // to say so rather than do nothing.
+  const opened = runPlugin({ method: 'openaliases', parameters: [], settings: {} });
+
+  finding(
+    opened.payload?.method === 'Flow.Launcher.ShowMsg' ||
+      opened.payload?.method === 'Flow.Launcher.OpenAppUri',
+    'opening the aliases file asks Flow for something it can do',
+    String(opened.payload?.method ?? opened.stdout.trim().slice(0, 60))
+  );
 }
 
 function checkProcessCost () {

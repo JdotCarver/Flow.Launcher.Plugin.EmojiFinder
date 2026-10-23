@@ -10,7 +10,7 @@
 import type { ResolvedSettings } from '../utils/settings.js';
 import type { JsonRpcAction, Result, Settings } from '../types.js';
 import { buildAliasCommandResults, parseAliasCommand } from './aliases.js';
-import { emojiDatabasePath, find } from '../utils/find.js';
+import { find } from '../utils/find.js';
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
 import { migrateEnterModeSetting, readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
 import { readSettings } from '../utils/settings.js';
@@ -57,10 +57,7 @@ export function query (input: string | undefined, settings: Settings): void {
   if (settings.defaultAction !== undefined && settings.defaultAction !== 'Copy Mode' && settings.defaultAction !== 'Paste Mode') {
     migrateEnterModeSetting(settingsDirectory);
   }
-  const aliasResults = buildAliasCommandResults(
-    parseAliasCommand(search),
-    { settingsDirectory, emojiDatabase: emojiDatabasePath() }
-  );
+  const aliasResults = buildAliasCommandResults(parseAliasCommand(search), { settingsDirectory });
 
   if (aliasResults !== null) {
     sendJsonRpcRequest({ result: aliasResults });

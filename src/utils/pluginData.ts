@@ -42,6 +42,24 @@ export const ALIASES_FILE_NAME = 'aliases.json';
  */
 export const MAXIMUM_USAGE_ENTRIES = 300;
 
+/**
+ * The contents the aliases file is created with, when the user asks to open it before saving one.
+ *
+ * JSON has no comments, so the guidance is an entry whose key starts with `_`: ignored by every
+ * reader here, preserved by every writer, and invisible in the alias list. It is the only place a
+ * user who would rather hand-edit the file is told what the format is - and it is the *only* file
+ * they should edit. The emoji database that ships with the plugin is an upstream dependency and is
+ * replaced on every update, so anything added there disappears.
+ */
+const ALIASES_FILE_TEMPLATE = {
+  _comment: 'Write aliases here as "name": "emoji", for example "swole": "\u{1F4AA}". Entries whose name starts with _ are ignored. This file lives in the settings folder, so plugin updates keep it - never edit the emoji database that ships with the plugin, updates replace it.'
+};
+
+/** Keys starting with `_` are documentation, not aliases. */
+function isDocumentationKey (key: string): boolean {
+  return key.startsWith('_');
+}
+
 export type UsageRecord = Record<string, { count: number, lastUsedAt: number }>;
 
 export type AliasRecord = Record<string, string>;
@@ -248,22 +266,48 @@ export function recordUsage (settingsDirectory: string, emoji: string, now: numb
  * query is compared in. A value that is not a non-empty string is ignored rather than trusted.
  */
 export function readAliases (settingsDirectory: string): AliasRecord {
-  const stored = readJsonFile<Record<string, unknown>>(path.join(settingsDirectory, ALIASES_FILE_NAME));
+  const stored = readRawAliases(settingsDirectory);
   const aliases: AliasRecord = {};
 
-  if (stored === null || typeof stored !== 'object') {
+  if (stored === null) {
     return aliases;
   }
 
   for (const [alias, emoji] of Object.entries(stored)) {
     const trimmed = alias.trim().toLowerCase();
 
-    if (trimmed !== '' && typeof emoji === 'string' && emoji !== '') {
+    if (!isDocumentationKey(trimmed) && trimmed !== '' && typeof emoji === 'string' && emoji !== '') {
       aliases[trimmed] = emoji;
     }
   }
 
   return aliases;
+}
+
+/** Everything in the file, documentation keys included, or null when it cannot be read. */
+function readRawAliases (settingsDirectory: string): Record<string, unknown> | null {
+  const stored = readJsonFile<Record<string, unknown>>(path.join(settingsDirectory, ALIASES_FILE_NAME));
+
+  return stored === null || typeof stored !== 'object' ? null : stored;
+}
+
+/**
+ * The aliases file, created with its guidance entry if it is not there yet.
+ *
+ * Called from the action that opens the file. A user who wants to edit by hand has to end up in
+ * a file that exists and says what to write; on a fresh install it does not exist, because
+ * nothing has been saved yet.
+ *
+ * @returns The path to the file.
+ */
+export function ensureAliasesFile (settingsDirectory: string): string {
+  const file = path.join(settingsDirectory, ALIASES_FILE_NAME);
+
+  if (!fs.existsSync(file)) {
+    writeFileAtomically(file, JSON.stringify(ALIASES_FILE_TEMPLATE, null, 2));
+  }
+
+  return file;
 }
 
 /** Adds one alias and returns the saved map. An existing alias with the same name is replaced. */
@@ -272,7 +316,17 @@ export function saveAlias (settingsDirectory: string, alias: string, emoji: stri
   const trimmed = alias.trim().toLowerCase();
 
   aliases[trimmed] = emoji;
-  writeFileAtomically(path.join(settingsDirectory, ALIASES_FILE_NAME), JSON.stringify(aliases));
+
+  // Documentation keys survive a save: the file is written with what it says about itself, so
+  // the first alias does not silently delete the only explanation of the format.
+  const documentation = Object.fromEntries(
+    Object.entries(readRawAliases(settingsDirectory) ?? {}).filter(([key]) => isDocumentationKey(key))
+  );
+
+  writeFileAtomically(
+    path.join(settingsDirectory, ALIASES_FILE_NAME),
+    JSON.stringify({ ...documentation, ...aliases })
+  );
 
   return aliases;
 }

@@ -102,13 +102,19 @@ function emojiIcon (emoji: string): string {
   return getIconFileName(emoji) ?? 'img\\app.png';
 }
 
-/** An action that opens a file with whatever the user has associated with it. */
-function openFileAction (filePath: string): JsonRpcAction {
-  // ShellRun(cmd, filename): with an empty command the file name is started on its own, which
-  // is Windows' "open with the default program". Two strings, so IPublicAPI.GetMethod's exact
-  // type match finds it.
-  return { method: 'Flow.Launcher.ShellRun', parameters: ['', filePath] };
-}
+/**
+ * The action that opens the aliases file, creating it first if this is the first time.
+ *
+ * It is our own action rather than a direct `Flow.Launcher.*` call because the file has to exist
+ * before it can be opened, and that is a write - which only an action may do.
+ *
+ * `Flow.Launcher.ShellRun` is the wrong tool for this and was silently doing nothing:
+ * `ShellRun(cmd, filename)` runs `filename` *as the program*, with `cmd` as its arguments, so
+ * `ShellRun('', 'aliases.json')` asked Windows to execute a JSON file. `OpenAppUri` is the API
+ * call that ends in `Process.Start(..., UseShellExecute = true)`, i.e. "open with the default
+ * program", and it takes one string - which `ExecuteFlowLauncherAPI`'s exact-type lookup needs.
+ */
+const OPEN_ALIASES_ACTION: JsonRpcAction = { method: 'openaliases', parameters: [] };
 
 /**
  * The menu entry that hands over the add-an-alias command.
@@ -161,7 +167,7 @@ export function buildAddAliasResult (emoji: string, actionKeyword: string): Resu
  */
 export function buildAliasCommandResults (
   command: AliasCommand,
-  paths: { settingsDirectory: string | null, emojiDatabase: string }
+  paths: { settingsDirectory: string | null }
 ): Result[] | null {
   if (command.kind === 'none') {
     return null;
@@ -215,25 +221,25 @@ export function buildAliasCommandResults (
 }
 
 /**
- * Everything the user can look at: their aliases, and the two files behind the feature.
+ * Everything the user can look at: their aliases, and the one file behind them.
  *
  * Removing is Enter on a listed alias. That is blunt, so the title says what Enter does; the
  * settings page says where the file is for anyone who would rather edit it by hand.
+ *
+ * There is deliberately no entry for the emoji database. It ships with the plugin and is replaced
+ * on every update, so hand-edits there are lost work - and pointing people at it produces bug
+ * reports about disappearing aliases. The aliases file is the one that survives updates.
  */
-function listingResults (paths: { settingsDirectory: string | null, emojiDatabase: string }): Result[] {
+function listingResults (paths: { settingsDirectory: string | null }): Result[] {
   const aliases = paths.settingsDirectory === null ? {} : readAliases(paths.settingsDirectory);
   const results: Result[] = [
     {
       Title: 'Open my aliases file',
-      Subtitle: paths.settingsDirectory === null ? 'Could not find the settings folder' : `${paths.settingsDirectory}\\${ALIASES_FILE_NAME}`,
+      Subtitle: paths.settingsDirectory === null
+        ? 'Could not find the settings folder'
+        : `${paths.settingsDirectory}\\${ALIASES_FILE_NAME}`,
       IcoPath: 'img\\app.png',
-      ...(paths.settingsDirectory === null ? {} : { JsonRPCAction: openFileAction(`${paths.settingsDirectory}\\${ALIASES_FILE_NAME}`) })
-    },
-    {
-      Title: 'Open the emoji database',
-      Subtitle: 'The file that comes with the plugin, if you want to add aliases by hand',
-      IcoPath: 'img\\app.png',
-      JsonRPCAction: openFileAction(paths.emojiDatabase)
+      ...(paths.settingsDirectory === null ? {} : { JsonRPCAction: OPEN_ALIASES_ACTION })
     }
   ];
 
@@ -277,7 +283,7 @@ function listingResults (paths: { settingsDirectory: string | null, emojiDatabas
  */
 export function buildContextMenu (
   emoji: string | undefined,
-  paths: { settingsDirectory: string | null, emojiDatabase: string },
+  paths: { settingsDirectory: string | null },
   actionKeyword: string
 ): Result[] {
   // Flow hands back whatever ContextData the result carried. Results from an older build (or
@@ -319,7 +325,7 @@ export function buildContextMenu (
       Title: 'Open my aliases file',
       Subtitle: `Opens your ${ALIASES_FILE_NAME} located in the plugin's settings folder`,
       IcoPath: 'img\\app.png',
-      JsonRPCAction: openFileAction(`${paths.settingsDirectory}\\${ALIASES_FILE_NAME}`)
+      JsonRPCAction: OPEN_ALIASES_ACTION
     });
   }
 
