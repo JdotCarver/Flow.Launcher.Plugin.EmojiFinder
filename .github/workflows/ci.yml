@@ -87,61 +87,89 @@ jobs:
         run: npm run check:paste-spawn
         continue-on-error: true
 
+      # Which shells this machine actually has. The publish step originally failed with no
+      # output whatsoever, which is what "the shell itself could not be started" looks like:
+      # worth one line of evidence rather than another guess.
+      - name: Shell availability
+        if: always()
+        shell: powershell
+        run: |
+          $bash = Get-Command bash -ErrorAction SilentlyContinue
+          if ($null -eq $bash) {
+            Write-Host '::notice title=shell::bash not found on PATH'
+          } else {
+            Write-Host "::notice title=shell::bash at $($bash.Source)"
+          }
+
       # Logs and artifacts are served from hosts an agent sandbox cannot reach (Azure blob
       # storage), but git is always reachable. Publishing to a branch is what lets the
       # agent read the evidence instead of asking the maintainer to paste it.
       #
       # Every stage announces itself with a notice annotation, and a failure is repeated as
       # an error annotation. Annotations are served by api.github.com, so even a broken
-      # publisher can explain itself to someone who cannot open the log.
+      # publisher can explain itself to someone who cannot open the log. Windows PowerShell,
+      # not bash or pwsh: 5.1 ships with every Windows install, the other two do not.
       - name: Publish reports to the dogfood-reports branch
         if: always()
-        shell: bash
+        shell: powershell
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # No interactive prompt: with a credential manager in the way, a failed push
           # would wait for a user who is not there.
           GIT_TERMINAL_PROMPT: 0
         run: |
-          checkpoint() { echo "::notice title=publish::stage=$1"; }
+          function Write-Checkpoint([string] $stage) {
+            Write-Host "::notice title=publish::stage=$stage"
+          }
 
-          fail() {
-            local cleaned
-            cleaned=$(printf '%s' "$1" | sed 's/%/%25/g' | tr '\r\n' '  ' | cut -c1-900)
-            echo "::error title=publish failed at $2::$cleaned"
+          function Write-Failure([string] $stage, [string] $detail) {
+            $cleaned = ($detail -replace '%', '%25') -replace '\r?\n', ' '
+            Write-Host "::error title=publish failed at $stage::$($cleaned.Substring(0, [Math]::Min(900, $cleaned.Length)))"
             exit 1
           }
 
-          # Built from $PWD, never from $RUNNER_TEMP: on Windows that variable holds a
-          # D:\... path, which bash cannot mkdir or cd into.
-          reports="$PWD/../dogfood-reports"
-          checkpoint "reports=$reports"
+          # One level up from the checkout, so the report repository never nests inside ours.
+          $reports = Join-Path (Split-Path (Get-Location).Path -Parent) 'dogfood-reports'
+          Write-Checkpoint "reports=$reports"
 
-          rm -rf "$reports" || fail "rm" "cleanup"
-          mkdir -p "$reports" || fail "mkdir" "cleanup"
-          if [ -d dogfood ]; then
-            cp -r dogfood/. "$reports/" || fail "cp" "copy dogfood"
-          fi
-          {
-            echo "commit: $GITHUB_SHA"
-            echo "run: $GITHUB_RUN_ID"
-            echo "runner: $RUNNER_NAME"
-            echo "when: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          } > "$reports/context.txt" || fail "context" "write context"
-          checkpoint "copied $(find "$reports" -type f | wc -l) files"
+          if (Test-Path $reports) { Remove-Item $reports -Recurse -Force }
+          New-Item -ItemType Directory -Path $reports | Out-Null
+          if (Test-Path 'dogfood') {
+            Copy-Item -Path 'dogfood\*' -Destination $reports -Recurse -Force
+          }
 
-          cd "$reports" || fail "cd" "cd"
-          git init -q || fail "init" "git init"
-          git checkout -q -B dogfood-reports || fail "checkout" "git checkout"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A || fail "add" "git add"
-          git commit -q -m "dogfood: reports from ${GITHUB_SHA:0:7}" || echo "nothing new to publish"
-          checkpoint "committed"
+          @(
+            "commit: $env:GITHUB_SHA",
+            "run: $env:GITHUB_RUN_ID",
+            "runner: $env:RUNNER_NAME",
+            "when: $((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+          ) | Set-Content -Path (Join-Path $reports 'context.txt')
+          Write-Checkpoint "copied $((Get-ChildItem $reports -Recurse -File).Count) files"
 
-          if ! push_output=$(git -c credential.helper= push -f \
-              "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
-              dogfood-reports 2>&1); then
-            fail "$push_output" "git push"
-          fi
-          checkpoint "pushed dogfood-reports"
+          Push-Location $reports
+          try {
+            git init -q
+            if ($LASTEXITCODE -ne 0) { Write-Failure 'git init' "exit $LASTEXITCODE" }
+
+            git checkout -q -B dogfood-reports
+            if ($LASTEXITCODE -ne 0) { Write-Failure 'git checkout' "exit $LASTEXITCODE" }
+
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+            git add -A
+            if ($LASTEXITCODE -ne 0) { Write-Failure 'git add' "exit $LASTEXITCODE" }
+
+            git commit -q -m "dogfood: reports from $($env:GITHUB_SHA.Substring(0, 7))"
+            Write-Checkpoint 'committed'
+
+            $url = "https://x-access-token:$($env:GITHUB_TOKEN)@github.com/$($env:GITHUB_REPOSITORY).git"
+            $pushOutput = git -c credential.helper= push -f $url dogfood-reports 2>&1 | Out-String
+            # Never let a failure message echo the token back out.
+            $pushOutput = $pushOutput -replace [regex]::Escape($env:GITHUB_TOKEN), '***'
+            if ($LASTEXITCODE -ne 0) { Write-Failure 'git push' $pushOutput }
+
+            Write-Checkpoint 'pushed dogfood-reports'
+          } finally {
+            Pop-Location
+          }
