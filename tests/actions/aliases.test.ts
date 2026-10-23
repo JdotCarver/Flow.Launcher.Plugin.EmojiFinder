@@ -179,26 +179,23 @@ describe('the context menu', () => {
     ]);
   });
 
-  test('types the add command into the query box, keyword included', () => {
+  test('explains the keystrokes for adding instead of pretending to type', () => {
     const [copyOnly, add] = buildContextMenu('💪', paths(createSettingsDirectory()), 'e');
 
     // Our own copy action, so the pick is recorded and the user gets a confirmation.
     expect(copyOnly.JsonRPCAction).toEqual({ method: 'copy', parameters: ['💪', true] });
-    // One result can call exactly one Flow API method, and this is the one that leaves the
-    // context menu behind: ChangeQuery returns to the results and fills the box.
-    expect(add.JsonRPCAction).toEqual({
-      method: 'Flow.Launcher.ChangeQuery',
-      parameters: ['e addalias 💪 ', true],
-      // Measured: without this Flow types the command and hides the window immediately.
-      DontHideAfterAction: true
-    });
+    // Measured on the machine: ChangeQuery from a menu item sets the text but does not leave the
+    // menu, and leaving it needs a second API call that one action does not get. So this entry
+    // has no action of its own; it sends the user to Tab, which does work from the results list.
+    expect(add.JsonRPCAction).toBeUndefined();
+    expect(add.Subtitle).toContain('Tab');
     expect(add.Subtitle).toContain('e addalias 💪');
   });
 
   test('uses the keyword from the manifest, not a hard-coded e', () => {
     const [, add] = buildContextMenu('💪', paths(createSettingsDirectory()), 'emoji');
 
-    expect(add.JsonRPCAction?.parameters?.[0]).toBe('emoji addalias 💪 ');
+    expect(add.Subtitle).toContain('emoji addalias 💪');
   });
 
   test('offers to remove only the aliases of this emoji', () => {

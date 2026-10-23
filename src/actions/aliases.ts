@@ -24,12 +24,11 @@
 // aliased. A word now means exactly one thing: it is a name, and a name without an emoji in front
 // of it gets one line explaining the order instead of a list to choose from.
 //
-// The right-arrow menu writes the command for the user. Flow Launcher cannot hand a plugin a text
-// box, but it does let one result call one `Flow.Launcher.*` method, and `ChangeQuery` puts a
-// complete query in the box, leaves the context menu and puts the caret at the end. So the menu
-// entry types `e addalias 💪 ` and the user is where they would have been had they typed it
-// themselves - one Enter, no second flow. It also sets `DontHideAfterAction`, without which Flow
-// types the command and closes the window at once. See docs/FRECENCY_AND_ALIASES.md.
+// Adding an alias starts from the emoji, and the fastest way to get the emoji into the command is
+// Tab: every emoji result carries `AutoCompleteText` = `e addalias 💪 `, and Flow's autocomplete
+// replaces the query with it. The right-arrow menu cannot do that for the user - a menu action can
+// call one Flow method, and leaving the menu takes a second one - so its entry explains the
+// keystrokes instead of faking them. See docs/FRECENCY_AND_ALIASES.md for the measurements.
 
 import { ALIASES_FILE_NAME, readAliases } from '../utils/pluginData.js';
 import { getIconFileName } from '../utils/utils.js';
@@ -112,30 +111,28 @@ function openFileAction (filePath: string): JsonRpcAction {
 }
 
 /**
- * The menu entry that starts the add-an-alias command.
+ * The menu entry that points at the add-an-alias command.
  *
- * It cannot save on its own - the name does not exist yet - so it does the next best thing and
- * puts the command in the query box: `e addalias 💪 `, caret at the end, ready for the name.
- * That is the command the user could have typed, so the menu keeps teaching rather than hiding.
+ * It cannot do the job itself, and the reason is worth stating because it looks possible:
+ *
+ *   `Flow.Launcher.ChangeQuery` sets the query text but does NOT leave the context menu. Flow
+ *   runs `Query()`, sees that a context menu is selected, and re-filters the menu instead of
+ *   querying (`MainViewModel.Query`). A single action may call exactly one `Flow.Launcher.*`
+ *   method (`JsonRPCPlugin.ExecuteResultAsync`), and leaving the menu takes a second call
+ *   (`BackToQueryResults`). Measured on the machine: the command appeared in the box, the menu
+ *   emptied, and Enter did nothing.
+ *
+ * So the entry teaches the two ways that do work: pressing Tab on the emoji fills the command in
+ * (`Result.AutoCompleteText`), and Enter copies the emoji if it is pasted instead.
  *
  * @param emoji The emoji the selected result stands for.
  * @param actionKeyword The word that routes the query back to this plugin.
  */
 export function buildAddAliasResult (emoji: string, actionKeyword: string): Result {
-  const command = `${actionKeyword} addalias ${emoji} `;
-
   return {
     Title: 'Add alias',
-    Subtitle: `Types “${command.trim()}” in the query box, then type the name`,
-    IcoPath: emojiIcon(emoji),
-    JsonRPCAction: {
-      method: 'Flow.Launcher.ChangeQuery',
-      parameters: [command, true],
-      // The point of this entry is to leave the user in the query box with the name still to
-      // type. Without this, Flow types the command and hides itself in the same instant
-      // (measured on the machine, 2026-10-23).
-      DontHideAfterAction: true
-    }
+    Subtitle: `Esc, then Tab: fills in “${actionKeyword} addalias ${emoji} ”`,
+    IcoPath: emojiIcon(emoji)
   };
 }
 

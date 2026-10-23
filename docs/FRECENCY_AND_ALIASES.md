@@ -104,9 +104,9 @@ all. The emoji is typed or pasted - search for it with `e`, Enter copies it, pas
 `e addalias`. The search step that would avoid that is rejected below, with the rule it breaks.
 
 Right arrow on an emoji gives, in order: **Copy only** — the same emoji on the clipboard without
-the Ctrl+V, for paste-mode users who want just a copy — **Add alias** (types
-`e addalias 💪 ` into the query box), the **Remove alias “…”** entries for that emoji, and
-**Open my aliases file**. Flow appends two entries of its own after those; see below.
+the Ctrl+V, for paste-mode users who want just a copy — **Add alias** (points at Tab, which fills
+the command in), the **Remove alias “…”** entries for that emoji, and **Open my aliases file**.
+Flow appends two entries of its own after those; see below.
 
 **Icons, not glyphs.** An emoji written into a Title renders as a monochrome outline glyph in
 Flow's list, and showing it in the title *and* the subtitle looks like a rendering bug. Every
@@ -150,45 +150,53 @@ The dead end it was meant to fix has a shorter route that keeps Enter honest: **
 way you always do, press Enter (that is the copy), then `e addalias` and paste.** Two keystrokes,
 no new grammar, and the hint says so.
 
-### What the context menu can do
+### Getting the emoji into the command: Tab, not the menu
 
-It cannot take a name - no Flow Launcher text box exists for plugins - but it can type the
-command. The entry **Add alias** calls `Flow.Launcher.ChangeQuery('e addalias 💪 ', true)`, which
-fills the query box with the command the user could have typed, leaves the context menu and puts
-the caret at the end. That is the whole flow: right arrow, Enter, type the name, Enter. No wizard,
-no second grammar, and the menu keeps teaching rather than hiding how the feature works.
+The user's own idea was the right one - pre-fill the query box with `e addalias 💪 ` - and the
+context menu cannot do it. Both halves are now measured on the machine:
 
-Three things worth knowing about it:
+- `Flow.Launcher.ChangeQuery` from a menu item **does** set the text, but it does **not** leave the
+  menu. `MainViewModel.Query` sees that a context menu is selected and re-filters the menu instead
+  of querying (`else if (ContextMenuSelected()) QueryContextMenu();`), so the command appears in the
+  box, the menu empties, and Enter has nothing to run.
+- Leaving the menu is a second call, `BackToQueryResults()`, and one action may call exactly one
+  `Flow.Launcher.*` method (`JsonRPCPlugin.ExecuteResultAsync`). Flow's own code needs both, in that
+  order, which is why `MainViewModel.GetHistoryItems` does
+  `App.API.BackToQueryResults(); App.API.ChangeQuery(h.Query);`.
 
-- **`DontHideAfterAction: true` is not optional.** Flow hides the window after every action
-  (`JsonRPCPlugin.ExecuteResultAsync` returns `!DontHideAfterAction`). Measured on the machine:
-  without it the entry really does type `e addalias 💪 ` into the box and close Flow in the same
-  instant, which reads as having done nothing. `JsonRPCAction` now carries the flag, and only this
-  entry sets it - a copy or a removal should still close the window.
-- **One API call per action.** `ExecuteResultAsync` executes exactly one `Flow.Launcher.*` method,
-  whether it came from the result or from our answer to an action. Flow's own code needs two
-  (`BackToQueryResults()` then `ChangeQuery(...)`, see `MainViewModel.GetHistoryItems`), so this
-  entry depends on `ChangeQuery` itself leaving the menu - which it does: measured, the menu closes
-  and the results come back with the generated query. (`IPublicAPI.ChangeQuery` documents it;
-  PR #3240 added it.)
-- **The keyword comes from plugin.json.** Flow strips the action keyword before handing us the
-  search text, so the plugin cannot see the word the user typed; `readActionKeyword` reads its own
-  manifest (`e`). A user who rebinds the keyword in Flow's settings keeps the old value here, and
-  the generated query would miss. The typed form always works, and the subtitle shows the command.
+What does work is the mechanism Flow already has for "complete the query for me": every emoji
+result carries `AutoCompleteText = 'e addalias 💪 '`, so **Tab** replaces the query with the
+command, caret at the end, in results mode, with no API call at all
+(`MainViewModel.AutocompleteQuery` → `ChangeQueryText`). Then type the name and Enter saves.
 
-**Two entries after ours are Flow's.** "Set as topmost in this query" and the "Emoji Finder" plugin
-link are appended by Flow in `MainViewModel.QueryContextMenu` after every plugin has answered:
-
-```csharp
-results = PluginManager.GetContextMenusForPlugin(selected);
-results.Add(ContextMenuTopMost(selected));
-results.Add(ContextMenuPluginInfo(selected));
+```
+e muscle        →  💪  Flexed Biceps
+Tab             →  e addalias 💪       (results re-query: "Now type the name")
+swole Enter     →  saved
 ```
 
-No plugin can remove them; a plugin only sees the list it returns. "Topmost" is also Flow's own
-per-query pinning, which competes with aliases: it lifts one result above everything for the
-current query, where an alias gives an emoji a permanent second name that any query reaches. Use
-whichever suits; nothing here depends on the other.
+Tab is also the honest choice: it is Flow's autocomplete, doing exactly what autocomplete is for.
+Without us it would have completed the query to the emoji's *name*, which is a search for a thing
+the user has already found.
+
+The menu entry therefore points at Tab (`Esc, then Tab: fills in "e addalias 💪 "`) instead of
+pretending a click can do it, and Enter stays what it is everywhere else: copy the emoji. The
+context menu's own two trailing entries are Flow's and cannot be removed by a plugin:
+
+```csharp
+// MainViewModel.QueryContextMenu()
+results = PluginManager.GetContextMenusForPlugin(selected);
+results.Add(ContextMenuTopMost(selected));      // "Set as topmost in this query"
+results.Add(ContextMenuPluginInfo(selected));   // "<plugin name>"
+```
+
+"Topmost" is Flow's per-query pinning of one result; an alias is a permanent second name for an
+emoji. They overlap in intent, not in effect.
+
+**The keyword comes from plugin.json.** Flow strips the action keyword before handing us the search
+text, so the plugin cannot see the word the user typed; `readActionKeyword` reads its own manifest
+(`e`). A user who rebinds the keyword in Flow's settings keeps the old value here, and the
+generated command would miss. The typed form always works, and the entries show the command.
 
 ## Frecency## Frecency
 

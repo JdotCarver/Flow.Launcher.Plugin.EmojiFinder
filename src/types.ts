@@ -37,6 +37,15 @@ export type Result = {
   JsonRPCAction?: JsonRpcAction
   IcoPath?: string
   /**
+   * What Tab fills the query box with while this result is selected.
+   *
+   * Flow's autocomplete (`MainViewModel.AutocompleteQuery`) replaces the whole query with this
+   * string and re-queries, and it only runs while results - not a context menu - are selected.
+   * It is the one way a plugin can hand the user a command they did not have to type, so it is
+   * how "add an alias for this emoji" reaches the query box.
+   */
+  AutoCompleteText?: string
+  /**
    * The match score. Flow Launcher sorts by it, and adds the user's own selection count on top
    * (`Result.AddSelectedCount`), which is where "the more I use an emoji, the higher it goes"
    * comes from - no state of our own required.
