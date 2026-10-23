@@ -26,6 +26,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {
   ensureAgentScript,
+  HEARTBEAT_STALE_AFTER_MILLISECONDS,
   readAgentStatus,
   requestPaste,
   resolveAgentPaths
@@ -136,7 +137,9 @@ async function checkOnWindows () {
   // Deliberate stop, and the check that it really went: a resident process that cannot be
   // stopped is a worse problem than one that cannot be started.
   agent?.kill();
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  // Longer than the stale limit on purpose: "is it gone" is answered by the heartbeat
+  // stopping, and a heartbeat that is merely young proves nothing.
+  await new Promise((resolve) => setTimeout(resolve, HEARTBEAT_STALE_AFTER_MILLISECONDS + 1000));
   findings.push({
     label: 'agent stops when its process is ended',
     ok: !readAgentStatus(paths).running,

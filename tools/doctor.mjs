@@ -22,6 +22,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { readAgentStatus, resolveAgentPaths } from '../dist/utils/pasteAgent.js';
 import { createStyle } from './report-style.mjs';
 
 const style = createStyle();
@@ -44,6 +45,17 @@ if (dataDirectory === null) {
   const pluginsDirectory = path.join(dataDirectory, 'Plugins');
 
   finding('info', `Flow data folder: ${dataDirectory}`);
+
+  // The paste agent is a separate, resident process: without it, paste copies and types
+  // nothing. Its heartbeat is the only honest answer to "is paste actually available".
+  const agentPaths = resolveAgentPaths();
+  const agentStatus = readAgentStatus(agentPaths);
+
+  if (agentStatus.running) {
+    finding('pass', `paste agent is running (heartbeat ${agentStatus.heartbeatAgeMilliseconds} ms old)`);
+  } else {
+    finding('info', 'paste agent is not running: paste copies only. Start it with "npm run agent -- --start"');
+  }
   inspectPluginsDirectory(pluginsDirectory);
   inspectNodeRuntime(dataDirectory);
   inspectLogs(path.join(dataDirectory, 'Logs'));
