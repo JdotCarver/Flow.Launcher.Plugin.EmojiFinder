@@ -51,6 +51,19 @@ if (dataDirectory === null) {
   const agentPaths = resolveAgentPaths();
   const agentStatus = readAgentStatus(agentPaths);
 
+  // What the *running* agent must have loaded. A resident process keeps its script in
+  // memory, so a rebuilt plugin can be correct while the agent still runs yesterday's code -
+  // which is indistinguishable from "the fix did nothing" unless it is checked here.
+  if (fs.existsSync(agentPaths.script)) {
+    const script = fs.readFileSync(agentPaths.script, 'utf8');
+    const readsUtf8 = script.includes('-Encoding UTF8');
+    const modifiedAt = new Date(fs.statSync(agentPaths.script).mtimeMs).toISOString();
+
+    finding(readsUtf8 ? 'pass' : 'fail', readsUtf8
+      ? `paste agent script on disk is current (${modifiedAt})`
+      : `paste agent script on disk predates the UTF-8 fix (${modifiedAt}); restart the agent with "npm run agent -- --stop" then "--start"`);
+  }
+
   if (agentStatus.running) {
     finding('pass', `paste agent is running (heartbeat ${agentStatus.heartbeatAgeMilliseconds} ms old)`);
   } else {
