@@ -16,6 +16,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { createStyle } from './report-style.mjs';
+
+const style = createStyle();
 
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
 const REPORT_FILE = path.join(PLUGIN_ROOT, 'dogfood', 'diagnose.json');
@@ -262,16 +265,16 @@ function finding (kind, message) {
 }
 
 function printFindings () {
-  const symbols = { pass: 'OK  ', fail: 'FAIL', warn: 'WARN', info: 'info', skip: 'skip' };
+  const order = { fail: 0, warn: 1, pass: 2, info: 3, skip: 4 };
 
-  for (const { kind, message } of findings) {
-    console.log(`${symbols[kind]}  ${message}`);
+  for (const { kind, message } of [...findings].sort((first, second) => order[first.kind] - order[second.kind])) {
+    console.log(style.finding(kind, message));
   }
 
   console.log(
     problems === 0
-      ? '\nverdict: nothing broken in the evidence collected so far.'
-      : `\nverdict: ${problems} blocker(s) found.`
+      ? `\n${style.green('verdict: nothing broken in the evidence collected so far.')}`
+      : `\n${style.red(`verdict: ${problems} blocker(s) found.`)}`
   );
 
   process.exitCode = problems === 0 ? 0 : 1;

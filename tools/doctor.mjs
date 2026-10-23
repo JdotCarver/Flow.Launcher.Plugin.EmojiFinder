@@ -22,6 +22,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { createStyle } from './report-style.mjs';
+
+const style = createStyle();
 
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
 const MANIFEST = readJson(path.join(PLUGIN_ROOT, 'plugin.json')) ?? {};
@@ -389,15 +392,38 @@ function finding (kind, message) {
 }
 
 function printFindings () {
-  const labels = { pass: 'OK  ', fail: 'FAIL', warn: 'WARN', info: 'info', skip: 'skip' };
+  // Blockers first: they are what the reader came for, and the old order buried a single
+  // FAIL under twenty lines of INFO from Flow's log.
+  const order = { fail: 0, warn: 1, pass: 2, info: 3, skip: 4 };
+  const sorted = [...findings].sort((first, second) => order[first.kind] - order[second.kind]);
 
-  for (const { kind, message } of findings) {
-    console.log(`${labels[kind]}  ${message}`);
+  // Flow's log lines are numerous and chronological; they go last, after a heading, so
+  // they cannot drown the verdict.
+  const isLogLine = message => /\.log: /.test(message);
+  const ownFindings = sorted.filter(finding => !isLogLine(finding.message));
+  const logFindings = sorted.filter(finding => isLogLine(finding.message));
+
+  for (const { kind, message } of ownFindings) {
+    console.log(style.finding(kind, message));
   }
 
-  console.log(blockers === 0
-    ? '\nverdict: nothing in the installation is obviously broken.'
-    : `\nverdict: ${blockers} blocker(s).`);
+  if (logFindings.length > 0) {
+    console.log(`\n${style.bold('Flow Launcher log')} ${style.dim('(newest first, this plugin only)')}`);
+
+    for (const { kind, message } of logFindings.slice(0, 12)) {
+      console.log(`  ${style.finding(kind, message)}`);
+    }
+
+    if (logFindings.length > 12) {
+      console.log(style.dim(`  ... and ${logFindings.length - 12} more matching lines`));
+    }
+  }
+
+  const verdict = blockers === 0
+    ? style.green('verdict: nothing in the installation is obviously broken.')
+    : style.red(`verdict: ${blockers} blocker(s).`);
+
+  console.log(`\n${verdict}`);
 
   process.exitCode = blockers === 0 ? 0 : 1;
 }

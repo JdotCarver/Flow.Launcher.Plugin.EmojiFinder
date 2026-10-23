@@ -47,6 +47,8 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.head_commit.message, '[windows]')
     runs-on: [self-hosted, Windows, X64, flowlauncher]
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -79,10 +81,32 @@ jobs:
         run: npm run diagnose
         continue-on-error: true
 
-      - name: Upload dogfood evidence
+      # Logs and artifacts are served from hosts an agent sandbox cannot reach (Azure blob
+      # storage), but git is always reachable. Publishing to a branch is what lets the
+      # agent read the evidence instead of asking the maintainer to paste it.
+      - name: Publish reports to the dogfood-reports branch
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dogfood-windows
-          path: dogfood/
-          if-no-files-found: ignore
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -u
+          reports="$RUNNER_TEMP/dogfood-reports"
+          rm -rf "$reports"
+          mkdir -p "$reports"
+          if [ -d dogfood ]; then cp -r dogfood/. "$reports/"; fi
+          {
+            echo "commit: $GITHUB_SHA"
+            echo "run: $GITHUB_RUN_ID"
+            echo "runner: $RUNNER_NAME"
+            echo "when: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > "$reports/context.txt"
+
+          cd "$reports"
+          git init -q
+          git checkout -q -B dogfood-reports
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "dogfood: reports from ${GITHUB_SHA:0:7}" || echo "nothing to publish"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" dogfood-reports

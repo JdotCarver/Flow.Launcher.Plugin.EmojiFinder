@@ -42,7 +42,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { appendTraceLine, isTracingEnabled, TRACE_FILE } from './trace.js';
+import { appendTraceLine, isTracingEnabled, TRACE_DIRECTORY, TRACE_FILE } from './trace.js';
 
 /**
  * How long the helper keeps waiting for Flow to disappear and the clipboard to settle
@@ -231,6 +231,12 @@ export function spawnPasteHelper (emoji: string): PasteHelperStart {
   }
 
   try {
+    // PowerShell's own errors are the only explanation when the helper produces no trace
+    // line at all (invalid script, blocked command, killed at start-up). They must not go
+    // to /dev/null, so stderr is pointed at a file: the child writes to the file handle
+    // directly, which keeps working after this process exits.
+    const errorStream = openErrorLog(logPath);
+
     const child = spawn(
       'powershell.exe',
       [
@@ -241,10 +247,14 @@ export function spawnPasteHelper (emoji: string): PasteHelperStart {
       ],
       {
         detached: true,
-        stdio: 'ignore',
+        stdio: ['ignore', 'ignore', errorStream ?? 'ignore'],
         windowsHide: true
       }
     );
+
+    if (errorStream !== null) {
+      child.on('spawn', () => closeQuietly(errorStream));
+    }
 
     // Spawn failures (ENOENT, blocked by policy) arrive asynchronously. Without a
     // listener, Node turns them into an uncaught exception.
@@ -258,6 +268,30 @@ export function spawnPasteHelper (emoji: string): PasteHelperStart {
     return { started: true, pid: child.pid };
   } catch (error) {
     return { started: false, reason: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * Opens the file PowerShell's stderr should be appended to, or returns null when tracing
+ * is off (a normal install writes nothing anywhere).
+ */
+function openErrorLog (logPath: string): number | null {
+  if (logPath === '') {
+    return null;
+  }
+
+  try {
+    return fs.openSync(path.join(TRACE_DIRECTORY, 'helper-stderr.log'), 'a');
+  } catch {
+    return null;
+  }
+}
+
+function closeQuietly (fileDescriptor: number): void {
+  try {
+    fs.closeSync(fileDescriptor);
+  } catch {
+    // Already closed, or never ours to close: nothing to recover from.
   }
 }
 
