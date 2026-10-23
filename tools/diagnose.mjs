@@ -197,12 +197,19 @@ function runWindowsDiagnostic () {
  * The plugin writes next to itself, i.e. inside the *installed* folder, while the report
  * lives in the repository. Copying it back here is what makes "run diagnose, commit
  * dogfood/" a single step for the maintainer.
+ *
+ * The newest file wins, deliberately. Preferring the repository copy would be wrong: it is
+ * committed, so it always exists, and diagnosis would keep reading yesterday's evidence
+ * while the installed plugin's fresh trace sat ignored next to it.
  */
 function collectRuntimeTrace () {
   const candidates = [
     RUNTIME_LOG,
     installedPluginTrace()
-  ].filter(candidate => candidate !== null && fs.existsSync(candidate));
+  ]
+    .filter(candidate => candidate !== null && fs.existsSync(candidate))
+    .map(candidate => ({ path: candidate, modifiedAt: fs.statSync(candidate).mtimeMs }))
+    .sort((first, second) => second.modifiedAt - first.modifiedAt);
 
   if (candidates.length === 0) {
     return {
@@ -211,7 +218,7 @@ function collectRuntimeTrace () {
     };
   }
 
-  const source = candidates[0];
+  const source = candidates[0].path;
 
   if (source !== RUNTIME_LOG) {
     fs.mkdirSync(REPORT_DIRECTORY, { recursive: true });
