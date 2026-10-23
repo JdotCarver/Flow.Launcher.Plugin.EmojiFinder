@@ -270,8 +270,8 @@ export function buildContextMenu (
   // Copy-only, for anyone whose Enter mode is Paste Mode: the same emoji, without the Ctrl+V.
   // It runs our own copy action, which is what records the pick and shows the confirmation.
   menu.push({
-    Title: 'Copy only (no paste)',
-    Subtitle: 'Puts this emoji on the clipboard and leaves the cursor alone',
+    Title: 'Copy only',
+    Subtitle: 'Copy this emoji to the clipboard',
     IcoPath: emojiIcon(emoji),
     JsonRPCAction: { method: 'copy', parameters: [emoji, true] }
   });

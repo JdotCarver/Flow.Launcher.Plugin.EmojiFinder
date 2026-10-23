@@ -240,7 +240,7 @@ function checkContextMenu () {
     'the add-an-alias entry explains the command instead of typing for the user',
     String(hint?.Subtitle ?? '')
   );
-  const copyOnly = menu.find((item) => item.Title === 'Copy only (no paste)');
+  const copyOnly = menu.find((item) => item.Title === 'Copy only');
 
   finding(
     copyOnly?.JsonRPCAction?.method === 'copy' && copyOnly?.JsonRPCAction?.parameters?.[0] === '💪',

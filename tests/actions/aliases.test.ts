@@ -188,7 +188,7 @@ describe('the context menu', () => {
 
   test('offers a copy-only action, for when Enter mode is paste', () => {
     const menu = buildContextMenu('💪', paths(createSettingsDirectory()));
-    const copyOnly = menu.find((result) => result.Title === 'Copy only (no paste)');
+    const copyOnly = menu.find((result) => result.Title === 'Copy only');
 
     // Our own copy action, so the pick is recorded and the user gets a confirmation.
     expect(copyOnly?.JsonRPCAction).toEqual({ method: 'copy', parameters: ['💪', true] });
@@ -212,7 +212,7 @@ describe('the context menu', () => {
 
     // The hint and copy-only stay, because neither needs a file; a file entry would be a dead
     // link, so it is the only thing missing.
-    expect(menu.map((result) => result.Title)).toEqual(['Add an alias for this emoji', 'Copy only (no paste)']);
+    expect(menu.map((result) => result.Title)).toEqual(['Add an alias for this emoji', 'Copy only']);
     expect(menu[0]).toEqual(buildAddAliasHintResult('💪'));
   });
 });
