@@ -51,7 +51,12 @@ jobs:
       contents: write
 
     steps:
+      # Two commits of history, because the install decision below diffs HEAD against its
+      # parent. The default depth of 1 made that diff fail silently, so a commit that changed
+      # src/ reported "0 files changed" and the machine was never updated.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Node version
         run: node --version
@@ -89,6 +94,7 @@ jobs:
         run: npm run check:ranking
 
       - name: Installation doctor
+        id: doctor
         run: npm run doctor
         continue-on-error: true
 
@@ -111,9 +117,10 @@ jobs:
           $files = @(git diff --name-only 'HEAD~1' 'HEAD' 2>$null)
           $pluginFiles = @($files | Where-Object { $_ -match '^(src/|plugin\.json$|SettingsTemplate\.yaml$|package\.json$)' })
           $forced = $message.Contains('[install]')
-          $needs = $forced -or ($pluginFiles.Count -gt 0)
+          $doctorFailed = '${{ steps.doctor.outcome }}' -eq 'failure'
+          $needs = $forced -or ($pluginFiles.Count -gt 0) -or $doctorFailed
 
-          Write-Host "::notice title=install::changed files that affect the installed copy: $($pluginFiles.Count); forced: $forced; needs install: $needs"
+          Write-Host "::notice title=install::changed files that affect the installed copy: $($pluginFiles.Count) of $($files.Count); forced: $forced; doctor failed: $doctorFailed; needs install: $needs"
           Add-Content -Path $env:GITHUB_OUTPUT -Value ("needs_install=" + $needs.ToString().ToLower()) -Encoding utf8
           exit 0
 
