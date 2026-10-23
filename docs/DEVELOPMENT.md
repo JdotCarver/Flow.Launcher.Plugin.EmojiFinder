@@ -96,6 +96,14 @@ The agent cannot be run from this repository's tests (no Windows, no PowerShell)
 script is asserted in `tests/utils/pasteAgent.test.ts` and exercised for real on the Windows
 runner by `npm run check:paste-agent`, which runs it under both PowerShell hosts.
 
+## The tools build on demand
+
+The scripts under `tools/` are JavaScript, but they share the agent's protocol with the plugin by
+importing the compiled TypeScript from `dist/`. `dist/` is not committed, so a fresh checkout has
+none and `npm run agent -- --stop` would die with a module-not-found error that says nothing
+about the fix. Every script that needs `dist/` therefore runs `tools/ensure-build.mjs` first: it
+compiles when `dist/` is missing or older than `src/`, prints one line, and is otherwise silent.
+
 ## Everyday loop
 
 ```bash
