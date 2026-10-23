@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-10-23T10:03:26.171Z",
+  "platform": "linux",
+  "staticChecks": [
+    {
+      "label": "script is not empty",
+      "ok": true
+    },
+    {
+      "label": "braces balance",
+      "ok": true
+    },
+    {
+      "label": "parentheses balance",
+      "ok": true
+    },
+    {
+      "label": "single quotes balance",
+      "ok": true
+    },
+    {
+      "label": "no unresolved template placeholder",
+      "ok": true
+    },
+    {
+      "label": "carries the emoji",
+      "ok": true
+    },
+    {
+      "label": "carries the log path",
+      "ok": true
+    },
+    {
+      "label": "writes trace lines",
+      "ok": true
+    }
+  ],
+  "runs": [
+    {
+      "skipped": "not Windows: execution checks need PowerShell"
+    }
+  ]
+}

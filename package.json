@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "benchmark": "node tools/bench.mjs",
+    "check:paste-helper": "node tools/check-paste-helper.mjs",
     "diagnose": "node tools/diagnose.mjs",
     "doctor": "node tools/doctor.mjs",
     "dogfood:check": "node tools/check-dogfood.mjs",

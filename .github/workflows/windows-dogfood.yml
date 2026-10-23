@@ -44,6 +44,10 @@ jobs:
 
       # The environment probe does not need Flow Launcher to be running, but it does need
       # an interactive desktop for the SendKeys self-test.
+      - name: Paste helper, for real
+        run: npm run check:paste-helper
+        continue-on-error: true
+
       - name: Installation doctor (is the plugin loadable at all?)
         run: npm run doctor
         continue-on-error: true
