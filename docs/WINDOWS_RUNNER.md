@@ -65,7 +65,7 @@ the agent needs.
 gh workflow run windows-dogfood.yml          # start it
 gh run list --workflow windows-dogfood.yml   # find the run
 gh run watch <id>                            # live progress
-gh run view <id>                          # per-step status and annotations
+gh run view <id>                             # per-step status and annotations
 gh run download <id> -n dogfood              # the reports
 ```
 
