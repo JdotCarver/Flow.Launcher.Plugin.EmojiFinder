@@ -47,9 +47,13 @@ describe('parseAliasCommand', () => {
     expect(parseAliasCommand('addaliases')).toEqual({ kind: 'none' });
   });
 
-  test('the emoji can come before or after the name', () => {
-    expect(parseAliasCommand('addalias swole 💪')).toEqual({ kind: 'add', emoji: '💪', alias: 'swole' });
+  test('the emoji comes first, and the rest is the name', () => {
     expect(parseAliasCommand('addalias 💪 swole')).toEqual({ kind: 'add', emoji: '💪', alias: 'swole' });
+  });
+
+  test('a name in front of the emoji is not accepted, so no word means two things', () => {
+    // "swole 💪" cannot be both a name and a search, and an emoji is never inferred from a name.
+    expect(parseAliasCommand('addalias swole 💪')).toEqual({ kind: 'emoji-missing' });
   });
 
   test('a name with a space in it needs no quoting', () => {
@@ -57,13 +61,13 @@ describe('parseAliasCommand', () => {
   });
 
   test('an emoji without a name asks for one', () => {
-    expect(parseAliasCommand('addalias 💪')).toEqual({ kind: 'add-incomplete', emoji: '💪' });
+    expect(parseAliasCommand('addalias 💪')).toEqual({ kind: 'name-missing', emoji: '💪' });
   });
 
-  test('a name without an emoji asks for the emoji to be picked', () => {
-    expect(parseAliasCommand('addalias swole')).toEqual({ kind: 'add-search', term: 'swole' });
-    expect(parseAliasCommand('addalias big muscles')).toEqual({ kind: 'add-search', term: 'big muscles' });
-    expect(parseAliasCommand('addalias')).toEqual({ kind: 'add-picker' });
+  test('a word without an emoji in front asks for the emoji, and never becomes a search', () => {
+    expect(parseAliasCommand('addalias swole')).toEqual({ kind: 'emoji-missing' });
+    expect(parseAliasCommand('addalias big muscles')).toEqual({ kind: 'emoji-missing' });
+    expect(parseAliasCommand('addalias')).toEqual({ kind: 'emoji-missing' });
   });
 
   test('removal names the alias, and asks when there is none', () => {
@@ -73,16 +77,12 @@ describe('parseAliasCommand', () => {
 });
 
 describe('buildAliasCommandResults', () => {
-  /** A search that answers with two emoji, so the picker can be tested without emojilib. */
-  const search = (term: string): { emoji: string, title: string, subtitle: string }[] =>
-    term === 'nothing' ? [] : [{ emoji: '💪', title: 'Flexed Biceps', subtitle: 'muscle, strong' }];
-
   function results (command: Parameters<typeof buildAliasCommandResults>[0], directory: string | null) {
-    return buildAliasCommandResults(command, paths(directory), search) ?? [];
+    return buildAliasCommandResults(command, paths(directory)) ?? [];
   }
 
   test('an ordinary search produces no results from here', () => {
-    expect(buildAliasCommandResults({ kind: 'none' }, paths(createSettingsDirectory()), search)).toBeNull();
+    expect(buildAliasCommandResults({ kind: 'none' }, paths(createSettingsDirectory()))).toBeNull();
   });
 
   test('a complete command offers to save, and writes nothing while typing', () => {
@@ -98,27 +98,24 @@ describe('buildAliasCommandResults', () => {
     expect(result?.JsonRPCAction).toEqual({ method: 'addalias', parameters: ['swole', '💪'] });
   });
 
-  test('a name without an emoji becomes a picker that saves the name', () => {
-    const [result] = results({ kind: 'add-search', term: 'swole' }, createSettingsDirectory());
+  test('an emoji without a name shows one line asking for the name', () => {
+    const all = results({ kind: 'name-missing', emoji: '💪' }, createSettingsDirectory());
 
-    expect(result?.Title).toBe('Flexed Biceps');
-    expect(result?.Subtitle).toContain('swole');
-    expect(result?.IcoPath).toMatch(/^icons\\/);
-    expect(result?.JsonRPCAction).toEqual({ method: 'addalias', parameters: ['swole', '💪'] });
+    // One line, not a list: Enter on a list row could only guess which part of the command it was.
+    expect(all).toHaveLength(1);
+    expect(all[0].Title).toBe('Now type the name');
+    expect(all[0].Subtitle).toContain('e addalias 💪 <name>');
+    expect(all[0].JsonRPCAction).toBeUndefined();
   });
 
-  test('a bare addalias shows the emoji list and pre-fills the command', () => {
-    const [result] = results({ kind: 'add-picker' }, createSettingsDirectory());
+  test('a word without an emoji in front gets one line explaining the order', () => {
+    const all = results({ kind: 'emoji-missing' }, createSettingsDirectory());
 
-    // No name typed yet, so the emoji comes first: Enter puts the command in the query box.
-    expect(result?.JsonRPCAction).toEqual({
-      method: 'Flow.Launcher.ChangeQuery',
-      parameters: ['addalias 💪 ', true]
-    });
-  });
-
-  test('a search with no matches shows nothing rather than inventing an emoji', () => {
-    expect(results({ kind: 'add-search', term: 'nothing' }, createSettingsDirectory())).toEqual([]);
+    expect(all).toHaveLength(1);
+    expect(all[0].Title).toBe('Type the emoji first, then the name');
+    expect(all[0].Subtitle).toContain('e addalias 💪 swole');
+    // Nothing is selectable, so no keystroke can save a name to an emoji the plugin guessed.
+    expect(all[0].JsonRPCAction).toBeUndefined();
   });
 
   test('removing offers to remove, and writes nothing until Enter', () => {

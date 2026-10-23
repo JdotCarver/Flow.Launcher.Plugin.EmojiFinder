@@ -59,8 +59,7 @@ export function query (input: string | undefined, settings: Settings): void {
   }
   const aliasResults = buildAliasCommandResults(
     parseAliasCommand(search),
-    { settingsDirectory, emojiDatabase: emojiDatabasePath() },
-    (term, limit) => find(term, limit)
+    { settingsDirectory, emojiDatabase: emojiDatabasePath() }
   );
 
   if (aliasResults !== null) {

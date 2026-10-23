@@ -85,12 +85,22 @@ rule `settings.ts` already follows for bad settings.
 ## Aliases as shipped
 
 ```
-e addalias swole 💪        save "swole" for 💪 directly
-e addalias swole           show emoji for "swole"; Enter on one saves it as an alias
-e addalias                 show the emoji list; Enter pre-fills the command to finish by hand
+e addalias 💪 swole        save "swole" for 💪
 e aliases                  list them, plus "open my aliases file" and "open the emoji database"
 e removealias swole        remove one
 ```
+
+**The emoji comes first, and nothing is guessed.** `e addalias` with no emoji in front shows one
+line - "Type the emoji first, then the name" - and never a list:
+
+- a list invites Enter, and Enter on a list row could only guess which part of the command was
+  meant;
+- a bare word would otherwise be both the name to save and the search term for the emoji, so the
+  same keystrokes could mean different things depending on what was already aliased. That is
+  exactly what made the first version confusing.
+
+One word, one meaning. The cost is that the emoji has to be typed or pasted; the alternative (a
+search step) was rendered from the real database and is weighed below.
 
 Right arrow on an emoji gives: **Add an alias for this emoji** (explains the command; it cannot
 type for you, see below), **Copy only (no paste)** — the same emoji on the clipboard without the
@@ -109,6 +119,33 @@ An alias is an extra name, not a separate search space: `scoreEmoji` takes the b
 keyword score and the alias score, so an alias can never make an emoji *harder* to find, and the
 result's subtitle shows the alias so a hit under a name that is not in its keywords does not look
 like a bug.
+
+### Considered: a search step for the emoji
+
+The obvious repair for "you must know the emoji" is a search step, because a name you cannot spell
+is not a name: `e addalias muscle` would list `💪 Flexed Biceps`, Enter on it would pre-fill
+`e addalias 💪 `, and the name would be typed into a query that already contains the emoji. Nothing
+would be written until the last Enter.
+
+Rendered from the real database, the two flows differ in exactly one screen:
+
+```
+e addalias muscle
+  EMOJI FIRST   Type the emoji first, then the name
+                e addalias 💪 swole - the emoji is never guessed from the name
+
+  SEARCH STEP   [1f4aa.png] Flexed Biceps
+                Enter: name this emoji - Arm, Flex, Hand
+```
+
+Everything else is identical: `e addalias` asks for the emoji, `e addalias 💪` asks for the name,
+`e addalias 💪 swole` saves. The search rows would only ever pre-fill, never save, so Enter still
+means one thing per screen.
+
+The trade-off is which mistake is worse: a dead end when the emoji's name is not known, or a list
+appearing under a command that also takes a name. The list is confined to queries with no emoji in
+them, and it previews rather than saves, so it is the smaller of the two - but it is still a list
+under `addalias`, which is what confused the first version.
 
 ### Why the context menu cannot add an alias
 

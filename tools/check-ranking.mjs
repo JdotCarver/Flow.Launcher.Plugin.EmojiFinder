@@ -262,14 +262,13 @@ function checkContextMenu () {
 }
 
 function checkAliasCommands () {
-  const add = parseAliasCommand('addalias swole 💪');
-  const prefill = parseAliasCommand('addalias 💪 swole');
+  const add = parseAliasCommand('addalias 💪 swole');
 
+  finding(add.kind === 'add' && add.emoji === '💪' && add.alias === 'swole', 'addalias reads emoji first, then the name');
   finding(
-    add.kind === 'add' && add.emoji === '💪' && add.alias === 'swole' && prefill.kind === 'add' && prefill.alias === 'swole',
-    'both word orders for addalias parse the same way'
+    parseAliasCommand('addalias 💪 swole').kind === 'add' && parseAliasCommand('addalias swole').kind === 'emoji-missing',
+    'the emoji comes first, and a bare word is never also a search'
   );
-  finding(parseAliasCommand('addalias swole').kind === 'add-search', 'a name without an emoji asks for the emoji');
 
   const settings = createTemporarySettings();
 

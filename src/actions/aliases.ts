@@ -5,25 +5,32 @@
 // Why a command and a menu, and not a text box: Flow Launcher's plugin API has no prompt for a
 // string (`IPublicAPI` offers ShowMsg, ShowMsgWithButton and ChangeQuery, and nothing that reads
 // input). A JS plugin can, however, add context menu items - `JsonRPCPluginBase.LoadContextMenus`
-// calls our script with method "context_menu" - so the flow is:
+// calls our script with method "context_menu".
 //
-//   right arrow on an emoji -> "Add an alias for 💪" -> the query box is pre-filled with
-//   "e addalias 💪 " and the caret at the end -> type "swole" -> Enter.
+// The grammar is deliberately strict: the emoji comes first, then the name.
 //
-// The command can also be typed outright, which is faster for people who know it:
-//
-//   e addalias swole 💪        (either order: the emoji is recognised on its own)
-//   e removealias swole
-//   e aliases                  (list them, plus the files, with remove-on-Enter)
+//   e addalias 💪 swole        save "swole" for 💪
+//   e removealias swole        remove it
+//   e aliases                  list them, plus the files, with remove-on-Enter
 //
 // Both paths end in the same save call, and aliases then behave as extra names in `find()`.
+//
+// Why the emoji comes first, and why nothing is ever guessed:
+//
+// An earlier version accepted the name and the emoji in either order, and searched for the emoji
+// when it could not find one. That made a single word mean two things at once - in
+// `e addalias muscle`, "muscle" was both the name to save and the search term for the emoji - and
+// the same keystrokes could mean something different depending on what the user had already
+// aliased. A word now means exactly one thing: it is a name, and a name without an emoji in front
+// of it gets one line explaining the order instead of a list to choose from.
+//
+// Why the right-arrow menu only explains the command: Flow Launcher keeps the context menu open
+// while the query box filters the menu's own entries, so a pre-filled query is filtered away as
+// soon as the user types the name. See docs/FRECENCY_AND_ALIASES.md for the evidence.
 
 import { ALIASES_FILE_NAME, readAliases } from '../utils/pluginData.js';
 import { getIconFileName } from '../utils/utils.js';
 import type { JsonRpcAction, Result } from '../types.js';
-
-/** How many emoji the picker offers at once. The same ceiling the search uses. */
-const PICKER_LIMIT = 25;
 
 /** A token that looks like an emoji: pictographic, possibly with joiners and selectors. */
 const EMOJI_PATTERN = /\p{Extended_Pictographic}/u;
@@ -36,14 +43,12 @@ const EMOJI_PATTERN = /\p{Extended_Pictographic}/u;
  */
 export type AliasCommand =
   | { kind: 'none' }
-  /** Both parts given: `addalias swole 💪`. */
+  /** Emoji and name given: `addalias 💪 swole`. */
   | { kind: 'add', emoji: string, alias: string }
   /** An emoji but no name yet: `addalias 💪`. */
-  | { kind: 'add-incomplete', emoji: string }
-  /** A name but no emoji yet: `addalias swole` - the emoji is picked from the list. */
-  | { kind: 'add-search', term: string }
-  /** Neither: `addalias` alone. */
-  | { kind: 'add-picker' }
+  | { kind: 'name-missing', emoji: string }
+  /** Words but no emoji in front: `addalias swole`, or `addalias`. */
+  | { kind: 'emoji-missing' }
   | { kind: 'remove', alias: string }
   | { kind: 'remove-incomplete' }
   | { kind: 'list' };
@@ -51,10 +56,9 @@ export type AliasCommand =
 /**
  * Reads a typed alias command, or reports that this is an ordinary search.
  *
- * The emoji can be given before or after the name - `addalias swole 💪` and
- * `addalias 💪 swole` are the same command - because the pre-filled query puts the emoji first
- * and people will type it either way. Everything that is not the emoji becomes the name, so a
- * name with a space in it works without quoting.
+ * Emoji first, then everything after it is the name - so a name with a space in it works without
+ * quoting. If the first word after `addalias` is not an emoji, the command is incomplete, whatever
+ * else was typed: guessing would make the same word mean two things.
  */
 export function parseAliasCommand (input: string): AliasCommand {
   const tokens = input.trim().split(/\s+/).filter(Boolean);
@@ -74,18 +78,15 @@ export function parseAliasCommand (input: string): AliasCommand {
     return { kind: 'none' };
   }
 
-  const rest = tokens.slice(1);
-  const emoji = rest.find((token) => EMOJI_PATTERN.test(token));
+  const [first, ...rest] = tokens.slice(1);
 
-  if (emoji === undefined) {
-    const term = rest.join(' ');
-
-    return term === '' ? { kind: 'add-picker' } : { kind: 'add-search', term };
+  if (first === undefined || !EMOJI_PATTERN.test(first)) {
+    return { kind: 'emoji-missing' };
   }
 
-  const alias = rest.filter((token) => token !== emoji).join(' ');
+  const alias = rest.join(' ');
 
-  return alias === '' ? { kind: 'add-incomplete', emoji } : { kind: 'add', emoji, alias };
+  return alias === '' ? { kind: 'name-missing', emoji: first } : { kind: 'add', emoji: first, alias };
 }
 
 /**
@@ -117,7 +118,7 @@ function openFileAction (filePath: string): JsonRpcAction {
 export function buildAddAliasHintResult (emoji: string): Result {
   return {
     Title: 'Add an alias for this emoji',
-    Subtitle: `Type: e addalias ${emoji} <name> - or e addalias <name> and pick the emoji`,
+    Subtitle: `Type: e addalias ${emoji} <name> - the emoji first, then the name`,
     IcoPath: 'img\\app.png'
   };
 }
@@ -129,14 +130,15 @@ export function buildAddAliasHintResult (emoji: string): Result {
  * user types would save `s`, then `sw`, then `swo`, ... - and every prefix would stay behind as
  * an alias. Everything that changes a file is an action, which only runs when Enter is pressed.
  *
+ * Every incomplete command shows one line that names the missing part, never a list to choose
+ * from: a list invites Enter, and Enter on a list row would have to guess which part it meant.
+ *
  * @param command A parsed alias command.
  * @param paths Where the files are.
- * @param search Finds emoji for the picker. Injected so this module does not import the hot path.
  */
 export function buildAliasCommandResults (
   command: AliasCommand,
-  paths: { settingsDirectory: string | null, emojiDatabase: string },
-  search: (term: string, limit: number) => { emoji: string, title: string, subtitle: string }[]
+  paths: { settingsDirectory: string | null, emojiDatabase: string }
 ): Result[] | null {
   if (command.kind === 'none') {
     return null;
@@ -153,16 +155,20 @@ export function buildAliasCommandResults (
     }];
   }
 
-  if (command.kind === 'add-incomplete') {
+  if (command.kind === 'name-missing') {
     return [{
-      Title: `Type the name for ${command.emoji}`,
+      Title: 'Now type the name',
       Subtitle: `e addalias ${command.emoji} <name>`,
-      IcoPath: 'img\\app.png'
+      IcoPath: emojiIcon(command.emoji)
     }];
   }
 
-  if (command.kind === 'add-search' || command.kind === 'add-picker') {
-    return pickerResults(command, search);
+  if (command.kind === 'emoji-missing') {
+    return [{
+      Title: 'Type the emoji first, then the name',
+      Subtitle: 'e addalias 💪 swole - the emoji is never guessed from the name',
+      IcoPath: 'img\\app.png'
+    }];
   }
 
   if (command.kind === 'remove') {
@@ -183,32 +189,6 @@ export function buildAliasCommandResults (
   }
 
   return listingResults(paths);
-}
-
-/**
- * The emoji to attach a name to.
- *
- * `e addalias swole` searches for "swole" like an ordinary query, so the user can find the emoji
- * the way they always do, and Enter saves the name they already typed. With no name yet
- * (`e addalias`) the plain list is shown and Enter pre-fills the command instead - picking the
- * emoji first is the only order that works when the name is not typed yet.
- */
-function pickerResults (command: { kind: 'add-search', term: string } | { kind: 'add-picker' }, search: (term: string, limit: number) => { emoji: string, title: string, subtitle: string }[]): Result[] {
-  const term = command.kind === 'add-search' ? command.term : '';
-  const emoji = search(term, PICKER_LIMIT);
-
-  return emoji.map(({ emoji: candidate, title }) => ({
-    // The name in text, the emoji as the icon: Flow renders an emoji inside a title as a
-    // monochrome glyph, and showing it in both places reads as a glitch.
-    Title: title,
-    Subtitle: command.kind === 'add-search'
-      ? `${term} → this emoji. Enter to save the alias.`
-      : 'Enter, then type the name',
-    IcoPath: emojiIcon(candidate),
-    JsonRPCAction: command.kind === 'add-search'
-      ? { method: 'addalias', parameters: [term, candidate] }
-      : { method: 'Flow.Launcher.ChangeQuery', parameters: [`addalias ${candidate} `, true] }
-  }));
 }
 
 /**
@@ -239,7 +219,7 @@ function listingResults (paths: { settingsDirectory: string | null, emojiDatabas
   if (entries.length === 0) {
     results.push({
       Title: 'No aliases yet',
-      Subtitle: 'Type: e addalias <name> and pick the emoji, or e addalias <name> <emoji>',
+      Subtitle: 'Type: e addalias <emoji> <name>, for example e addalias 💪 swole',
       IcoPath: 'img\\app.png'
     });
 
