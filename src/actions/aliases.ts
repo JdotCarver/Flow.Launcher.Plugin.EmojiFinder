@@ -218,9 +218,20 @@ function listingResults (paths: { settingsDirectory: string | null, emojiDatabas
  * @param paths Where the files are.
  */
 export function buildContextMenu (
-  emoji: string,
+  emoji: string | undefined,
   paths: { settingsDirectory: string | null, emojiDatabase: string }
 ): Result[] {
+  // Flow hands back whatever ContextData the result carried. Results from an older build (or
+  // any result without it) arrive as undefined, and a menu that says "Add an alias for
+  // undefined" is worse than one that explains itself.
+  if (typeof emoji !== 'string' || emoji === '') {
+    return [{
+      Title: 'No emoji attached to this result',
+      Subtitle: 'Restart Flow Launcher so the plugin reloads, then try again',
+      IcoPath: 'img\\app.png'
+    }];
+  }
+
   const aliases = paths.settingsDirectory === null ? {} : readAliases(paths.settingsDirectory);
   const own = Object.entries(aliases).filter(([, value]) => value === emoji);
   const menu: Result[] = [buildAddAliasMenuResult(emoji)];

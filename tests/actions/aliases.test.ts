@@ -171,6 +171,13 @@ describe('the context menu', () => {
     expect(menu.at(-1)?.Title).toBe('Open your aliases file');
   });
 
+  test('explains itself instead of inventing an emoji when there is no ContextData', () => {
+    const [first] = buildContextMenu(undefined, paths(createSettingsDirectory()));
+
+    expect(first?.Title).toBe('No emoji attached to this result');
+    expect(first?.JsonRPCAction).toBeUndefined();
+  });
+
   test('says nothing about files when there is no settings folder', () => {
     const menu = buildContextMenu('💪', paths(null));
 
