@@ -24,11 +24,11 @@
 // aliased. A word now means exactly one thing: it is a name, and a name without an emoji in front
 // of it gets one line explaining the order instead of a list to choose from.
 //
-// Adding an alias starts from the emoji, and the fastest way to get the emoji into the command is
-// Tab: every emoji result carries `AutoCompleteText` = `e addalias 💪 `, and Flow's autocomplete
-// replaces the query with it. The right-arrow menu cannot do that for the user - a menu action can
-// call one Flow method, and leaving the menu takes a second one - so its entry explains the
-// keystrokes instead of faking them. See docs/FRECENCY_AND_ALIASES.md for the measurements.
+// Adding an alias starts from the emoji, and no Flow Launcher route can put that emoji in the
+// command for the user: a context-menu action gets one API call, the menu overwrites the query text
+// on the way out, and autocomplete's fallback (the row's Title) makes Ctrl+Tab a party trick that
+// only works once. So the menu copies the finished command to the clipboard instead - see
+// buildAddAliasResult, and docs/FRECENCY_AND_ALIASES.md for the measurements.
 
 import { ALIASES_FILE_NAME, readAliases } from '../utils/pluginData.js';
 import { getIconFileName } from '../utils/utils.js';
@@ -111,28 +111,38 @@ function openFileAction (filePath: string): JsonRpcAction {
 }
 
 /**
- * The menu entry that points at the add-an-alias command.
+ * The menu entry that hands over the add-an-alias command.
  *
- * It cannot do the job itself, and the reason is worth stating because it looks possible:
+ * Flow Launcher cannot let a plugin start typing for the user, and every route that looks like it
+ * fails for a reason that is now measured rather than assumed:
  *
- *   `Flow.Launcher.ChangeQuery` sets the query text but does NOT leave the context menu. Flow
- *   runs `Query()`, sees that a context menu is selected, and re-filters the menu instead of
- *   querying (`MainViewModel.Query`). A single action may call exactly one `Flow.Launcher.*`
- *   method (`JsonRPCPlugin.ExecuteResultAsync`), and leaving the menu takes a second call
- *   (`BackToQueryResults`). Measured on the machine: the command appeared in the box, the menu
- *   emptied, and Enter did nothing.
+ *   `ChangeQuery` from a menu item sets the text but does not leave the menu - `Query()` sees a
+ *   context menu selected and re-filters the menu instead of querying. Leaving the menu needs a
+ *   second call (`BackToQueryResults`), and one action gets exactly one `Flow.Launcher.*` method.
+ *   Even the two-call order would not help: returning from the menu restores the pre-menu query
+ *   text (`MainViewModel.SelectedResults` setter), so a command written inside the menu is
+ *   overwritten on the way out.
  *
- * So the entry teaches the two ways that do work: pressing Tab on the emoji fills the command in
- * (`Result.AutoCompleteText`), and Enter copies the emoji if it is pasted instead.
+ *   `Result.AutoCompleteText` is honest but awkward: autocomplete is Ctrl+Tab, and it falls back
+ *   to the row's Title on the next press ("Now type the name"), which reads as a glitch.
+ *
+ * So the entry copies the finished command instead. One API call, no hidden keystrokes, and what
+ * the user pastes is exactly what they could have typed - the same teaching effect.
  *
  * @param emoji The emoji the selected result stands for.
  * @param actionKeyword The word that routes the query back to this plugin.
  */
 export function buildAddAliasResult (emoji: string, actionKeyword: string): Result {
   return {
-    Title: 'Add alias',
-    Subtitle: `Esc, then Tab: fills in “${actionKeyword} addalias ${emoji} ”`,
-    IcoPath: emojiIcon(emoji)
+    Title: 'Add alias for this emoji',
+    Subtitle: 'Copies to your clipboard the ready-made command to add an alias to this specific emoji. Simply go back, paste and complete.',
+    IcoPath: emojiIcon(emoji),
+    // CopyToClipboard(text, directCopy, showDefaultNotification). The notification is the only
+    // feedback there is: the menu closes with this click.
+    JsonRPCAction: {
+      method: 'Flow.Launcher.CopyToClipboard',
+      parameters: [`${actionKeyword} addalias ${emoji} `, false, true]
+    }
   };
 }
 

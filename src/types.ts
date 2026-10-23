@@ -24,9 +24,9 @@ export type JsonRpcAction = {
    * Keep Flow Launcher on screen after the action runs.
    *
    * Flow hides the window after every action unless this is set (`JsonRPCClientRequestModel`
-   * in Flow's `JsonPRCModel`; `ExecuteResultAsync` returns `!DontHideAfterAction`). An action
-   * that hands control back to the query box - the context menu's "Add alias" - has to set it,
-   * or it types the command and closes the window in the same breath.
+   * in Flow's `JsonPRCModel`; `ExecuteResultAsync` returns `!DontHideAfterAction`). Only an
+   * action that hands control back to the query box would want it; copying and removing should
+   * close the window, so nothing sets it today.
    */
   DontHideAfterAction?: boolean
 };
@@ -36,15 +36,6 @@ export type Result = {
   Subtitle: string
   JsonRPCAction?: JsonRpcAction
   IcoPath?: string
-  /**
-   * What Tab fills the query box with while this result is selected.
-   *
-   * Flow's autocomplete (`MainViewModel.AutocompleteQuery`) replaces the whole query with this
-   * string and re-queries, and it only runs while results - not a context menu - are selected.
-   * It is the one way a plugin can hand the user a command they did not have to type, so it is
-   * how "add an alias for this emoji" reaches the query box.
-   */
-  AutoCompleteText?: string
   /**
    * The match score. Flow Launcher sorts by it, and adds the user's own selection count on top
    * (`Result.AddSelectedCount`), which is where "the more I use an emoji, the higher it goes"

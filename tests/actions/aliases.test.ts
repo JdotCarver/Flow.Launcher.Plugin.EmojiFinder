@@ -173,29 +173,30 @@ describe('the context menu', () => {
 
     expect(buildContextMenu('💪', paths(directory), 'e').map((result) => result.Title)).toEqual([
       'Copy only',
-      'Add alias',
+      'Add alias for this emoji',
       'Remove alias “swole”',
       'Open my aliases file'
     ]);
   });
 
-  test('explains the keystrokes for adding instead of pretending to type', () => {
+  test('copies the finished add command, because nothing can type it for the user', () => {
     const [copyOnly, add] = buildContextMenu('💪', paths(createSettingsDirectory()), 'e');
 
     // Our own copy action, so the pick is recorded and the user gets a confirmation.
     expect(copyOnly.JsonRPCAction).toEqual({ method: 'copy', parameters: ['💪', true] });
-    // Measured on the machine: ChangeQuery from a menu item sets the text but does not leave the
-    // menu, and leaving it needs a second API call that one action does not get. So this entry
-    // has no action of its own; it sends the user to Tab, which does work from the results list.
-    expect(add.JsonRPCAction).toBeUndefined();
-    expect(add.Subtitle).toContain('Tab');
-    expect(add.Subtitle).toContain('e addalias 💪');
+    // ChangeQuery inside the menu only re-filters the menu, and returning from it restores the
+    // pre-menu text, so the command is handed over on the clipboard instead.
+    expect(add.JsonRPCAction).toEqual({
+      method: 'Flow.Launcher.CopyToClipboard',
+      parameters: ['e addalias 💪 ', false, true]
+    });
+    expect(add.Subtitle).toContain('paste');
   });
 
   test('uses the keyword from the manifest, not a hard-coded e', () => {
     const [, add] = buildContextMenu('💪', paths(createSettingsDirectory()), 'emoji');
 
-    expect(add.Subtitle).toContain('emoji addalias 💪');
+    expect(add.JsonRPCAction?.parameters?.[0]).toBe('emoji addalias 💪 ');
   });
 
   test('offers to remove only the aliases of this emoji', () => {
@@ -228,7 +229,7 @@ describe('the context menu', () => {
 
     // Copy and add stay, because neither needs a file; a file entry would be a dead link, so it
     // is the only thing missing.
-    expect(menu.map((result) => result.Title)).toEqual(['Copy only', 'Add alias']);
+    expect(menu.map((result) => result.Title)).toEqual(['Copy only', 'Add alias for this emoji']);
     expect(menu[1]).toEqual(buildAddAliasResult('💪', 'e'));
   });
 });

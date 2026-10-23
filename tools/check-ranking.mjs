@@ -236,13 +236,6 @@ function checkResultsCarryWhatFlowNeeds () {
   finding(typeof first?.Score === 'number' && first.Score > 0 ? 'pass' : 'fail', 'results carry a Score', String(first?.Score));
   finding(typeof first?.RecordKey === 'string' ? 'pass' : 'fail', 'results carry a RecordKey', String(first?.RecordKey));
   finding(first?.ContextData === first?.RecordKey ? 'pass' : 'fail', 'results carry the ContextData the context menu needs');
-  finding(
-    typeof first?.AutoCompleteText === 'string' &&
-      String(first.AutoCompleteText).startsWith('e addalias ') &&
-      String(first.AutoCompleteText).endsWith(' '),
-    'Tab fills in the add command for the selected emoji',
-    String(first?.AutoCompleteText ?? '')
-  );
 }
 
 function checkContextMenu () {
@@ -256,17 +249,18 @@ function checkContextMenu () {
   const fileEntryIsLast = !order.includes('Open my aliases file') || order.at(-1) === 'Open my aliases file';
 
   finding(
-    order[0] === 'Copy only' && order[1] === 'Add alias' && fileEntryIsLast,
+    order[0] === 'Copy only' && order[1] === 'Add alias for this emoji' && fileEntryIsLast,
     'the menu leads with copy-only and add alias, and puts the file last',
     order.join(' | ')
   );
 
-  const add = menu.find((item) => item.Title === 'Add alias');
+  const add = menu.find((item) => item.Title === 'Add alias for this emoji');
 
   finding(
-    add?.JsonRPCAction === undefined && String(add?.Subtitle).includes('Tab'),
-    'the add entry points at Tab, because a menu action cannot leave the menu',
-    String(add?.Subtitle ?? '')
+    add?.JsonRPCAction?.method === 'Flow.Launcher.CopyToClipboard' &&
+      add?.JsonRPCAction?.parameters?.[0] === 'e addalias 💪 ',
+    'the add entry copies the finished command',
+    JSON.stringify(add?.JsonRPCAction ?? null)
   );
 
   const copyOnly = menu.find((item) => item.Title === 'Copy only');

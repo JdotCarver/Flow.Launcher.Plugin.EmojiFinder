@@ -64,18 +64,8 @@ describe('query', () => {
       IcoPath: expect.stringMatching(/^icons\\[0-9a-f-]+\.png$/),
       Score: expect.any(Number),
       RecordKey: expect.any(String),
-      ContextData: expect.any(String),
-      AutoCompleteText: expect.any(String)
+      ContextData: expect.any(String)
     });
-  });
-
-  test('Tab fills in the add-an-alias command for the selected emoji', () => {
-    const { result } = queryAndReadPayload('smile', { maxResults: '1' });
-
-    // Flow's autocomplete replaces the whole query with this and re-queries. It is how a plugin
-    // can put a command in the box: a context-menu action cannot, because leaving the menu takes
-    // a second API call and an action only gets one.
-    expect(result[0]?.AutoCompleteText).toBe(`e addalias ${result[0]?.RecordKey} `);
   });
 
   test('sends the score and the record key Flow needs to rank by use', () => {

@@ -12,7 +12,7 @@ import type { JsonRpcAction, Result, Settings } from '../types.js';
 import { buildAliasCommandResults, parseAliasCommand } from './aliases.js';
 import { emojiDatabasePath, find } from '../utils/find.js';
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
-import { migrateEnterModeSetting, readActionKeyword, readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
+import { migrateEnterModeSetting, readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
 import { readSettings } from '../utils/settings.js';
 import { getIconFileName } from '../utils/utils.js';
 
@@ -68,8 +68,6 @@ export function query (input: string | undefined, settings: Settings): void {
     return;
   }
 
-  const actionKeyword = readActionKeyword();
-
   const request: Result[] = find(search, resolvedSettings.maxResults, {
     aliases: settingsDirectory === null ? undefined : readAliases(settingsDirectory),
     // Only an empty query is ranked by history, so only an empty query pays for reading it.
@@ -82,9 +80,6 @@ export function query (input: string | undefined, settings: Settings): void {
     // Our own relevance order, which Flow cannot reconstruct. Flow adds the user's selection
     // count to this, which is the "used emoji float up" behaviour, for free.
     Score: finding.score,
-    // Tab turns any emoji into the start of an alias for it, which is the only way a plugin can
-    // put a whole command in the query box: Flow's context menu cannot hand control back.
-    AutoCompleteText: `${actionKeyword} addalias ${finding.emoji} `,
     RecordKey: finding.emoji,
     // What the right-arrow menu receives when the user opens it on this result.
     ContextData: finding.emoji
