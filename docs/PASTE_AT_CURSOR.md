@@ -287,3 +287,12 @@ is what frees our event loop, and that is now the whole mechanism.
 
 The helper now also logs `winforms loaded` / `uiautomation loaded`, so a future silent run
 distinguishes "PowerShell refused" from "the script ran and decided not to paste".
+
+## 8. Superseded: the helper must not be our child
+
+Section 7 fixed how the helper is spawned, and the real machine then showed that spawning
+was not the whole story: the plugin logged `paste:spawn started=true ready=true` three times,
+so PowerShell did start - and the helper still wrote nothing, because Flow destroys the
+plugin's process tree the moment the action returns. Anything we start dies with us.
+
+The replacement design, and the trade-offs it carries, are in `docs/PASTE_AGENT.md`.
