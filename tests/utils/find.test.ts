@@ -169,9 +169,9 @@ describe('find', () => {
         }
       });
 
-      expect(found.slice(0, 2).map((entry) => entry.emoji)).toEqual(['🚀', '🙈']);
-      // And the list is not short: the rest of the table fills it up as it always did.
-      expect(found).toHaveLength(5);
+      // Only the user's own emoji: no "grinning face" padding, which made a personal list look
+      // like a random one.
+      expect(found.map((entry) => entry.emoji)).toEqual(['🚀', '🙈']);
     });
 
     test('breaks ties on how recently it was used', () => {

@@ -10,7 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
-  buildAddAliasMenuResult,
+  buildAddAliasHintResult,
   buildAliasCommandResults,
   buildContextMenu,
   parseAliasCommand
@@ -60,8 +60,10 @@ describe('parseAliasCommand', () => {
     expect(parseAliasCommand('addalias 💪')).toEqual({ kind: 'add-incomplete', emoji: '💪' });
   });
 
-  test('a name without an emoji is not a command at all', () => {
-    expect(parseAliasCommand('addalias swole')).toEqual({ kind: 'none' });
+  test('a name without an emoji asks for the emoji to be picked', () => {
+    expect(parseAliasCommand('addalias swole')).toEqual({ kind: 'add-search', term: 'swole' });
+    expect(parseAliasCommand('addalias big muscles')).toEqual({ kind: 'add-search', term: 'big muscles' });
+    expect(parseAliasCommand('addalias')).toEqual({ kind: 'add-picker' });
   });
 
   test('removal names the alias, and asks when there is none', () => {
@@ -71,38 +73,61 @@ describe('parseAliasCommand', () => {
 });
 
 describe('buildAliasCommandResults', () => {
+  /** A search that answers with two emoji, so the picker can be tested without emojilib. */
+  const search = (term: string): { emoji: string, title: string, subtitle: string }[] =>
+    term === 'nothing' ? [] : [{ emoji: '💪', title: 'Flexed Biceps', subtitle: 'muscle, strong' }];
+
+  function results (command: Parameters<typeof buildAliasCommandResults>[0], directory: string | null) {
+    return buildAliasCommandResults(command, paths(directory), search) ?? [];
+  }
+
   test('an ordinary search produces no results from here', () => {
-    expect(buildAliasCommandResults({ kind: 'none' }, paths(createSettingsDirectory()))).toBeNull();
+    expect(buildAliasCommandResults({ kind: 'none' }, paths(createSettingsDirectory()), search)).toBeNull();
   });
 
-  test('saving an alias writes it and confirms which emoji it points at', () => {
+  test('a complete command offers to save, and writes nothing while typing', () => {
     const directory = createSettingsDirectory();
-    const results = buildAliasCommandResults({ kind: 'add', emoji: '💪', alias: 'Swole' }, paths(directory)) ?? [];
+    const [result] = results({ kind: 'add', emoji: '💪', alias: 'Swole' }, directory);
 
-    expect(results).toHaveLength(1);
-    expect(results[0]?.Title).toContain('💪');
-    expect(results[0]?.Title).toContain('swole');
-    // The confirmation is not a dead end: Enter copies the emoji it is about.
-    expect(results[0]?.JsonRPCAction?.parameters[0]).toBe('💪');
-    expect(readAliases(directory)).toEqual({ swole: '💪' });
+    expect(result?.Title).toContain('swole');
+    expect(result?.Title).toContain('💪');
+    // A query is run per keystroke: saving here would leave `s`, `sw`, `swo` behind as aliases.
+    expect(readAliases(directory)).toEqual({});
+    expect(result?.JsonRPCAction).toEqual({ method: 'addalias', parameters: ['swole', '💪'] });
   });
 
-  test('saving with no settings folder says so instead of throwing', () => {
-    const results = buildAliasCommandResults({ kind: 'add', emoji: '💪', alias: 'swole' }, paths(null)) ?? [];
+  test('a name without an emoji becomes a picker that saves the name', () => {
+    const [result] = results({ kind: 'add-search', term: 'swole' }, createSettingsDirectory());
 
-    expect(results).toHaveLength(1);
-    expect(results[0]?.Title).toContain('💪');
+    expect(result?.Title).toContain('💪');
+    expect(result?.Subtitle).toContain('swole');
+    expect(result?.JsonRPCAction).toEqual({ method: 'addalias', parameters: ['swole', '💪'] });
   });
 
-  test('removing an alias writes the file', () => {
+  test('a bare addalias shows the emoji list and pre-fills the command', () => {
+    const [result] = results({ kind: 'add-picker' }, createSettingsDirectory());
+
+    // No name typed yet, so the emoji comes first: Enter puts the command in the query box.
+    expect(result?.JsonRPCAction).toEqual({
+      method: 'Flow.Launcher.ChangeQuery',
+      parameters: ['addalias 💪 ', true]
+    });
+  });
+
+  test('a search with no matches shows nothing rather than inventing an emoji', () => {
+    expect(results({ kind: 'add-search', term: 'nothing' }, createSettingsDirectory())).toEqual([]);
+  });
+
+  test('removing offers to remove, and writes nothing until Enter', () => {
     const directory = createSettingsDirectory();
 
     saveAlias(directory, 'swole', '💪');
 
-    const results = buildAliasCommandResults({ kind: 'remove', alias: 'swole' }, paths(directory)) ?? [];
+    const [result] = results({ kind: 'remove', alias: 'swole' }, directory);
 
-    expect(results[0]?.Title).toContain('removed');
-    expect(readAliases(directory)).toEqual({});
+    expect(result?.Title).toContain('swole');
+    expect(result?.JsonRPCAction).toEqual({ method: 'removealias', parameters: ['swole'] });
+    expect(readAliases(directory)).toEqual({ swole: '💪' });
   });
 
   test('listing shows the files first, then every alias', () => {
@@ -111,29 +136,27 @@ describe('buildAliasCommandResults', () => {
     saveAlias(directory, 'swole', '💪');
     saveAlias(directory, 'shipit', '🚀');
 
-    const results = buildAliasCommandResults({ kind: 'list' }, paths(directory)) ?? [];
+    const listed = results({ kind: 'list' }, directory);
 
-    expect(results[0]?.Title).toBe('Open your aliases file');
-    expect(results[1]?.Title).toBe('Open the emoji database');
-    // Sorted by alias name, and Enter removes - the title has to say so.
-    expect(results[2]?.Title).toContain('shipit');
-    expect(results[2]?.Subtitle).toContain('remove');
-    expect(results[3]?.Title).toContain('swole');
-    expect(results[2]?.JsonRPCAction).toEqual({ method: 'removealias', parameters: ['shipit'] });
+    expect(listed[0]?.Title).toBe('Open my aliases file');
+    expect(listed[1]?.Title).toBe('Open the emoji database');
+    expect(listed[2]?.Title).toContain('shipit');
+    expect(listed[2]?.Subtitle).toContain('remove');
+    expect(listed[3]?.Title).toContain('swole');
+    expect(listed[2]?.JsonRPCAction).toEqual({ method: 'removealias', parameters: ['shipit'] });
   });
 
   test('an empty list explains how to make one', () => {
-    const results = buildAliasCommandResults({ kind: 'list' }, paths(createSettingsDirectory())) ?? [];
+    const listed = results({ kind: 'list' }, createSettingsDirectory());
 
-    expect(results.at(-1)?.Title).toBe('No aliases yet');
-    expect(results.at(-1)?.Subtitle).toContain('right arrow');
+    expect(listed.at(-1)?.Title).toBe('No aliases yet');
+    expect(listed.at(-1)?.Subtitle).toContain('addalias');
   });
 
   test('the two open-file entries use a Flow Launcher method it can resolve', () => {
-    const results = buildAliasCommandResults({ kind: 'list' }, paths(createSettingsDirectory())) ?? [];
+    const listed = results({ kind: 'list' }, createSettingsDirectory());
 
-    // ShellRun(cmd, filename): two strings, so IPublicAPI.GetMethod's exact type match finds it.
-    for (const result of results.slice(0, 2)) {
+    for (const result of listed.slice(0, 2)) {
       expect(result.JsonRPCAction?.method).toBe('Flow.Launcher.ShellRun');
       expect(result.JsonRPCAction?.parameters).toHaveLength(2);
     }
@@ -141,16 +164,14 @@ describe('buildAliasCommandResults', () => {
 });
 
 describe('the context menu', () => {
-  test('offers to add an alias, and pre-fills the query box with the emoji', () => {
+  test('explains how to add an alias instead of trying to type for the user', () => {
     const [first] = buildContextMenu('💪', paths(createSettingsDirectory()));
 
-    expect(first?.Title).toContain('Add an alias');
-    // ChangeQuery(string, bool): two arguments, because optional parameters are invisible to
-    // Flow's reflection lookup.
-    expect(first?.JsonRPCAction).toEqual({
-      method: 'Flow.Launcher.ChangeQuery',
-      parameters: ['addalias 💪 ', true]
-    });
+    expect(first?.Title).toBe('Add an alias for this emoji');
+    // Flow keeps this menu open while the query box filters its own entries, so a pre-filled
+    // query is filtered away as soon as the user starts typing the name. The hint has no action.
+    expect(first?.Subtitle).toContain('e addalias');
+    expect(first?.JsonRPCAction).toBeUndefined();
   });
 
   test('offers to remove only the aliases of this emoji', () => {
@@ -168,7 +189,7 @@ describe('the context menu', () => {
   test('offers the file, even when there are no aliases yet', () => {
     const menu = buildContextMenu('💪', paths(createSettingsDirectory()));
 
-    expect(menu.at(-1)?.Title).toBe('Open your aliases file');
+    expect(menu.at(-1)?.Title).toBe('Open my aliases file');
   });
 
   test('explains itself instead of inventing an emoji when there is no ContextData', () => {
@@ -178,10 +199,10 @@ describe('the context menu', () => {
     expect(first?.JsonRPCAction).toBeUndefined();
   });
 
-  test('says nothing about files when there is no settings folder', () => {
+  test('offers no file entry when there is no settings folder', () => {
     const menu = buildContextMenu('💪', paths(null));
 
-    expect(menu).toHaveLength(1);
-    expect(menu[0]).toEqual(buildAddAliasMenuResult('💪'));
+    // The hint stays, because it works without any file; a file entry would be a dead link.
+    expect(menu).toEqual([buildAddAliasHintResult('💪')]);
   });
 });

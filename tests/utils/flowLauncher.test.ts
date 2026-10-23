@@ -1,27 +1,35 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
-import { FlowLauncher, sendJsonRpcRequest } from '../../src/utils/flowLauncher.js';
+// tests/utils/flowLauncher.test.ts
+//
+// Flow Launcher reads a plugin's stdout with .NET's default decoding, which on Windows is the
+// console code page - not UTF-8. Everything this plugin prints must therefore be pure ASCII,
+// with the non-ASCII characters carried inside JSON escapes.
 
-describe('FlowLauncher', () => {
-  const consoleMock = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+import { describe, expect, test } from 'vitest';
+import { toAsciiEscapedJson } from '../../src/utils/flowLauncher.js';
 
-  afterEach(() => {
-    consoleMock.mockReset();
+describe('toAsciiEscapedJson', () => {
+  test('writes the emoji as a JSON escape, so any code page decodes it', () => {
+    const json = toAsciiEscapedJson({ Title: 'Add an alias for 💪' });
+
+    expect(json).toBe('{"Title":"Add an alias for \\ud83d\\udcaa"}');
+    // The bytes on the wire are ASCII; Flow's JSON parser restores the emoji.
+    expect(json).toMatch(/^[\x20-\x7e]*$/);
+    expect(JSON.parse(json).Title).toBe('Add an alias for 💪');
   });
 
-  test('sendJsonRpcRequest', () => {
-    sendJsonRpcRequest({
-      method: 'hello',
-      parameters: ['world']
-    });
+  test('escapes typographic quotes and accents too', () => {
+    const json = toAsciiEscapedJson({ text: '“quoted” café' });
 
-    expect(consoleMock).toHaveBeenCalledOnce();
-    expect(consoleMock).toHaveBeenCalledWith('{"method":"hello","parameters":["world"]}');
+    expect(json).toMatch(/^[\x20-\x7e]*$/);
+    expect(JSON.parse(json).text).toBe('“quoted” café');
   });
 
-  test('showMessage', () => {
-    FlowLauncher.showMessage('Fancy fair', 'Surprises to expect');
+  test('leaves plain ASCII untouched', () => {
+    expect(toAsciiEscapedJson({ method: 'copy', parameters: ['🙈', true] }))
+      .toBe('{"method":"copy","parameters":["\\ud83d\\ude48",true]}');
+  });
 
-    expect(consoleMock).toHaveBeenCalledOnce();
-    expect(consoleMock).toHaveBeenCalledWith('{"method":"Flow.Launcher.ShowMsg","parameters":["Fancy fair","Surprises to expect",""]}');
+  test('still produces one line', () => {
+    expect(toAsciiEscapedJson({ Title: 'two\nlines' })).not.toContain('\n');
   });
 });

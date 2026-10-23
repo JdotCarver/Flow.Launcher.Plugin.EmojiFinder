@@ -12,7 +12,7 @@ import type { JsonRpcAction, Result, Settings } from '../types.js';
 import { buildAliasCommandResults, parseAliasCommand } from './aliases.js';
 import { emojiDatabasePath, find } from '../utils/find.js';
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
-import { readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
+import { migrateEnterModeSetting, readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
 import { readSettings } from '../utils/settings.js';
 import { getIconFileName } from '../utils/utils.js';
 
@@ -51,10 +51,17 @@ export function query (input: string | undefined, settings: Settings): void {
   const resolvedSettings = readSettings(settings);
   const search = input ?? '';
   const settingsDirectory = resolvePluginSettingsDirectory();
-  const aliasResults = buildAliasCommandResults(parseAliasCommand(search), {
-    settingsDirectory,
-    emojiDatabase: emojiDatabasePath()
-  });
+
+  // A legacy dropdown value makes Flow show an empty box. This is a read plus, only when the
+  // value is legacy, one small write; the common case costs a single property test.
+  if (settings.defaultAction !== undefined && settings.defaultAction !== 'Copy Mode' && settings.defaultAction !== 'Paste Mode') {
+    migrateEnterModeSetting(settingsDirectory);
+  }
+  const aliasResults = buildAliasCommandResults(
+    parseAliasCommand(search),
+    { settingsDirectory, emojiDatabase: emojiDatabasePath() },
+    (term, limit) => find(term, limit)
+  );
 
   if (aliasResults !== null) {
     sendJsonRpcRequest({ result: aliasResults });

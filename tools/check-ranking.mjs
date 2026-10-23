@@ -212,7 +212,7 @@ function checkEmptyQuery () {
 
   finding(found[0]?.emoji === '🚀' ? 'pass' : 'fail', 'an empty query shows the most used emoji first', `first: ${found[0]?.emoji ?? 'none'}`);
   finding(found[1]?.emoji === '🙈' ? 'pass' : 'fail', 'then the next one, by recency');
-  finding(found.length === 10 ? 'pass' : 'fail', 'and the list is still full', `${found.length} results`);
+  finding(found.length === 2 ? 'pass' : 'fail', 'and nothing else is mixed in', `${found.length} results`);
 }
 
 function checkResultsCarryWhatFlowNeeds () {
@@ -230,17 +230,21 @@ function checkResultsCarryWhatFlowNeeds () {
 }
 
 function checkContextMenu () {
-  const { payload } = runPlugin({ method: 'context_menu', parameters: ['💪'], settings: {} });
+  const { payload, stdout } = runPlugin({ method: 'context_menu', parameters: ['💪'], settings: {} });
   const menu = payload?.result ?? [];
-  const addItem = menu.find((item) => item.Title?.includes('Add an alias'));
+  const hint = menu.find((item) => item.Title?.includes('Add an alias'));
 
   finding(menu.length > 0 ? 'pass' : 'fail', 'the context menu answers', `${menu.length} item(s)`);
   finding(
-    addItem?.JsonRPCAction?.method === 'Flow.Launcher.ChangeQuery' &&
-      addItem?.JsonRPCAction?.parameters?.[0] === 'addalias 💪 ' &&
-      addItem?.JsonRPCAction?.parameters?.[1] === true,
-    'it offers to add an alias and pre-fills the query box',
-    JSON.stringify(addItem?.JsonRPCAction ?? null)
+    hint !== undefined && hint.JsonRPCAction === undefined && String(hint.Subtitle).includes('addalias'),
+    'the add-an-alias entry explains the command instead of typing for the user',
+    String(hint?.Subtitle ?? '')
+  );
+  // Flow decodes our stdout with the console code page, so the emoji must not be written literally.
+  finding(
+    stdout === '' || [...stdout].every((character) => character.charCodeAt(0) < 128),
+    'nothing but ASCII is written to stdout (Flow reads it with the console code page)',
+    stdout === '' ? 'no output' : 'non-ASCII bytes found'
   );
 }
 
@@ -252,6 +256,7 @@ function checkAliasCommands () {
     add.kind === 'add' && add.emoji === '💪' && add.alias === 'swole' && prefill.kind === 'add' && prefill.alias === 'swole',
     'both word orders for addalias parse the same way'
   );
+  finding(parseAliasCommand('addalias swole').kind === 'add-search', 'a name without an emoji asks for the emoji');
 
   const settings = createTemporarySettings();
 

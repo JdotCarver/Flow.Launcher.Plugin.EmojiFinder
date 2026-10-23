@@ -298,10 +298,11 @@ export function find (
 }
 
 /**
- * The empty-query answer: the user's own emoji first, then the data file's order.
+ * The empty-query answer: the user's own emoji, and nothing else.
  *
  * Used emoji are sorted by count and then by how recently they were used, which is the part
- * Flow Launcher cannot do for us (its counts are numbers, not timestamps).
+ * Flow Launcher cannot do for us (its counts are numbers, not timestamps). With no history at
+ * all the data file's order is returned unchanged, so the list is never empty.
  */
 function findMostUsed (
   entries: EmojiEntry[],
@@ -312,7 +313,6 @@ function findMostUsed (
   const keywordsByEmoji = new Map(entries);
   const used = orderByUsage(usage);
   const results: FindResult[] = [];
-  const included = new Set<string>();
 
   for (const emoji of used) {
     const keywords = keywordsByEmoji.get(emoji);
@@ -324,24 +324,20 @@ function findMostUsed (
     }
 
     results.push(toFindResult({ emoji, keywords, score: RECENT_EMOJI_SCORE }, aliasesByEmoji.get(emoji) ?? []));
-    included.add(emoji);
 
     if (results.length >= limit) {
       return results;
     }
   }
 
-  for (const [emoji, keywords] of entries) {
-    if (included.has(emoji)) {
-      continue;
-    }
-
-    results.push(toFindResult({ emoji, keywords, score: 0 }, aliasesByEmoji.get(emoji) ?? []));
-
-    if (results.length >= limit) {
-      break;
-    }
+  // The history is the answer, not a prefix of the whole table: mixing "grinning face" and
+  // friends into a list of the user's own emoji makes a personal list look like a random one.
+  // A user with no history still gets the data file's order, as every earlier version did.
+  if (results.length > 0) {
+    return results;
   }
 
-  return results;
+  return entries
+    .slice(0, limit)
+    .map(([emoji, keywords]: EmojiEntry) => toFindResult({ emoji, keywords, score: 0 }, aliasesByEmoji.get(emoji) ?? []));
 }

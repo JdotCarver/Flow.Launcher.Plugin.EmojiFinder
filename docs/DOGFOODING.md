@@ -29,6 +29,7 @@ npm run agent -- --start           # start it (the installer does this too)
 npm run agent -- --stop
 npm run agent -- --install-startup # come back at login
 npm run check:paste-agent          # per PowerShell host: request an emoji, verify it survives
+npm run check:ranking              # aliases, the empty-query list, and keystroke cost
 ```
 
 `npm run diagnose` is also the environment probe: it writes `dogfood/windows-probe.json` with

@@ -18,14 +18,11 @@
 //
 // Both paths end in the same save call, and aliases then behave as extra names in `find()`.
 
-import {
-  type AliasRecord,
-  ALIASES_FILE_NAME,
-  readAliases,
-  removeAlias,
-  saveAlias
-} from '../utils/pluginData.js';
+import { ALIASES_FILE_NAME, readAliases } from '../utils/pluginData.js';
 import type { JsonRpcAction, Result } from '../types.js';
+
+/** How many emoji the picker offers at once. The same ceiling the search uses. */
+const PICKER_LIMIT = 25;
 
 /** A token that looks like an emoji: pictographic, possibly with joiners and selectors. */
 const EMOJI_PATTERN = /\p{Extended_Pictographic}/u;
@@ -38,8 +35,14 @@ const EMOJI_PATTERN = /\p{Extended_Pictographic}/u;
  */
 export type AliasCommand =
   | { kind: 'none' }
+  /** Both parts given: `addalias swole 💪`. */
   | { kind: 'add', emoji: string, alias: string }
+  /** An emoji but no name yet: `addalias 💪`. */
   | { kind: 'add-incomplete', emoji: string }
+  /** A name but no emoji yet: `addalias swole` - the emoji is picked from the list. */
+  | { kind: 'add-search', term: string }
+  /** Neither: `addalias` alone. */
+  | { kind: 'add-picker' }
   | { kind: 'remove', alias: string }
   | { kind: 'remove-incomplete' }
   | { kind: 'list' };
@@ -72,11 +75,14 @@ export function parseAliasCommand (input: string): AliasCommand {
 
   const rest = tokens.slice(1);
   const emoji = rest.find((token) => EMOJI_PATTERN.test(token));
-  const alias = rest.filter((token) => token !== emoji).join(' ');
 
   if (emoji === undefined) {
-    return { kind: 'none' };
+    const term = rest.join(' ');
+
+    return term === '' ? { kind: 'add-picker' } : { kind: 'add-search', term };
   }
+
+  const alias = rest.filter((token) => token !== emoji).join(' ');
 
   return alias === '' ? { kind: 'add-incomplete', emoji } : { kind: 'add', emoji, alias };
 }
@@ -89,47 +95,49 @@ function openFileAction (filePath: string): JsonRpcAction {
   return { method: 'Flow.Launcher.ShellRun', parameters: ['', filePath] };
 }
 
-/** The "add an alias for this emoji" menu item: pre-fills the query box and stops there. */
-export function buildAddAliasMenuResult (emoji: string): Result {
+/**
+ * The menu entry that explains how to add an alias.
+ *
+ * It cannot do the adding itself: Flow Launcher keeps the context menu open while the query box
+ * filters the menu's own entries, so a pre-filled query disappears the moment the user types the
+ * name. An entry that only needs typing is the honest version.
+ */
+export function buildAddAliasHintResult (emoji: string): Result {
   return {
-    Title: `Add an alias for this emoji`,
-    Subtitle: 'Type the name, then press Enter',
-    IcoPath: 'img\\app.png',
-    // ChangeQuery(string, bool): the query box is replaced and the caret moves to the end.
-    JsonRPCAction: { method: 'Flow.Launcher.ChangeQuery', parameters: [`addalias ${emoji} `, true] }
+    Title: 'Add an alias for this emoji',
+    Subtitle: `Type: e addalias ${emoji} <name> - or e addalias <name> and pick the emoji`,
+    IcoPath: 'img\\app.png'
   };
 }
 
 /**
- * The results for an alias command, or null when the query is an ordinary emoji search.
+ * What an alias command shows.
+ *
+ * Queries never write. Flow Launcher runs our script once per keystroke, so saving while the
+ * user types would save `s`, then `sw`, then `swo`, ... - and every prefix would stay behind as
+ * an alias. Everything that changes a file is an action, which only runs when Enter is pressed.
  *
  * @param command A parsed alias command.
- * @param paths Where the files are, when they can be found.
+ * @param paths Where the files are.
+ * @param search Finds emoji for the picker. Injected so this module does not import the hot path.
  */
 export function buildAliasCommandResults (
   command: AliasCommand,
-  paths: { settingsDirectory: string | null, emojiDatabase: string }
+  paths: { settingsDirectory: string | null, emojiDatabase: string },
+  search: (term: string, limit: number) => { emoji: string, title: string, subtitle: string }[]
 ): Result[] | null {
   if (command.kind === 'none') {
     return null;
   }
 
   if (command.kind === 'add') {
-    // The stored name is lowercased, and the confirmation shows what was actually stored, so
-    // the message and the search that follows cannot disagree.
     const alias = command.alias.trim().toLowerCase();
-    const aliases = paths.settingsDirectory === null ? {} : saveAlias(paths.settingsDirectory, alias, command.emoji);
-
-    return [savedAliasResult(alias, command.emoji, aliases)];
-  }
-
-  if (command.kind === 'remove') {
-    const aliases = paths.settingsDirectory === null ? {} : removeAlias(paths.settingsDirectory, command.alias);
 
     return [{
-      Title: `Alias “${command.alias}” removed`,
-      Subtitle: Object.keys(aliases).length === 0 ? 'You have no aliases left' : `${command.alias} no longer finds an emoji`,
-      IcoPath: 'img\\app.png'
+      Title: `Save “${alias}” for ${command.emoji}`,
+      Subtitle: 'Press Enter to save this alias',
+      IcoPath: 'img\\app.png',
+      JsonRPCAction: { method: 'addalias', parameters: [alias, command.emoji] }
     }];
   }
 
@@ -138,6 +146,19 @@ export function buildAliasCommandResults (
       Title: `Type the name for ${command.emoji}`,
       Subtitle: `e addalias ${command.emoji} <name>`,
       IcoPath: 'img\\app.png'
+    }];
+  }
+
+  if (command.kind === 'add-search' || command.kind === 'add-picker') {
+    return pickerResults(command, search);
+  }
+
+  if (command.kind === 'remove') {
+    return [{
+      Title: `Remove the alias “${command.alias}”`,
+      Subtitle: 'Press Enter to remove it',
+      IcoPath: 'img\\app.png',
+      JsonRPCAction: { method: 'removealias', parameters: [command.alias] }
     }];
   }
 
@@ -152,16 +173,31 @@ export function buildAliasCommandResults (
   return listingResults(paths);
 }
 
-/** Confirms a save, and offers the emoji itself so Enter is not a dead end. */
-function savedAliasResult (alias: string, emoji: string, aliases: AliasRecord): Result {
-  const sameAliasCount = Object.values(aliases).filter((value) => value === emoji).length;
+/**
+ * The emoji to attach a name to.
+ *
+ * `e addalias swole` searches for "swole" like an ordinary query, so the user can find the emoji
+ * the way they always do, and Enter saves the name they already typed. With no name yet
+ * (`e addalias`) the plain list is shown and Enter pre-fills the command instead - picking the
+ * emoji first is the only order that works when the name is not typed yet.
+ */
+function pickerResults (command: { kind: 'add-search', term: string } | { kind: 'add-picker' }, search: (term: string, limit: number) => { emoji: string, title: string, subtitle: string }[]): Result[] {
+  const term = command.kind === 'add-search' ? command.term : '';
+  const emoji = search(term, PICKER_LIMIT);
 
-  return {
-    Title: `${emoji} now answers to “${alias}”`,
-    Subtitle: sameAliasCount > 1 ? `${emoji} has ${sameAliasCount} aliases` : 'Saved. Try typing it.',
-    IcoPath: 'img\\app.png',
-    JsonRPCAction: { method: 'Flow.Launcher.CopyToClipboard', parameters: [emoji, false, false] }
-  };
+  return emoji.map(({ emoji: candidate, title, subtitle }) => (command.kind === 'add-search'
+    ? {
+        Title: `${candidate}  ${title}`,
+        Subtitle: `Press Enter to make “${term}” an alias for ${candidate}`,
+        IcoPath: 'img\\app.png',
+        JsonRPCAction: { method: 'addalias', parameters: [term, candidate] }
+      }
+    : {
+        Title: `${candidate}  ${title}`,
+        Subtitle: `${subtitle} - Enter, then type the name`,
+        IcoPath: 'img\\app.png',
+        JsonRPCAction: { method: 'Flow.Launcher.ChangeQuery', parameters: [`addalias ${candidate} `, true] }
+      }));
 }
 
 /**
@@ -192,7 +228,7 @@ function listingResults (paths: { settingsDirectory: string | null, emojiDatabas
   if (entries.length === 0) {
     results.push({
       Title: 'No aliases yet',
-      Subtitle: 'On an emoji, press the right arrow and choose “Add an alias”',
+      Subtitle: 'Type: e addalias <name> and pick the emoji, or e addalias <name> <emoji>',
       IcoPath: 'img\\app.png'
     });
 
@@ -234,7 +270,11 @@ export function buildContextMenu (
 
   const aliases = paths.settingsDirectory === null ? {} : readAliases(paths.settingsDirectory);
   const own = Object.entries(aliases).filter(([, value]) => value === emoji);
-  const menu: Result[] = [buildAddAliasMenuResult(emoji)];
+
+  // The first entry explains how to add one instead of trying to do it: adding needs a name
+  // typed, and Flow Launcher keeps this menu open while the query box filters the menu's own
+  // entries, so a pre-filled query is filtered away as soon as the user types.
+  const menu: Result[] = [buildAddAliasHintResult(emoji)];
 
   for (const [alias] of own) {
     menu.push({

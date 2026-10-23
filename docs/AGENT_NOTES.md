@@ -83,6 +83,11 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
 - **A dropdown's value is a string the user sees, and it is also the setting's value.** Renaming
   an option renames the stored value. Parse it leniently (match the word inside), or a wording
   change silently disables a setting.
+- **Flow Launcher reads a plugin's stdout with the console code page, not UTF-8.** Never print
+  non-ASCII: escape it into JSON (`\uXXXX`) so the JSON parser on Flow's side restores it.
+- **Right-arrow context menus keep filtering themselves.** While the menu is open the query box
+  filters the menu's entries, and only Escape leaves it, so nothing that needs typed input can
+  start there.
 - **A shallow checkout breaks history-based decisions.** `actions/checkout` fetches one commit by
   default, so `git diff HEAD~1 HEAD` fails silently in a workflow. Ask for `fetch-depth: 2`, or
   decide from something other than history.

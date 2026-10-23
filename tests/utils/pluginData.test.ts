@@ -14,6 +14,8 @@ import {
   PLUGIN_ID,
   USAGE_FILE_NAME,
   ALIASES_FILE_NAME,
+  FLOW_SETTINGS_FILE_NAME,
+  migrateEnterModeSetting,
   readAliases,
   readUsage,
   recordUsage,
@@ -144,6 +146,47 @@ describe('recordUsage', () => {
     recordUsage(directory, '🙈', 1000);
 
     expect(fs.readdirSync(directory)).toEqual([USAGE_FILE_NAME]);
+  });
+});
+
+describe('migrateEnterModeSetting', () => {
+  function writeFlowSettings (directory: string, settings: Record<string, unknown>): void {
+    fs.writeFileSync(path.join(directory, FLOW_SETTINGS_FILE_NAME), JSON.stringify(settings));
+  }
+
+  function readFlowSettings (directory: string): Record<string, unknown> {
+    return JSON.parse(fs.readFileSync(path.join(directory, FLOW_SETTINGS_FILE_NAME), 'utf8'));
+  }
+
+  test('translates an old dropdown value, which Flow would otherwise show as an empty box', () => {
+    const directory = createDirectory();
+
+    writeFlowSettings(directory, { defaultAction: 'paste', maxResults: '25' });
+
+    expect(migrateEnterModeSetting(directory)).toBe('Paste Mode');
+    expect(readFlowSettings(directory)).toEqual({ defaultAction: 'Paste Mode', maxResults: '25' });
+  });
+
+  test('leaves a value that is already current alone', () => {
+    const directory = createDirectory();
+
+    writeFlowSettings(directory, { defaultAction: 'Paste Mode' });
+
+    expect(migrateEnterModeSetting(directory)).toBeNull();
+  });
+
+  test('does nothing when there is no settings file or no folder', () => {
+    expect(migrateEnterModeSetting(createDirectory())).toBeNull();
+    expect(migrateEnterModeSetting(null)).toBeNull();
+  });
+
+  test('keeps the other settings in the file', () => {
+    const directory = createDirectory();
+
+    writeFlowSettings(directory, { enableNotification: false, defaultAction: 'copy' });
+
+    migrateEnterModeSetting(directory);
+    expect(readFlowSettings(directory)).toEqual({ enableNotification: false, defaultAction: 'Copy Mode' });
   });
 });
 

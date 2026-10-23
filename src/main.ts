@@ -11,7 +11,7 @@ import { paste } from './actions/paste.js';
 import { query } from './actions/query.js';
 import { emojiDatabasePath } from './utils/find.js';
 import { sendJsonRpcRequest } from './utils/flowLauncher.js';
-import { removeAlias, resolvePluginSettingsDirectory } from './utils/pluginData.js';
+import { removeAlias, resolvePluginSettingsDirectory, saveAlias } from './utils/pluginData.js';
 import { trace } from './utils/trace.js';
 
 const args: Arguments = JSON.parse(process.argv[2] ?? '{}');
@@ -55,6 +55,23 @@ if (method === 'paste') {
   paste(emoji);
 }
 
+// Enter on "Save ... for 💪": write the alias, then say so.
+if (method === 'addalias') {
+  const alias = parameters[0] as string;
+  const emoji = parameters[1] as string;
+  const settingsDirectory = resolvePluginSettingsDirectory();
+
+  if (settingsDirectory !== null) {
+    saveAlias(settingsDirectory, alias, emoji);
+  }
+
+  trace('alias:added', { alias, emoji, saved: settingsDirectory !== null });
+  sendJsonRpcRequest({
+    method: 'Flow.Launcher.ShowMsg',
+    parameters: [`${emoji} now answers to "${alias}"`, 'Flow Launcher Emoji Finder', 'img\\app.png']
+  });
+}
+
 // Enter on an entry of the alias list: remove it, and say so through Flow's own notification.
 if (method === 'removealias') {
   const alias = parameters[0] as string;
@@ -64,6 +81,6 @@ if (method === 'removealias') {
   trace('alias:removed', { alias, remaining: Object.keys(aliases).length });
   sendJsonRpcRequest({
     method: 'Flow.Launcher.ShowMsg',
-    parameters: [`Alias “${alias}” removed`, 'Flow Launcher Emoji Finder', 'img\\app.png']
+    parameters: [`Removed the alias "${alias}"`, 'Flow Launcher Emoji Finder', 'img\\app.png']
   });
 }

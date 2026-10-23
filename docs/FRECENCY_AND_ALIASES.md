@@ -85,22 +85,37 @@ rule `settings.ts` already follows for bad settings.
 ## Aliases as shipped
 
 ```
-e addalias swole 💪        add (both word orders work; a name may contain spaces)
-e addalias 💪 swole        the same command
-e aliases                  list them, plus "open the aliases file" and "open the emoji database"
+e addalias swole 💪        save "swole" for 💪 directly
+e addalias swole           show emoji for "swole"; Enter on one saves it as an alias
+e addalias                 show the emoji list; Enter pre-fills the command to finish by hand
+e aliases                  list them, plus "open my aliases file" and "open the emoji database"
 e removealias swole        remove one
 ```
 
-Right arrow on any emoji → **Add an alias for 💪** → the query box is pre-filled with
-`addalias 💪 ` and the caret at the end → type the name → Enter. That is the whole flow the
-maintainer asked for, minus the popup text box Flow does not have.
+Right arrow on an emoji → **Add an alias for this emoji** explains the command; it cannot type for
+you (see below). The menu's working entries are removing that emoji's aliases and opening the
+file.
+
+**Queries never write.** Flow Launcher runs the plugin once per keystroke, so saving during a
+query would leave `s`, `sw`, `swo`, ... behind as aliases. Everything that changes a file is an
+action, which only runs on Enter.
 
 An alias is an extra name, not a separate search space: `scoreEmoji` takes the better of the
 keyword score and the alias score, so an alias can never make an emoji *harder* to find, and the
 result's subtitle shows the alias so a hit under a name that is not in its keywords does not look
 like a bug.
 
-## Frecency
+### Why the context menu cannot add an alias
+
+Flow Launcher implements the right-arrow menu for JS plugins by calling our script with method
+`context_menu`. While that menu is open, `SelectedResults` is the menu's own result list, and the
+query box keeps filtering **the menu** - so a `Flow.Launcher.ChangeQuery` that pre-fills
+`addalias 💪 ` is filtered away as soon as the user types the name. Only Escape returns to the
+results (`EscAsync` → `ReturnFromContextMenuAsync`), and `IPublicAPI` has no "close the menu" call.
+A JSON plugin's action can reach exactly one `Flow.Launcher.*` method, so "close the menu and set
+the query" cannot be chained either.
+
+## Frecency## Frecency
 
 **Ranking**, inside `find()`, after the existing match score:
 
@@ -146,6 +161,17 @@ feature needs:
 4. Recording, and the action routing that makes it possible.
 5. Whatever alias UI we agree on.
 6. Measure again: `find()` cost per keystroke, and the cost of a pick.
+
+## Two traps found on the machine (both fixed)
+
+- **Flow decodes our stdout with the console code page.** `RedirectStandardOutput` is set without
+  `StandardOutputEncoding`, so an emoji written literally arrives as mojibake - the context menu
+  said "Add an alias for this emoji" only after the emoji was removed. Everything printed is now
+  ASCII JSON (`\ud83d\udcaa`), which any code page carries and JSON restores.
+- **A dropdown's stored value is its label.** Renaming the options to "Copy Mode"/"Paste Mode"
+  left every existing install showing an empty box, because Flow renders a dropdown by matching
+  the stored string (`copy`) against the options. `migrateEnterModeSetting` rewrites the legacy
+  value in Flow's `Settings.json`; `parseDefaultAction` accepts both.
 
 ## The settings page cannot have the button (evidence)
 
@@ -193,7 +219,7 @@ Note that `description` is the text a `textBlock` renders, and `name` is not sho
 
 | what | cost |
 |---|---|
-| `find()` with 40 aliases loaded, per keystroke | **+0.03 to +0.06 ms** |
+| `find()` with 40 aliases loaded, per keystroke | **+0.03 to +0.08 ms** |
 | reading `aliases.json` | 0.02 ms |
 | reading `usage.json` | 0.006 ms |
 | whole process, one query | 52.6 ms (unchanged: Node boot dominates) |

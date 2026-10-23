@@ -87,6 +87,56 @@ export function resolvePluginSettingsDirectory (
   return null;
 }
 
+/** Flow Launcher's settings file for this plugin, inside its own settings folder. */
+export const FLOW_SETTINGS_FILE_NAME = 'Settings.json';
+
+/**
+ * Values the "Enter Mode" dropdown has used. Flow renders a dropdown by matching the stored
+ * value against the option strings, and a dropdown whose value matches none of them shows
+ * *nothing* - which is what happened when the options were reworded from `copy`/`paste` to
+ * `Copy Mode`/`Paste Mode`: every existing install showed an empty box.
+ */
+const ENTER_MODE_VALUES: Record<string, string> = {
+  copy: 'Copy Mode',
+  paste: 'Paste Mode'
+};
+
+/**
+ * Rewrites a legacy Enter Mode value in Flow Launcher's settings file, once.
+ *
+ * The dropdown's options are plain strings and Flow stores the string it displays, so the value
+ * *is* the label: there is no way to have friendly labels and keep the old identifiers. This
+ * translates the old value in place, which is the only migration available to a plugin.
+ *
+ * Best effort by design: Flow holds its own copy in memory and rewrites the whole file when any
+ * setting changes, so a failure here costs a blank dropdown for one more session, not a bug.
+ *
+ * @returns The value now stored, or null when there was nothing to do.
+ */
+export function migrateEnterModeSetting (settingsDirectory: string | null): string | null {
+  if (settingsDirectory === null) {
+    return null;
+  }
+
+  const filePath = path.join(settingsDirectory, FLOW_SETTINGS_FILE_NAME);
+  const settings = readJsonFile<Record<string, unknown>>(filePath);
+
+  if (settings === null || typeof settings.defaultAction !== 'string') {
+    return null;
+  }
+
+  const migrated = ENTER_MODE_VALUES[settings.defaultAction];
+
+  if (migrated === undefined) {
+    return null;
+  }
+
+  settings.defaultAction = migrated;
+  writeFileAtomically(filePath, JSON.stringify(settings, null, 2));
+
+  return migrated;
+}
+
 /** Reads JSON, or null when the file is missing or is not JSON. */
 function readJsonFile<T> (filePath: string): T | null {
   try {
