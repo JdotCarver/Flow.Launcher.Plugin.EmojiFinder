@@ -61,6 +61,25 @@ function readIfPresent (filePath) {
   }
 }
 
+/**
+ * Reads a file from a byte offset.
+ *
+ * The offset comes from `fs.statSync().size`, so it is a byte count; slicing the decoded string
+ * at it would be wrong, because the log is full of emoji and a JavaScript string index counts
+ * UTF-16 code units - one emoji is 2 units but 4 bytes. The mismatch quietly cut the first
+ * line of every slice in half, which is how the start line became 'start pid=…' with no
+ * timestamp and 'art pid=…' for the host after it.
+ */
+function readFromByteOffset (filePath, offset) {
+  try {
+    const contents = fs.readFileSync(filePath);
+
+    return contents.subarray(offset).toString('utf8');
+  } catch {
+    return '';
+  }
+}
+
 function existingBytes (filePath) {
   try {
     return fs.statSync(filePath).size;
@@ -197,7 +216,7 @@ async function checkHost (host, emoji) {
 
   await new Promise((resolve) => setTimeout(resolve, REQUEST_SETTLE_MILLISECONDS));
 
-  const log = readIfPresent(paths.log).slice(logOffset);
+  const log = readFromByteOffset(paths.log, logOffset);
   const expectedCodes = codePointsOf(emoji);
 
   // First: did this host's process write anything at all? When it did not, its stderr is the
