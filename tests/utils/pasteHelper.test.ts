@@ -7,6 +7,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   buildPasteScript,
+  buildPasteSpawnOptions,
   encodePowerShellCommand,
   spawnPasteHelper
 } from '../../src/utils/pasteHelper.js';
@@ -115,6 +116,25 @@ describe('encodePowerShellCommand', () => {
 
     expect(decoded).toContain("$targetEmoji = '❤️'");
     expect(decoded).toBe(script);
+  });
+});
+
+describe('buildPasteSpawnOptions', () => {
+  test('never asks for a detached process', () => {
+    // Regression: `detached: true` becomes DETACHED_PROCESS on Windows, gives PowerShell
+    // no console, and it then starts, exits 0 and runs none of the script. Measured on
+    // the Windows runner - every detached variant wrote zero trace lines, the attached
+    // one wrote six. The helper outlives us through `child.unref()` instead.
+    expect(buildPasteSpawnOptions(null)).not.toHaveProperty('detached');
+  });
+
+  test('hides the window, because a flashing console would defeat the whole feature', () => {
+    expect(buildPasteSpawnOptions(null).windowsHide).toBe(true);
+  });
+
+  test('discards output, and sends stderr to the log file when tracing is on', () => {
+    expect(buildPasteSpawnOptions(null).stdio).toEqual(['ignore', 'ignore', 'ignore']);
+    expect(buildPasteSpawnOptions(3).stdio).toEqual(['ignore', 'ignore', 3]);
   });
 });
 

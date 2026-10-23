@@ -12,9 +12,11 @@
 //                    exits (which lets Flow hide itself)
 //   helper       ->  waits for Flow to be out of the way, then presses Ctrl+V
 //
-// The helper has to outlive our process, hence `detached: true` + `unref()`. Verified in
-// Flow's source: it waits for our exit and calls `process.Kill()` (not the whole process
-// tree) on timeout, so a detached child escapes both.
+// The helper has to outlive our process, hence `child.unref()`: it lets our event loop end
+// while the child keeps running. Windows does not kill a child when its parent exits, and
+// Flow's source shows it calls `process.Kill()` on our process only - never the process
+// tree - so a plain (non-detached) child survives. `detached: true` would look tidier and
+// is actively broken: see buildPasteSpawnOptions.
 //
 // How the helper decides Flow is out of the way
 // ---------------------------------------------
@@ -38,7 +40,7 @@
 // be faster; both are documented alternatives in docs/PASTE_AT_CURSOR.md. Everything is
 // behind `spawnPasteHelper`, so swapping the mechanism is one function.
 
-import { spawn } from 'node:child_process';
+import { spawn, type SpawnOptions } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -215,8 +217,29 @@ export type PasteHelperStart =
   | { started: false, reason: string };
 
 /**
- * Starts the detached helper. Returns as soon as the process is spawned; we never wait
- * for it, and its exit code is nobody's business (it may outlive us by two seconds).
+ * Options for the helper process.
+ *
+ * `detached: true` is the obvious way to let a child outlive its parent, and on Windows it
+ * silently breaks everything: libuv maps it to DETACHED_PROCESS, the child is given no
+ * console, and powershell.exe starts, exits with code 0 and executes not one statement.
+ * Measured on the Windows runner with tools/paste-spawn-probe.mjs: every detached variant
+ * wrote zero trace lines, while the same script attached wrote six.
+ *
+ * So the helper is deliberately *not* detached, and `child.unref()` does the work instead.
+ *
+ * @param errorStream File descriptor receiving PowerShell's stderr, or null when tracing
+ * is off (in which case the helper's errors are of no interest to anyone).
+ */
+export function buildPasteSpawnOptions (errorStream: number | null): SpawnOptions {
+  return {
+    stdio: ['ignore', 'ignore', errorStream ?? 'ignore'],
+    windowsHide: true
+  };
+}
+
+/**
+ * Starts the helper. Returns as soon as the process is spawned; we never wait for it, and
+ * its exit code is nobody's business (it may outlive us by two seconds).
  */
 export function spawnPasteHelper (emoji: string): PasteHelperStart {
   if (process.platform !== 'win32') {
@@ -245,11 +268,7 @@ export function spawnPasteHelper (emoji: string): PasteHelperStart {
         '-WindowStyle', 'Hidden',
         '-EncodedCommand', encodePowerShellCommand(script)
       ],
-      {
-        detached: true,
-        stdio: ['ignore', 'ignore', errorStream ?? 'ignore'],
-        windowsHide: true
-      }
+      buildPasteSpawnOptions(errorStream)
     );
 
     if (errorStream !== null) {
@@ -262,7 +281,8 @@ export function spawnPasteHelper (emoji: string): PasteHelperStart {
       appendSpawnFailure(error);
     });
 
-    // Detach: our process must be free to exit so Flow closes its window immediately.
+    // Let our process exit while the child keeps running, so Flow can close its window
+    // immediately. This, not `detached`, is what keeps the helper alive.
     child.unref();
 
     return { started: true, pid: child.pid };

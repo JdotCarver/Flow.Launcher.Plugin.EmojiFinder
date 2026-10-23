@@ -91,8 +91,9 @@ jobs:
       # storage), but git is always reachable. Publishing to a branch is what lets the
       # agent read the evidence instead of asking the maintainer to paste it.
       #
-      # The step's own failure is reported as an annotation as well: an annotation is
-      # readable through the API, so a broken publisher still explains itself.
+      # Every stage announces itself with a notice annotation, and a failure is repeated as
+      # an error annotation. Annotations are served by api.github.com, so even a broken
+      # publisher can explain itself to someone who cannot open the log.
       - name: Publish reports to the dogfood-reports branch
         if: always()
         shell: bash
@@ -102,35 +103,45 @@ jobs:
           # would wait for a user who is not there.
           GIT_TERMINAL_PROMPT: 0
         run: |
-          set -o pipefail
+          checkpoint() { echo "::notice title=publish::stage=$1"; }
+
+          fail() {
+            local cleaned
+            cleaned=$(printf '%s' "$1" | sed 's/%/%25/g' | tr '\r\n' '  ' | cut -c1-900)
+            echo "::error title=publish failed at $2::$cleaned"
+            exit 1
+          }
+
           # Built from $PWD, never from $RUNNER_TEMP: on Windows that variable holds a
           # D:\... path, which bash cannot mkdir or cd into.
           reports="$PWD/../dogfood-reports"
-          rm -rf "$reports"
-          mkdir -p "$reports"
-          if [ -d dogfood ]; then cp -r dogfood/. "$reports/"; fi
+          checkpoint "reports=$reports"
+
+          rm -rf "$reports" || fail "rm" "cleanup"
+          mkdir -p "$reports" || fail "mkdir" "cleanup"
+          if [ -d dogfood ]; then
+            cp -r dogfood/. "$reports/" || fail "cp" "copy dogfood"
+          fi
           {
             echo "commit: $GITHUB_SHA"
             echo "run: $GITHUB_RUN_ID"
             echo "runner: $RUNNER_NAME"
             echo "when: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          } > "$reports/context.txt"
+          } > "$reports/context.txt" || fail "context" "write context"
+          checkpoint "copied $(find "$reports" -type f | wc -l) files"
 
-          publish() {
-            cd "$reports" || return 1
-            git init -q || return 1
-            git checkout -q -B dogfood-reports || return 1
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add -A || return 1
-            git commit -q -m "dogfood: reports from ${GITHUB_SHA:0:7}" || echo "nothing new to publish"
-            git -c credential.helper= push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" dogfood-reports
-          }
+          cd "$reports" || fail "cd" "cd"
+          git init -q || fail "init" "git init"
+          git checkout -q -B dogfood-reports || fail "checkout" "git checkout"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A || fail "add" "git add"
+          git commit -q -m "dogfood: reports from ${GITHUB_SHA:0:7}" || echo "nothing new to publish"
+          checkpoint "committed"
 
-          if ! output=$(publish 2>&1); then
-            printf '%s\n' "$output" | tail -20
-            first_line=$(printf '%s\n' "$output" | grep -v '^$' | tail -1 | sed 's/%/%25/g; s/\r//g')
-            echo "::error title=publish failed::$first_line"
-            exit 1
+          if ! push_output=$(git -c credential.helper= push -f \
+              "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+              dogfood-reports 2>&1); then
+            fail "$push_output" "git push"
           fi
-          printf '%s\n' "$output" | tail -5
+          checkpoint "pushed dogfood-reports"
