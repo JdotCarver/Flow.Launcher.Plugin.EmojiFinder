@@ -173,7 +173,7 @@ describe('the context menu', () => {
 
     expect(buildContextMenu('💪', paths(directory), 'e').map((result) => result.Title)).toEqual([
       'Copy only',
-      'Add alias for this emoji',
+      'Add an alias for this emoji',
       'Remove alias “swole”',
       'Open my aliases file'
     ]);
@@ -229,7 +229,7 @@ describe('the context menu', () => {
 
     // Copy and add stay, because neither needs a file; a file entry would be a dead link, so it
     // is the only thing missing.
-    expect(menu.map((result) => result.Title)).toEqual(['Copy only', 'Add alias for this emoji']);
+    expect(menu.map((result) => result.Title)).toEqual(['Copy only', 'Add an alias for this emoji']);
     expect(menu[1]).toEqual(buildAddAliasResult('💪', 'e'));
   });
 });

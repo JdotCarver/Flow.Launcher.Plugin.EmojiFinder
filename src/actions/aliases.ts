@@ -134,8 +134,8 @@ function openFileAction (filePath: string): JsonRpcAction {
  */
 export function buildAddAliasResult (emoji: string, actionKeyword: string): Result {
   return {
-    Title: 'Add alias for this emoji',
-    Subtitle: 'Copies to your clipboard the ready-made command to add an alias to this specific emoji. Simply go back, paste and complete.',
+    Title: 'Add an alias for this emoji',
+    Subtitle: 'Copies to your clipboard the ready-made command. Paste it and complete from there!',
     IcoPath: emojiIcon(emoji),
     // CopyToClipboard(text, directCopy, showDefaultNotification). The notification is the only
     // feedback there is: the menu closes with this click.
@@ -171,8 +171,8 @@ export function buildAliasCommandResults (
     const alias = command.alias.trim().toLowerCase();
 
     return [{
-      Title: `Save the alias “${alias}”`,
-      Subtitle: `Enter to save it. “${alias}” will find this emoji.`,
+      Title: `Save “${alias}” as an alias`,
+      Subtitle: `Press Enter to confirm. Typing “${alias}” will then match this emoji.`,
       IcoPath: emojiIcon(command.emoji),
       JsonRPCAction: { method: 'addalias', parameters: [alias, command.emoji] }
     }];
@@ -252,7 +252,7 @@ function listingResults (paths: { settingsDirectory: string | null, emojiDatabas
   for (const [alias, emoji] of entries) {
     results.push({
       Title: alias,
-      Subtitle: 'Enter to remove this alias. It finds the emoji shown.',
+      Subtitle: 'Remove this alias',
       IcoPath: emojiIcon(emoji),
       JsonRPCAction: { method: 'removealias', parameters: [alias] }
     });

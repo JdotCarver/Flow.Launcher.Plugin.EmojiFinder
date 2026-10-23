@@ -104,7 +104,7 @@ all. The emoji is typed or pasted - search for it with `e`, Enter copies it, pas
 `e addalias`. The search step that would avoid that is rejected below, with the rule it breaks.
 
 Right arrow on an emoji gives, in order: **Copy only** — the same emoji on the clipboard without
-the Ctrl+V, for paste-mode users who want just a copy — **Add alias for this emoji** (copies the
+the Ctrl+V, for paste-mode users who want just a copy — **Add an alias for this emoji** (copies the
 ready-made command), the **Remove alias “…”** entries for that emoji, and **Open my aliases file**.
 Flow appends two entries of its own after those; see below.
 
@@ -169,7 +169,7 @@ of them fails for a reason of its own:
   (`Settings.AutoCompleteHotkey` vs `SelectNextItemHotkey = "Tab"`, which is why Tab did nothing),
   and its documented fallback is the row's Title - so a second Ctrl+Tab types "Now type the name".
 
-So the menu hands the command over on the clipboard: **Add alias for this emoji** copies
+So the menu hands the command over on the clipboard: **Add an alias for this emoji** copies
 `e addalias 💪 ` (trailing space included), and the user goes back, pastes, and types the name.
 One API call, no hidden keystrokes, and what gets pasted is exactly what they could have typed.
 

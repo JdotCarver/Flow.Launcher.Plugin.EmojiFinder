@@ -249,12 +249,12 @@ function checkContextMenu () {
   const fileEntryIsLast = !order.includes('Open my aliases file') || order.at(-1) === 'Open my aliases file';
 
   finding(
-    order[0] === 'Copy only' && order[1] === 'Add alias for this emoji' && fileEntryIsLast,
+    order[0] === 'Copy only' && order[1] === 'Add an alias for this emoji' && fileEntryIsLast,
     'the menu leads with copy-only and add alias, and puts the file last',
     order.join(' | ')
   );
 
-  const add = menu.find((item) => item.Title === 'Add alias for this emoji');
+  const add = menu.find((item) => item.Title === 'Add an alias for this emoji');
 
   finding(
     add?.JsonRPCAction?.method === 'Flow.Launcher.CopyToClipboard' &&
