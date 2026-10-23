@@ -6,7 +6,7 @@
 //
 // Location
 // --------
-// Flow stores per-plugin settings in `Settings\Plugins\<plugin ID>\`, as a sibling of the
+// Flow stores per-plugin settings in `Settings\Plugins\<plugin name>\`, as a sibling of the
 // `Plugins` folder it loads us from. That is true for an installed Flow
 // (`%APPDATA%\FlowLauncher\...`) and for a portable one (`<Flow folder>\UserData\...`), so the
 // same rule covers both without asking the user which they have, and without looking at where
@@ -18,8 +18,8 @@
 //
 // Files
 // -----
-//   usage.json     { "<emoji>": { "count": 3, "lastUsedAt": 1792757171938 } }
-//   aliases.json   { "swole": "💪" }
+//   user-frecency.json  { "<emoji>": { "count": 3, "lastUsedAt": 1792757171938 } }
+//   user-aliases.json   { "_HowToUse": "...", "swole": "💪" }
 //
 // Both are read defensively: a missing, empty or malformed file means "nothing learned yet",
 // never a failed query. Writes go through a temporary file and a rename, because Flow starts a
@@ -31,8 +31,27 @@ import path from 'node:path';
 /** Our plugin ID, as in plugin.json. Used to find the settings folder Flow owns for us. */
 export const PLUGIN_ID = 'd50362aa29f04cd59032bb44a5d5f7e5';
 
-export const USAGE_FILE_NAME = 'usage.json';
-export const ALIASES_FILE_NAME = 'aliases.json';
+/**
+ * The two files this plugin keeps, named so their owner is obvious in a folder listing.
+ *
+ * Both live in Flow's settings folder for this plugin, next to the `Settings.json` it writes
+ * itself. They are the user's data, not the plugin's: the aliases survive a reinstall, and the
+ * frecency quietly makes the empty query theirs.
+ */
+export const USAGE_FILE_NAME = 'user-frecency.json';
+export const ALIASES_FILE_NAME = 'user-aliases.json';
+
+/**
+ * What earlier builds called the same two files, and the folder they were kept in.
+ *
+ * Both were renamed once, and both are still read so nobody loses data on upgrade; the first
+ * write moves the contents over and deletes the old copies. `LEGACY_SETTINGS_FOLDER` is the
+ * plugin ID - the folder this plugin used before it noticed that Flow files non-.NET plugins
+ * under their *name* (`PluginManager.UpdatePluginDirectory`).
+ */
+const LEGACY_USAGE_FILE_NAME = 'usage.json';
+const LEGACY_ALIASES_FILE_NAME = 'aliases.json';
+const LEGACY_SETTINGS_FOLDER = PLUGIN_ID;
 
 /**
  * How many emoji the history may contain.
@@ -45,14 +64,15 @@ export const MAXIMUM_USAGE_ENTRIES = 300;
 /**
  * The contents the aliases file is created with, when the user asks to open it before saving one.
  *
- * JSON has no comments, so the guidance is an entry whose key starts with `_`: ignored by every
- * reader here, preserved by every writer, and invisible in the alias list. It is the only place a
- * user who would rather hand-edit the file is told what the format is - and it is the *only* file
- * they should edit. The emoji database that ships with the plugin is an upstream dependency and is
- * replaced on every update, so anything added there disappears.
+ * JSON has no comments, so the guidance is written as entries whose keys start with `_`: skipped
+ * by every reader here, preserved by every writer, and invisible in the alias list. Three lines,
+ * three jobs - what the file is for, the one warning worth having, and a worked example, because
+ * an example answers "what does an alias look like" faster than any sentence.
  */
 const ALIASES_FILE_TEMPLATE = {
-  _comment: 'Write aliases here as "name": "emoji", for example "swole": "\u{1F4AA}". Entries whose name starts with _ are ignored. This file lives in the settings folder, so plugin updates keep it - never edit the emoji database that ships with the plugin, updates replace it.'
+  _HowToUse: 'You may manually edit this file to add aliases. Entries starting with _ such as these, are ignored. They\'re only because JSON doesn\'t support comments.',
+  _Note: 'This file lives in the settings folder, so it survives plugin updates. Don\'t edit the emoji database directly as your changes would get lost on update!',
+  _examplealias: '\u{1F4AA}'
 };
 
 /** Keys starting with `_` are documentation, not aliases. */
@@ -76,6 +96,9 @@ export const PLUGIN_DIRECTORY = path.resolve(import.meta.dirname, '..', '..');
 /** What the plugin answers to when Flow has not been told otherwise; also plugin.json's value. */
 export const DEFAULT_ACTION_KEYWORD = 'e';
 
+/** The settings folder's name if plugin.json cannot be read; also plugin.json's value. */
+export const DEFAULT_PLUGIN_NAME = 'Emoji Finder';
+
 /**
  * The keyword this plugin is invoked with, as declared in its own plugin.json.
  *
@@ -88,13 +111,33 @@ export const DEFAULT_ACTION_KEYWORD = 'e';
  * is also always shown in the subtitle, and why the typed form works without any of this.
  */
 export function readActionKeyword (pluginDirectory: string = PLUGIN_DIRECTORY): string {
-  try {
-    const manifest = JSON.parse(fs.readFileSync(path.join(pluginDirectory, 'plugin.json'), 'utf8')) as { ActionKeyword?: unknown };
-    const keyword = typeof manifest.ActionKeyword === 'string' ? manifest.ActionKeyword.trim() : '';
+  return readManifestString('ActionKeyword', pluginDirectory) || DEFAULT_ACTION_KEYWORD;
+}
 
-    return keyword === '' ? DEFAULT_ACTION_KEYWORD : keyword;
+/**
+ * The plugin's name, as declared in its own plugin.json.
+ *
+ * Flow names a non-.NET plugin's settings folder after this, not after the ID
+ * (`PluginManager.UpdatePluginDirectory`: `Path.Combine(PluginSettingsDirectory, metadata.Name)`
+ * for everything that is not .NET). Before that was noticed, this plugin kept its files in a
+ * folder named after its ID - a bare GUID next to a tidy "Emoji Finder" folder Flow had made, and
+ * a `Settings.json` written into a folder Flow never reads.
+ *
+ * @param pluginDirectory Where to find plugin.json. Defaults to this plugin's folder.
+ */
+export function readPluginName (pluginDirectory: string = PLUGIN_DIRECTORY): string {
+  return readManifestString('Name', pluginDirectory) || DEFAULT_PLUGIN_NAME;
+}
+
+/** One string field out of plugin.json, or an empty string when it is missing or unreadable. */
+function readManifestString (field: string, pluginDirectory: string): string {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(path.join(pluginDirectory, 'plugin.json'), 'utf8')) as Record<string, unknown>;
+    const value = manifest[field];
+
+    return typeof value === 'string' ? value.trim() : '';
   } catch {
-    return DEFAULT_ACTION_KEYWORD;
+    return '';
   }
 }
 
@@ -102,20 +145,23 @@ export function readActionKeyword (pluginDirectory: string = PLUGIN_DIRECTORY): 
  * Flow's settings folder for this plugin, or null when this plugin is not inside a Flow
  * Launcher layout at all (a test run, or somebody running dist/main.js by hand).
  *
+ * The folder is named after the plugin (`Emoji Finder`), because that is what Flow uses for
+ * non-.NET plugins - see `readPluginName`.
+ *
  * @param startDirectory Where to start looking. Defaults to this plugin's folder.
- * @param pluginId The folder name Flow uses. Defaults to our own ID.
+ * @param pluginName The folder name Flow uses. Defaults to this plugin's name.
  * @param maximumDepth How far to walk up before giving up.
  */
 export function resolvePluginSettingsDirectory (
   startDirectory: string = PLUGIN_DIRECTORY,
-  pluginId: string = PLUGIN_ID,
+  pluginName: string = readPluginName(),
   maximumDepth = 6
 ): string | null {
   let current = path.resolve(startDirectory);
 
   for (let depth = 0; depth <= maximumDepth; depth++) {
     if (path.basename(current).toLowerCase() === 'plugins') {
-      return path.resolve(current, '..', 'Settings', 'Plugins', pluginId);
+      return path.resolve(current, '..', 'Settings', 'Plugins', pluginName);
     }
 
     const parent = path.dirname(current);
@@ -130,55 +176,35 @@ export function resolvePluginSettingsDirectory (
   return null;
 }
 
-/** Flow Launcher's settings file for this plugin, inside its own settings folder. */
-export const FLOW_SETTINGS_FILE_NAME = 'Settings.json';
-
 /**
- * Values the "Enter Mode" dropdown has used. Flow renders a dropdown by matching the stored
- * value against the option strings, and a dropdown whose value matches none of them shows
- * *nothing* - which is what happened when the options were reworded from `copy`/`paste` to
- * `Copy Mode`/`Paste Mode`: every existing install showed an empty box.
+ * The Enter Mode value a reworded dropdown should show, or null when nothing needs doing.
+ *
+ * Flow renders a dropdown by matching the stored value against the option strings, and a dropdown
+ * whose value matches none of them shows *nothing* - which is what happened when the options were
+ * reworded from `copy`/`paste` to `Copy Mode`/`Paste Mode`: every existing install showed an
+ * empty box. The value *is* the label, so the only migration is to rewrite it.
+ *
+ * The rewrite is handed to Flow in the query response (`settingsChange`, see `JsonRpcResponse`),
+ * never written to `Settings.json` by this plugin: Flow keeps its own copy in memory and in an
+ * open settings page, and a file written behind its back would be ignored until a restart.
+ *
+ * @param stored The value Flow sent us with the query.
+ * @returns The value to store, or null when the stored one is current.
  */
-const ENTER_MODE_VALUES: Record<string, string> = {
+export function resolveEnterModeMigration (stored: string | undefined): string | null {
+  if (stored === undefined) {
+    return null;
+  }
+
+  const migrated = LEGACY_ENTER_MODE_VALUES[stored];
+
+  return migrated ?? null;
+}
+
+const LEGACY_ENTER_MODE_VALUES: Record<string, string> = {
   copy: 'Copy Mode',
   paste: 'Paste Mode'
 };
-
-/**
- * Rewrites a legacy Enter Mode value in Flow Launcher's settings file, once.
- *
- * The dropdown's options are plain strings and Flow stores the string it displays, so the value
- * *is* the label: there is no way to have friendly labels and keep the old identifiers. This
- * translates the old value in place, which is the only migration available to a plugin.
- *
- * Best effort by design: Flow holds its own copy in memory and rewrites the whole file when any
- * setting changes, so a failure here costs a blank dropdown for one more session, not a bug.
- *
- * @returns The value now stored, or null when there was nothing to do.
- */
-export function migrateEnterModeSetting (settingsDirectory: string | null): string | null {
-  if (settingsDirectory === null) {
-    return null;
-  }
-
-  const filePath = path.join(settingsDirectory, FLOW_SETTINGS_FILE_NAME);
-  const settings = readJsonFile<Record<string, unknown>>(filePath);
-
-  if (settings === null || typeof settings.defaultAction !== 'string') {
-    return null;
-  }
-
-  const migrated = ENTER_MODE_VALUES[settings.defaultAction];
-
-  if (migrated === undefined) {
-    return null;
-  }
-
-  settings.defaultAction = migrated;
-  writeFileAtomically(filePath, JSON.stringify(settings, null, 2));
-
-  return migrated;
-}
 
 /** Reads JSON, or null when the file is missing or is not JSON. */
 function readJsonFile<T> (filePath: string): T | null {
@@ -206,7 +232,9 @@ function writeFileAtomically (filePath: string, contents: string): void {
  * entries", not to a query that throws.
  */
 export function readUsage (settingsDirectory: string): UsageRecord {
-  const stored = readJsonFile<Record<string, unknown>>(path.join(settingsDirectory, USAGE_FILE_NAME));
+  const [currentFile, legacyFile] = usageFileCandidates(settingsDirectory);
+  const stored = readJsonFile<Record<string, unknown>>(currentFile ?? '') ??
+    readJsonFile<Record<string, unknown>>(legacyFile ?? '');
   const usage: UsageRecord = {};
 
   if (stored === null || typeof stored !== 'object') {
@@ -255,6 +283,7 @@ export function recordUsage (settingsDirectory: string, emoji: string, now: numb
   }
 
   writeFileAtomically(path.join(settingsDirectory, USAGE_FILE_NAME), JSON.stringify(usage));
+  removeLegacyCopies(settingsDirectory, usageFileCandidates(settingsDirectory).slice(1));
 
   return usage;
 }
@@ -286,9 +315,79 @@ export function readAliases (settingsDirectory: string): AliasRecord {
 
 /** Everything in the file, documentation keys included, or null when it cannot be read. */
 function readRawAliases (settingsDirectory: string): Record<string, unknown> | null {
-  const stored = readJsonFile<Record<string, unknown>>(path.join(settingsDirectory, ALIASES_FILE_NAME));
+  const [currentFile] = aliasFileCandidates(settingsDirectory);
+  const stored = readJsonFile<Record<string, unknown>>(currentFile ?? '');
 
-  return stored === null || typeof stored !== 'object' ? null : stored;
+  if (stored !== null && typeof stored === 'object') {
+    return stored;
+  }
+
+  // Nothing at today's location: try what an earlier build left behind, so an upgrade does not
+  // lose anything before the first write moves it.
+  for (const file of aliasFileCandidates(settingsDirectory).slice(1)) {
+    const legacy = readJsonFile<Record<string, unknown>>(file);
+
+    if (legacy !== null && typeof legacy === 'object') {
+      return legacy;
+    }
+  }
+
+  return null;
+}
+
+/** Where the history may be, newest first. Same shape as the aliases, same reason. */
+function usageFileCandidates (settingsDirectory: string): string[] {
+  const legacyDirectory = legacySettingsDirectory(settingsDirectory);
+
+  return [
+    path.join(settingsDirectory, USAGE_FILE_NAME),
+    path.join(legacyDirectory, LEGACY_USAGE_FILE_NAME)
+  ];
+}
+
+/**
+ * Where the aliases may be, newest first.
+ *
+ * [0] is where they are written. The rest are the copies earlier builds left: the same file under
+ * its old name, then both names in the folder this plugin used before it moved to the one Flow
+ * names after the plugin.
+ */
+function aliasFileCandidates (settingsDirectory: string): string[] {
+  const legacyDirectory = legacySettingsDirectory(settingsDirectory);
+
+  return [
+    path.join(settingsDirectory, ALIASES_FILE_NAME),
+    path.join(settingsDirectory, LEGACY_ALIASES_FILE_NAME),
+    path.join(legacyDirectory, LEGACY_ALIASES_FILE_NAME)
+  ];
+}
+
+/** The folder an earlier build used: same parent, named after the plugin ID. */
+function legacySettingsDirectory (settingsDirectory: string): string {
+  return path.resolve(settingsDirectory, '..', LEGACY_SETTINGS_FOLDER);
+}
+
+/**
+ * Deletes the copies an earlier build left behind, once the new file has been written.
+ *
+ * Only ever called from a write, so a read never changes anything. The old folder is removed too
+ * when that leaves it empty - otherwise it stays behind as a GUID-shaped mystery in a folder the
+ * user is being told to edit by hand.
+ */
+function removeLegacyCopies (settingsDirectory: string, files: string[]): void {
+  for (const file of files) {
+    try {
+      fs.rmSync(file, { force: true });
+    } catch {
+      // A locked or missing file is not a reason to fail the write that just succeeded.
+    }
+  }
+
+  try {
+    fs.rmdirSync(legacySettingsDirectory(settingsDirectory));
+  } catch {
+    // Not empty, or not there: both are fine.
+  }
 }
 
 /**
@@ -304,6 +403,9 @@ export function ensureAliasesFile (settingsDirectory: string): string {
   const file = path.join(settingsDirectory, ALIASES_FILE_NAME);
 
   if (!fs.existsSync(file)) {
+    // The folder belongs to Flow and usually exists already (it holds Settings.json), but a
+    // fresh install that has never opened the settings page may not have it yet.
+    fs.mkdirSync(settingsDirectory, { recursive: true });
     writeFileAtomically(file, JSON.stringify(ALIASES_FILE_TEMPLATE, null, 2));
   }
 
@@ -327,6 +429,7 @@ export function saveAlias (settingsDirectory: string, alias: string, emoji: stri
     path.join(settingsDirectory, ALIASES_FILE_NAME),
     JSON.stringify({ ...documentation, ...aliases })
   );
+  removeLegacyCopies(settingsDirectory, aliasFileCandidates(settingsDirectory).slice(1));
 
   return aliases;
 }

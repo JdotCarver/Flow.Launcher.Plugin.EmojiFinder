@@ -16,7 +16,7 @@ afterEach(() => {
 function queryAndReadPayload (
   input: string,
   settings: Record<string, unknown>
-): { result: Result[] } {
+): { result: Result[], settingsChange?: Record<string, string> } {
   query(input, settings as never);
 
   const printed = consoleMock.mock.calls.at(-1)?.[0];
@@ -161,5 +161,22 @@ describe('query', () => {
     const grinningFace = result.find(entry => entry.Title === 'Grinning Face');
 
     expect(grinningFace?.Subtitle).toBe('Face, Smile, Happy, Joy, :D, Grin, Smiley');
+  });
+});
+
+describe('the Enter Mode migration', () => {
+  test('asks Flow to store the reworded value instead of editing Settings.json', () => {
+    const payload = queryAndReadPayload('smile', { defaultAction: 'paste' });
+
+    // A dropdown matches the stored value against its options, so `paste` shows as an empty box.
+    // Flow applies this to the live control and saves it; a file written by us would be ignored
+    // until a restart, and Flow would overwrite it on the next settings change.
+    expect(payload.settingsChange).toEqual({ defaultAction: 'Paste Mode' });
+  });
+
+  test('says nothing when the stored value is already current', () => {
+    const payload = queryAndReadPayload('smile', { defaultAction: 'Paste Mode' });
+
+    expect(payload.settingsChange).toBeUndefined();
   });
 });

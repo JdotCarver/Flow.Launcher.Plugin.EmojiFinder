@@ -56,8 +56,16 @@ name goes; or type `e addalias swole 💪` outright. Both end in the same save c
 ## Where the state lives
 
 The maintainer's answer: **Flow Launcher's plugin settings folder.** For an installed Flow that
-is `%APPDATA%\FlowLauncher\Settings\Plugins\<plugin ID>\`; for a portable Flow it is
-`<Flow folder>\UserData\Settings\Plugins\<plugin ID>\`.
+is `%APPDATA%\FlowLauncher\Settings\Plugins\Emoji Finder\`; for a portable Flow it is
+`<Flow folder>\UserData\Settings\Plugins\Emoji Finder\`.
+
+The folder is named after the plugin, not after its ID, because that is what Flow does for every
+non-.NET plugin (`PluginManager.UpdatePluginDirectory`:
+`Path.Combine(PluginSettingsDirectory, metadata.Name)`; only .NET plugins use their
+`AssemblyName`). This plugin got it wrong at first and wrote into a folder named after its GUID,
+next to the tidy `Emoji Finder` folder Flow had made - so its own `Settings.json` migration went
+somewhere Flow never read. The name now comes from `plugin.json`, and anything an earlier build
+left in the GUID folder is read, moved on the next write, and the folder removed when empty.
 
 Neither path can be assumed, but both are reachable the same way: the plugin knows its own
 folder (it is running from `<...>\Plugins\<folder name>\dist\main.js`), and
@@ -76,8 +84,12 @@ Files, both written atomically (temporary file + rename, like `request.json`):
 
 | file | contents |
 |---|---|
-| `usage.json` | `{ "🙈": { "count": 3, "lastUsedAt": 1792757171938 }, ... }`, capped |
-| `aliases.json` | `{ "_comment": "...", "shipit": "🚀", "shrug": "🤷" }` |
+| `user-frecency.json` | `{ "🙈": { "count": 3, "lastUsedAt": 1792757171938 }, ... }`, capped |
+| `user-aliases.json` | `{ "_HowToUse": "...", "_Note": "...", "_examplealias": "💪", "shipit": "🚀" }` |
+
+Both names say whose data it is. An earlier build called them `usage.json` and `aliases.json`; those
+are still read, so nothing is lost on upgrade, and the first write moves the contents over and
+deletes the old copies.
 
 Keys starting with `_` are documentation, not aliases: every reader skips them, every writer keeps
 them, so the file can explain itself to someone who would rather edit it by hand. A fresh install
@@ -227,7 +239,7 @@ the emoji's own name. Typing `shipit` finds 🚀 - no prefix, no separate keywor
 **Creating them.** This is the part I want an answer on, because it decides how much UI the
 feature needs:
 
-1. *File only.* `aliases.json` in the settings folder, documented in the README. Cheapest, and
+1. *File only.* `user-aliases.json` in the settings folder, documented in the README. Cheapest, and
    fine for the person who asked for it; hostile to everyone else.
 2. *Two-step in Flow.* Type `e alias shipit`, get the emoji list, pick one: the alias is saved.
    No new UI, no new files to learn, and it uses the list the user already knows how to use.
@@ -250,16 +262,19 @@ feature needs:
   ASCII JSON (`\ud83d\udcaa`), which any code page carries and JSON restores.
 - **A dropdown's stored value is its label.** Renaming the options to "Copy Mode"/"Paste Mode"
   left every existing install showing an empty box, because Flow renders a dropdown by matching
-  the stored string (`copy`) against the options. `migrateEnterModeSetting` rewrites the legacy
-  value in Flow's `Settings.json`; `parseDefaultAction` accepts both.
+  the stored string (`copy`) against the options. The query response now carries
+  `settingsChange: { defaultAction }`, which Flow applies to its live panel and saves itself
+  (`JsonRPCPluginBase.ParseResults` -> `Settings.UpdateSettings`). An earlier attempt wrote
+  `Settings.json` directly, into a folder Flow does not read, and Flow's in-memory copy would have
+  overwritten it anyway; `parseDefaultAction` accepts both spellings regardless.
 
 ## Hand-editing: one file, and it is not the database
 
-`aliases.json` is the only file a user should ever edit. The emoji database that ships with the
+`user-aliases.json` is the only file a user should ever edit. The emoji database that ships with the
 plugin is `emojilib`'s `emoji-en-US.json`, an upstream dependency inside the plugin folder: it is
 replaced wholesale on every plugin update, so anything written there disappears - and recommending
 it invites issues about aliases vanishing. The entries point at the aliases file only, its subtitle
-says so, and the file's own `_comment` repeats it for anyone who opens it before saving anything.
+says so, and the file's own `_Note` repeats it for anyone who opens it before saving anything.
 
 The open action was also broken, and silently. `Flow.Launcher.ShellRun('', path)` calls
 `ShellCommand.SetProcessStartInfo(filename: path, arguments: path)`, i.e. it starts the *file* as a
@@ -316,8 +331,8 @@ Note that `description` is the text a `textBlock` renders, and `name` is not sho
 | what | cost |
 |---|---|
 | `find()` with 40 aliases loaded, per keystroke | **+0.03 to +0.08 ms** |
-| reading `aliases.json` | 0.02 ms |
-| reading `usage.json` | 0.006 ms |
+| reading `user-aliases.json` | 0.02 ms |
+| reading `user-frecency.json` | 0.006 ms |
 | whole process, one query | 52.6 ms (unchanged: Node boot dominates) |
 
 The maintainer asked whether the aliases should be pre-computed or cached "on extension start".
@@ -339,6 +354,6 @@ has thousands of aliases - and the file is capped at 300 history entries with al
 
 The remaining cost is only for the empty-query list: to show "the emoji you actually use" for an
 empty query we must know the order, and Flow's store is an internal hash-keyed file we are not
-going to parse. So our own small `usage.json` is written by our actions, which costs one plugin
+going to parse. So our own small `user-frecency.json` is written by our actions, which costs one plugin
 process per pick (paste already pays it; copy with notifications off would start paying it only
 if the list proves worth it - measure before deciding).

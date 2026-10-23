@@ -308,9 +308,12 @@ function checkAliasCommands () {
 
   finding(saved.swole === '💪' ? 'pass' : 'fail', 'saving an alias writes it where the query will read it');
   finding(
-    typeof template._comment === 'string' && template._comment.includes('emoji database'),
-    'a fresh aliases file explains itself, and warns off the database',
-    String(template._comment ?? '').slice(0, 60)
+    typeof template._HowToUse === 'string' &&
+      typeof template._Note === 'string' &&
+      template._Note.includes('emoji database') &&
+      typeof template._examplealias === 'string',
+    'a fresh aliases file explains itself, warns off the database, and shows an example',
+    Object.keys(template).join(' | ')
   );
 
   // Opening the file is our own action: ShellRun would start a JSON file as a program, which is

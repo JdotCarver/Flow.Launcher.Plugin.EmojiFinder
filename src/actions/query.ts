@@ -12,7 +12,7 @@ import type { JsonRpcAction, Result, Settings } from '../types.js';
 import { buildAliasCommandResults, parseAliasCommand } from './aliases.js';
 import { find } from '../utils/find.js';
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
-import { migrateEnterModeSetting, readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
+import { readAliases, readUsage, resolveEnterModeMigration, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
 import { readSettings } from '../utils/settings.js';
 import { getIconFileName } from '../utils/utils.js';
 
@@ -52,15 +52,15 @@ export function query (input: string | undefined, settings: Settings): void {
   const search = input ?? '';
   const settingsDirectory = resolvePluginSettingsDirectory();
 
-  // A legacy dropdown value makes Flow show an empty box. This is a read plus, only when the
-  // value is legacy, one small write; the common case costs a single property test.
-  if (settings.defaultAction !== undefined && settings.defaultAction !== 'Copy Mode' && settings.defaultAction !== 'Paste Mode') {
-    migrateEnterModeSetting(settingsDirectory);
-  }
+  // A legacy dropdown value makes Flow show an empty box, because the value is the label. Ask
+  // Flow to store the current one; it applies that to its live settings panel and saves it.
+  const settingsChange = resolveEnterModeMigration(settings.defaultAction);
   const aliasResults = buildAliasCommandResults(parseAliasCommand(search), { settingsDirectory });
 
   if (aliasResults !== null) {
-    sendJsonRpcRequest({ result: aliasResults });
+    sendJsonRpcRequest(settingsChange === null
+      ? { result: aliasResults }
+      : { result: aliasResults, settingsChange: { defaultAction: settingsChange } });
 
     return;
   }
@@ -82,5 +82,7 @@ export function query (input: string | undefined, settings: Settings): void {
     ContextData: finding.emoji
   }));
 
-  sendJsonRpcRequest({ result: request });
+  sendJsonRpcRequest(settingsChange === null
+    ? { result: request }
+    : { result: request, settingsChange: { defaultAction: settingsChange } });
 }

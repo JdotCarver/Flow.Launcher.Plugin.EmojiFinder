@@ -61,4 +61,13 @@ export type JsonRpcRequest = {
 
 export type JsonRpcResponse = {
   result: Result[]
+  /**
+   * Settings Flow Launcher should write on our behalf, applied to its live settings panel too.
+   *
+   * `JsonRPCPluginBase.ParseResults` calls `Settings.UpdateSettings(...)` with this, which sets the
+   * value, updates the open control and saves. It is the supported way to correct a stored setting
+   * - writing `Settings.json` ourselves would leave Flow's in-memory copy (and an open settings
+   * page) showing the old value until a restart.
+   */
+  settingsChange?: Record<string, string>;
 };
