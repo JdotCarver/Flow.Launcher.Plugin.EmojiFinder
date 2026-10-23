@@ -92,8 +92,17 @@ const ALIASES = {
   check: '✔️'
 };
 
+/**
+ * Records one check.
+ *
+ * @param kind 'pass' or 'fail' - or the boolean itself, which reads better when the check is a
+ *   single condition. A raw boolean here used to reach the report as `true`, where nothing
+ *   treats it as a pass: the check existed and could never be counted.
+ */
 function finding (kind, label, detail = '') {
-  findings.push({ kind, label, detail });
+  const resolved = kind === true ? 'pass' : kind === false ? 'fail' : kind;
+
+  findings.push({ kind: resolved, label, detail });
 }
 
 /** Median of several runs: one slow sample must not become the reported number. */

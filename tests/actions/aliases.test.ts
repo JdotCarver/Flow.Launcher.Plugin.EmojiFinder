@@ -114,6 +114,8 @@ describe('buildAliasCommandResults', () => {
     expect(all).toHaveLength(1);
     expect(all[0].Title).toBe('Type the emoji first, then the name');
     expect(all[0].Subtitle).toContain('e addalias 💪 swole');
+    // An emoji can be found by name and pasted: search `e`, Enter copies it.
+    expect(all[0].Subtitle).toContain('paste');
     // Nothing is selectable, so no keystroke can save a name to an emoji the plugin guessed.
     expect(all[0].JsonRPCAction).toBeUndefined();
   });
