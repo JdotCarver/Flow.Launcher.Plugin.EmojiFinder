@@ -111,21 +111,36 @@ async function checkOnWindows () {
   // a CI job object takes a child down with its parent - this way the agent is alive for
   // exactly as long as the experiment needs it, and is stopped deliberately at the end.
   const findings = [];
+
+  // A resident agent may already be running, which is the normal state on the maintainer's
+  // machine. Then this check reuses it: starting a second copy would exit on the
+  // single-instance guard, and killing that no-op would leave the real agent untouched -
+  // which is exactly how "agent stops" started failing on a healthy machine.
+  const alreadyRunning = readAgentStatus(paths).running;
   const startupLog = path.join(paths.directory, 'agent-startup.log');
   fs.rmSync(startupLog, { force: true });
 
-  const agent = collect('start', () => spawn(
-    'powershell.exe',
-    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', paths.script],
-    { stdio: ['ignore', 'ignore', fs.openSync(startupLog, 'a')], windowsHide: true }
-  ));
+  if (alreadyRunning) {
+    findings.push({ label: 'agent starts and publishes a heartbeat', ok: true, detail: 'reused the resident agent (already running)' });
+  }
 
-  const alive = await waitForHeartbeat(paths);
-  findings.push({
-    label: 'agent starts and publishes a heartbeat',
-    ok: alive,
-    detail: alive ? '' : `start-up log: ${readIfPresent(startupLog).trim().slice(0, 400) || '(empty)'}`
-  });
+  let agent = null;
+  if (!alreadyRunning) {
+    agent = collect('start', () => spawn(
+      'powershell.exe',
+      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', paths.script],
+      { stdio: ['ignore', 'ignore', fs.openSync(startupLog, 'a')], windowsHide: true }
+    ));
+  }
+
+  const alive = alreadyRunning || await waitForHeartbeat(paths);
+  if (!alreadyRunning) {
+    findings.push({
+      label: 'agent starts and publishes a heartbeat',
+      ok: alive,
+      detail: alive ? '' : `start-up log: ${readIfPresent(startupLog).trim().slice(0, 400) || '(empty)'}`
+    });
+  }
 
   const emoji = chooseEmojiNotOnClipboard();
   const request = requestPaste(emoji, paths);
@@ -138,17 +153,19 @@ async function checkOnWindows () {
   findings.push({ label: 'agent refuses to paste while the clipboard holds something else', ok: log.includes('decision paste=False') });
   findings.push({ label: 'agent is still alive after handling a request', ok: readAgentStatus(paths).running });
 
-  // Deliberate stop, and the check that it really went: a resident process that cannot be
-  // stopped is a worse problem than one that cannot be started.
-  agent?.kill();
-  // Longer than the stale limit on purpose: "is it gone" is answered by the heartbeat
-  // stopping, and a heartbeat that is merely young proves nothing.
-  await new Promise((resolve) => setTimeout(resolve, HEARTBEAT_STALE_AFTER_MILLISECONDS + 1000));
-  findings.push({
-    label: 'agent stops when its process is ended',
-    ok: !readAgentStatus(paths).running,
-    detail: readAgentStatus(paths).running ? 'heartbeat still fresh 2 s after the kill' : ''
-  });
+  // Stop only what this check started. Killing someone else's resident agent would be rude
+  // and would also break the paste feature for the person using the machine.
+  if (!alreadyRunning) {
+    agent?.kill();
+    // Longer than the stale limit on purpose: "is it gone" is answered by the heartbeat
+    // stopping, and a heartbeat that is merely young proves nothing.
+    await new Promise((resolve) => setTimeout(resolve, HEARTBEAT_STALE_AFTER_MILLISECONDS + 1000));
+    findings.push({
+      label: 'agent stops when its process is ended',
+      ok: !readAgentStatus(paths).running,
+      detail: readAgentStatus(paths).running ? 'heartbeat still fresh after the kill' : ''
+    });
+  }
 
   return {
     generatedAt: new Date().toISOString(),
