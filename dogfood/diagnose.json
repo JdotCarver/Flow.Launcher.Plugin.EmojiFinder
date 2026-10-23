@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-23T11:51:14.144Z",
+  "generatedAt": "2026-10-23T12:10:06.390Z",
   "plugin": {
     "nodeVersion": "v24.13.0",
     "platform": "win32",
@@ -18,35 +18,35 @@
     "found": true,
     "directory": "C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher\\Plugins\\Flow.Launcher.Plugin.EmojiFinder",
     "builtEntryPointExists": true,
-    "builtAt": "2026-10-23T11:36:50.991Z",
-    "repositoryBuildAt": "2026-10-23T11:51:13.639Z",
+    "builtAt": "2026-10-23T12:01:21.172Z",
+    "repositoryBuildAt": "2026-10-23T12:10:05.889Z",
     "tracingEnabled": true,
     "traceFileExists": true,
     "traceFileBytes": 416,
-    "traceFileModifiedAt": "2026-10-23T11:37:40.201Z",
+    "traceFileModifiedAt": "2026-10-23T12:06:11.939Z",
     "helperErrorFileExists": false,
     "helperErrorBytes": 0,
     "helperErrorTail": []
   },
   "powershellStartup": {
-    "milliseconds": 99,
+    "milliseconds": 103,
     "exitCode": 0,
     "version": "5.1.19041.6456",
     "error": "",
     "standardError": ""
   },
   "windows": {
-    "milliseconds": 1134,
+    "milliseconds": 2318,
     "exitCode": 0,
     "standardOutput": "diagnostic-written: C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder\\dogfood\\windows-probe.json",
     "standardError": "Get-ExecutionPolicy : La commande �Get-ExecutionPolicy� a �t� trouv�e dans le module �Microsoft.PowerShell.Security�, \r\nmais ce dernier n'a pas pu �tre charg�. Pour plus d'informations, ex�cutez la commande �Import-Module \r\nMicrosoft.PowerShell.Security�.\r\nAu caract�re C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder\\tools\\windows-di\r\nagnostic.ps1:36 : 24\r\n+     executionPolicy = (Get-ExecutionPolicy).ToString()\r\n+                        ~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (Get-ExecutionPolicy:String) [], CommandNotFoundException\r\n    + FullyQualifiedErrorId : CouldNotAutoloadMatchingModule\r\n \r\nImpossible de convertir la valeur �128105� en type �System.Char�. Erreur: �La valeur �tait trop grande ou trop petite \r\npour un caract�re.�\r\nAu caract�re C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder\\tools\\windows-di\r\nagnostic.ps1:68 : 9\r\n+         ([string][char]0x1F469) + ([string][char]0x200D) + ([string][ ...\r\n+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : InvalidArgument : (:) [], RuntimeException\r\n    + FullyQualifiedErrorId : InvalidCastIConvertible",
     "result": {
-      "generatedAt": "2026-10-23T13:51:14.3887390+02:00",
+      "generatedAt": "2026-10-23T14:10:07.7490549+02:00",
       "computer": "DESKTOP-SK3RC8N",
       "user": "IDLT",
       "winForms": {
         "ok": true,
-        "milliseconds": 6,
+        "milliseconds": 7,
         "error": ""
       },
       "clipboard": {
@@ -86,59 +86,59 @@
       },
       "uiAutomation": {
         "ok": true,
-        "milliseconds": 46,
-        "focusedProcessId": 6952,
-        "focusedName": "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F1",
+        "milliseconds": 37,
+        "focusedProcessId": 28644,
+        "focusedName": "Thought for 10 seconds",
         "error": ""
       },
       "win32": {
         "ok": true,
-        "milliseconds": 66,
+        "milliseconds": 64,
         "error": ""
       },
       "flowProcesses": [
         {
           "name": "Flow.Launcher",
-          "id": 27960,
+          "id": 13800,
           "mainWindowHandle": 0,
           "mainWindowTitle": "",
           "responding": true,
-          "startTime": "2026-10-23T13:33:27.8104255+02:00"
+          "startTime": "2026-10-23T14:05:51.3166339+02:00"
         }
       ],
       "flowLikeProcesses": [
         {
           "name": "Flow.Launcher",
-          "id": 27960,
+          "id": 13800,
           "mainWindowHandle": 0,
           "mainWindowTitle": ""
         }
       ],
       "foregroundWindow": {
-        "processId": 6952,
-        "title": "Feedback.md - Emoji Picker Extension - Visual Studio Code",
+        "processId": 28644,
+        "title": "Arena | Benchmark & Compare the Best AI Models - Brave",
         "className": "Chrome_WidgetWin_1"
       },
       "visibleWindows": [
-        {
-          "processId": 6952,
-          "title": "Feedback.md - Emoji Picker Extension - Visual Studio Code",
-          "className": "Chrome_WidgetWin_1"
-        },
         {
           "processId": 28644,
           "title": "Arena | Benchmark & Compare the Best AI Models - Brave",
           "className": "Chrome_WidgetWin_1"
         },
         {
-          "processId": 36092,
-          "title": "*Sans titre - Bloc-notes",
-          "className": "Notepad"
+          "processId": 6952,
+          "title": "● Feedback.md - Emoji Picker Extension - Visual Studio Code",
+          "className": "Chrome_WidgetWin_1"
         },
         {
           "processId": 2576,
           "title": "PowerShell",
           "className": "CASCADIA_HOSTING_WINDOW_CLASS"
+        },
+        {
+          "processId": 36092,
+          "title": "Sans titre - Bloc-notes",
+          "className": "Notepad"
         },
         {
           "processId": 28644,
@@ -189,37 +189,43 @@
     "copiedIntoRepository": true,
     "totalLines": 4,
     "lastLines": [
-      "{\"at\":\"2026-10-23T11:37:29.150Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👏\"]}",
-      "{\"at\":\"2026-10-23T11:37:29.153Z\",\"event\":\"paste:request\",\"emoji\":\"👏\",\"sequence\":1792755449152,\"agentRunning\":true}",
-      "{\"at\":\"2026-10-23T11:37:40.199Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
-      "{\"at\":\"2026-10-23T11:37:40.201Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792755460200,\"agentRunning\":true}"
+      "{\"at\":\"2026-10-23T12:06:07.275Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-23T12:06:07.277Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792757167276,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T12:06:11.937Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👏\"]}",
+      "{\"at\":\"2026-10-23T12:06:11.939Z\",\"event\":\"paste:request\",\"emoji\":\"👏\",\"sequence\":1792757171938,\"agentRunning\":true}"
     ]
   },
   "pasteAgent": {
     "exists": true,
-    "bytes": 16558,
-    "totalLines": 171,
+    "bytes": 26893,
+    "totalLines": 280,
     "lastLines": [
-      "2026-10-23T13:49:39.8978002+02:00 | agent | start pid=37692 host=powershell ps=5.1.19041.6456 edition=Desktop\r",
-      "2026-10-23T13:49:39.9069499+02:00 | agent | winforms loaded\r",
-      "2026-10-23T13:49:39.9079207+02:00 | agent | uiautomation loaded\r",
-      "2026-10-23T13:49:39.9249284+02:00 | agent | waiting for requests\r",
-      "2026-10-23T13:49:40.0005290+02:00 | agent | request sequence=1792756179978 emoji=[🧪] targetCodes=[55358,56810]\r",
-      "2026-10-23T13:49:40.0640562+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
-      "2026-10-23T13:49:40.0660565+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2\r",
-      "2026-10-23T13:49:42.5236436+02:00 | agent | decision paste=False elapsedMs=2517\r",
-      "2026-10-23T13:49:50.2230843+02:00 | agent | start pid=30580 host=pwsh ps=7.6.7 edition=Core\r",
-      "2026-10-23T13:49:50.2301263+02:00 | agent | winforms loaded\r",
-      "2026-10-23T13:49:50.2315051+02:00 | agent | uiautomation loaded\r",
-      "2026-10-23T13:49:50.2364362+02:00 | agent | waiting for requests\r",
-      "2026-10-23T13:49:50.3123412+02:00 | agent | request sequence=1792756190270 emoji=[🧪] targetCodes=[55358,56810]\r",
-      "2026-10-23T13:49:50.3698116+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
-      "2026-10-23T13:49:50.3721510+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2\r",
-      "2026-10-23T13:49:52.8187862+02:00 | agent | decision paste=False elapsedMs=2500\r",
-      "2026-10-23T13:50:00.7025712+02:00 | agent | start pid=38400 host=powershell ps=5.1.19041.6456 edition=Desktop\r",
-      "2026-10-23T13:50:00.7175708+02:00 | agent | winforms loaded\r",
-      "2026-10-23T13:50:00.7205707+02:00 | agent | uiautomation loaded\r",
-      "2026-10-23T13:50:00.7485712+02:00 | agent | waiting for requests"
+      "2026-10-23T14:03:16.2882835+02:00 | agent | start pid=38356 host=pwsh ps=7.6.7 edition=Core\r",
+      "2026-10-23T14:03:16.2962627+02:00 | agent | winforms loaded\r",
+      "2026-10-23T14:03:16.2976155+02:00 | agent | uiautomation loaded\r",
+      "2026-10-23T14:03:16.3022936+02:00 | agent | waiting for requests\r",
+      "2026-10-23T14:03:16.3737320+02:00 | agent | request sequence=1792756996321 emoji=[🧪] targetCodes=[55358,56810]\r",
+      "2026-10-23T14:03:16.7166853+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-23T14:03:16.7196931+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2\r",
+      "2026-10-23T14:03:18.9297521+02:00 | agent | decision paste=False elapsedMs=2549\r",
+      "2026-10-23T14:03:26.7552789+02:00 | agent | start pid=39060 host=powershell ps=5.1.19041.6456 edition=Desktop\r",
+      "2026-10-23T14:03:26.7717935+02:00 | agent | winforms loaded\r",
+      "2026-10-23T14:03:26.7747980+02:00 | agent | uiautomation loaded\r",
+      "2026-10-23T14:03:26.8028605+02:00 | agent | waiting for requests\r",
+      "2026-10-23T14:06:07.3453950+02:00 | agent | request sequence=1792757167276 emoji=[🙏] targetCodes=[55357,56911]\r",
+      "2026-10-23T14:06:07.4374349+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-23T14:06:07.4383919+02:00 | agent | decision paste=True elapsedMs=81\r",
+      "2026-10-23T14:06:07.4712451+02:00 | agent | sendkeys sent\r",
+      "2026-10-23T14:06:11.9688536+02:00 | agent | request sequence=1792757171938 emoji=[👏] targetCodes=[55357,56399]\r",
+      "2026-10-23T14:06:11.9798611+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=13800 clipboardMatches=True clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-23T14:06:11.9808542+02:00 | agent | decision paste=True elapsedMs=10\r",
+      "2026-10-23T14:06:12.0194772+02:00 | agent | sendkeys sent"
     ]
+  },
+  "pasteAgentStatus": {
+    "running": true,
+    "dataDirectory": "C:\\Users\\IDLT\\AppData\\Local\\Flow.Launcher.Plugin.EmojiFinder",
+    "scriptOnDisk": true,
+    "scriptIsCurrent": false
   }
 }
