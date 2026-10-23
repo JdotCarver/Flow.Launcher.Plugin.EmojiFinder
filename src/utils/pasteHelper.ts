@@ -39,6 +39,8 @@
 // behind `spawnPasteHelper`, so swapping the mechanism is one function.
 
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 import { appendTraceLine, isTracingEnabled, TRACE_FILE } from './trace.js';
 
@@ -85,8 +87,15 @@ $logPath = '${escapedLogPath}'
 $timeoutMilliseconds = ${MAXIMUM_WAIT_MILLISECONDS}
 $pollMilliseconds = ${POLL_INTERVAL_MILLISECONDS}
 
+$logDirectoryReady = $false
 function Write-Trace([string] $message) {
   if ([string]::IsNullOrEmpty($logPath)) { return }
+  # The plugin creates this folder too, but the helper can win the race: without this,
+  # the first lines would be silently dropped.
+  if (-not $logDirectoryReady) {
+    $null = New-Item -ItemType Directory -Force -Path (Split-Path -Parent $logPath) -ErrorAction SilentlyContinue
+    $logDirectoryReady = $true
+  }
   $line = '{0} | helper | {1}' -f (Get-Date).ToString('o'), $message
   Add-Content -LiteralPath $logPath -Value $line -ErrorAction SilentlyContinue
 }
@@ -217,6 +226,10 @@ export function spawnPasteHelper (emoji: string): PasteHelperStart {
   const logPath = isTracingEnabled() ? TRACE_FILE : '';
   const script = buildPasteScript(emoji, logPath);
 
+  if (logPath !== '') {
+    prepareTraceDirectory(logPath);
+  }
+
   try {
     const child = spawn(
       'powershell.exe',
@@ -245,6 +258,17 @@ export function spawnPasteHelper (emoji: string): PasteHelperStart {
     return { started: true, pid: child.pid };
   } catch (error) {
     return { started: false, reason: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * Creates the trace folder before the helper starts, so its very first line can land.
+ */
+function prepareTraceDirectory (logPath: string): void {
+  try {
+    fs.mkdirSync(path.dirname(logPath), { recursive: true });
+  } catch {
+    // Same contract as tracing in general: never break the feature being traced.
   }
 }
 

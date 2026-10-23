@@ -51,12 +51,22 @@ function checkEnvironment (report) {
     return;
   }
 
-  if (windows.result === undefined) {
+  const recovered = windows.result ?? parseReportFromNoise(windows.rawStandardOutput ?? '');
+  if (recovered === null) {
     finding('fail', 'the PowerShell diagnostic itself failed; the raw output is in dogfood/diagnose.json');
     return;
   }
 
-  const result = windows.result;
+  if (windows.result === undefined) {
+    finding('warn', 'report recovered from noisy stdout: this is from an old probe version, rerun "npm run diagnose" to get a clean one');
+  }
+
+  const result = recovered;
+
+  const installed = report.installedPlugin ?? {};
+  if (installed.found === true && installed.tracingEnabled === false) {
+    finding('fail', 'the installed plugin has no trace.on, so it cannot log anything: run "npm run package -- --install --trace"');
+  }
 
   if (result.winForms?.ok === false) {
     finding('fail', `System.Windows.Forms does not load: ${result.winForms.error}. Clipboard checks and Ctrl+V are impossible.`);
@@ -221,7 +231,23 @@ function readTraceLines (filePath) {
 
 function readJson (filePath) {
   try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return JSON.parse(fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, ''));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The first version of the Windows probe printed its report on stdout, where a stray
+ * `True` corrupted it. Older report files still contain that shape, so recover the JSON
+ * object instead of failing on it.
+ */
+function parseReportFromNoise (rawOutput) {
+  const start = String(rawOutput).indexOf('{');
+  if (start === -1) return null;
+
+  try {
+    return JSON.parse(String(rawOutput).slice(start));
   } catch {
     return null;
   }

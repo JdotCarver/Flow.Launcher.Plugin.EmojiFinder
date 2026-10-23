@@ -22,9 +22,15 @@ import process from 'node:process';
 
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
 const REPORT_DIRECTORY = path.join(PLUGIN_ROOT, 'dogfood');
-const REPORT_FILE = path.join(REPORT_DIRECTORY, 'diagnose.json');
+/**
+ * The committed report belongs to the machine that runs Flow Launcher. Running diagnose
+ * on another platform (the Linux sandbox) must not destroy it, so non-Windows runs write
+ * beside it instead of over it.
+ */
+const REPORT_FILE = path.join(REPORT_DIRECTORY, process.platform === 'win32' ? 'diagnose.json' : `diagnose-${process.platform}.json`);
 const RUNTIME_LOG = path.join(REPORT_DIRECTORY, 'runtime.log');
 const DIAGNOSTIC_SCRIPT = path.join(PLUGIN_ROOT, 'tools', 'windows-diagnostic.ps1');
+const DIAGNOSTIC_OUTPUT = path.join(REPORT_DIRECTORY, 'windows-probe.json');
 
 /** How many trace lines from the last dogfood run are included. */
 const RUNTIME_TAIL_LINES = 80;
@@ -32,6 +38,7 @@ const RUNTIME_TAIL_LINES = 80;
 const report = {
   generatedAt: new Date().toISOString(),
   plugin: collectPluginFacts(),
+  installedPlugin: describeInstalledPlugin(),
   powershellStartup: measurePowerShellStartup(),
   windows: null
 };
@@ -49,6 +56,43 @@ if (process.argv.includes('--open')) {
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * What Flow Launcher is actually running, as opposed to what this repository builds.
+ * Most "my change did nothing" reports are an installed copy that predates the build.
+ */
+function describeInstalledPlugin () {
+  const pluginsDirectory = process.env.APPDATA === undefined
+    ? null
+    : path.join(process.env.APPDATA, 'FlowLauncher', 'Plugins', 'Flow.Launcher.Plugin.EmojiFinder');
+
+  if (pluginsDirectory === null || !fs.existsSync(pluginsDirectory)) {
+    return { found: false, note: 'not installed at %APPDATA%\\FlowLauncher\\Plugins (portable install?)' };
+  }
+
+  const entryPoint = path.join(pluginsDirectory, 'dist', 'main.js');
+  const traceFile = path.join(pluginsDirectory, 'dogfood', 'runtime.log');
+
+  return {
+    found: true,
+    directory: pluginsDirectory,
+    builtEntryPointExists: fs.existsSync(entryPoint),
+    builtAt: existsOrNull(entryPoint)?.mtime.toISOString() ?? '',
+    repositoryBuildAt: existsOrNull(path.join(PLUGIN_ROOT, 'dist', 'main.js'))?.mtime.toISOString() ?? '',
+    tracingEnabled: fs.existsSync(path.join(pluginsDirectory, 'trace.on')),
+    traceFileExists: fs.existsSync(traceFile),
+    traceFileBytes: existsOrNull(traceFile)?.size ?? 0,
+    traceFileModifiedAt: existsOrNull(traceFile)?.mtime.toISOString() ?? ''
+  };
+}
+
+function existsOrNull (filePath) {
+  try {
+    return fs.statSync(filePath);
+  } catch {
+    return null;
+  }
+}
 
 function collectPluginFacts () {
   return {
@@ -105,10 +149,20 @@ function runWindowsDiagnostic () {
     return { error: `missing ${DIAGNOSTIC_SCRIPT}` };
   }
 
+  // The probe writes its report to a file: the first version printed JSON on stdout and
+  // a single stray `True` (from Control.Focus()) corrupted it. Anything on stdout is now
+  // diagnostic noise, kept for the record rather than parsed.
+  fs.mkdirSync(REPORT_DIRECTORY, { recursive: true });
+  fs.rmSync(DIAGNOSTIC_OUTPUT, { force: true });
+
   const startedAt = Date.now();
   const result = spawnSync(
     'powershell.exe',
-    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', DIAGNOSTIC_SCRIPT],
+    [
+      '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+      '-File', DIAGNOSTIC_SCRIPT,
+      '-OutFile', DIAGNOSTIC_OUTPUT
+    ],
     { encoding: 'utf8', windowsHide: true, timeout: 60000 }
   );
 
@@ -120,17 +174,18 @@ function runWindowsDiagnostic () {
 
   const stdout = (result.stdout ?? '').trim();
   if (stdout !== '') {
-    try {
-      parsed.result = JSON.parse(stdout);
-    } catch {
-      // A PowerShell failure prints its error to stdout, so keep it verbatim.
-      parsed.rawStandardOutput = stdout;
-    }
+    parsed.standardOutput = stdout;
   }
 
   const stderr = (result.stderr ?? '').trim();
   if (stderr !== '') {
-    parsed.rawStandardError = stderr;
+    parsed.standardError = stderr;
+  }
+
+  parsed.result = readJson(DIAGNOSTIC_OUTPUT) ?? undefined;
+
+  if (parsed.result === undefined) {
+    parsed.error = 'the probe did not write a readable report (see standardError)';
   }
 
   return parsed;
@@ -189,6 +244,17 @@ function installedPluginTrace () {
 
 function printSummary (diagnosis) {
   console.log(`report written to ${path.relative(PLUGIN_ROOT, REPORT_FILE)}`);
+
+  if (process.platform !== 'win32') {
+    console.log('  (not Windows, so this is a side report: dogfood/diagnose.json is left untouched)');
+  }
+
+  const installed = diagnosis.installedPlugin ?? {};
+  if (installed.found === true) {
+    console.log(`  installed plugin: built ${installed.builtAt}, tracing ${installed.tracingEnabled ? 'ON' : 'OFF'}, trace ${installed.traceFileExists ? `${installed.traceFileBytes} bytes` : 'missing'}`);
+  } else {
+    console.log(`  installed plugin: ${installed.note}`);
+  }
 
   const windows = diagnosis.windows ?? {};
 

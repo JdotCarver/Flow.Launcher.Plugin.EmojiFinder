@@ -1,0 +1,63 @@
+name: windows-dogfood
+
+# Optional: run this project's checks on a real Windows machine.
+#
+# Why: this plugin cannot be fully tested in a Linux sandbox. PowerShell, the Windows
+# clipboard, SendKeys and window focus all only exist on Windows. A self-hosted runner on
+# a Windows machine closes that gap: the agent pushes, the workflow runs here, the agent
+# reads the log and downloads the artifacts (both plain `gh` commands).
+#
+# Setup (one time)
+#   1. GitHub > repository Settings > Actions > Runners > New self-hosted runner > Windows
+#   2. Register it with an extra label, e.g.:
+#        ./config.cmd --url https://github.com/<owner>/<repo> --token <token> --labels flowlauncher
+#   3. Start it **interactively** (`./run.cmd` from a logged-in desktop session), not as a
+#      service: the GUI probes need a real desktop. A service runs in session 0, where
+#      clipboard and SendKeys behave differently or fail.
+#
+# Safety: only `workflow_dispatch` is offered. Self-hosted runners on a public repository
+# execute whatever a pull request contains, so never add `pull_request` here without a
+# maintainer approval step. Everything in this workflow runs repository code.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-on-windows:
+    runs-on: [self-hosted, Windows, X64, flowlauncher]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node version
+        run: node --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      # The environment probe does not need Flow Launcher to be running, but it does need
+      # an interactive desktop for the SendKeys self-test.
+      - name: Windows environment probe
+        run: npm run diagnose
+        continue-on-error: true
+
+      - name: Read the verdict
+        run: npm run dogfood:check
+        continue-on-error: true
+
+      - name: Upload dogfood evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dogfood
+          path: dogfood/
+          if-no-files-found: ignore

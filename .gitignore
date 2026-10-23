@@ -7,3 +7,5 @@ src/debug.js
 artifacts
 # Local tracing switch, created by `npm run package -- --trace`.
 trace.on
+dogfood/diagnose-linux.json
+dogfood/windows-probe.json

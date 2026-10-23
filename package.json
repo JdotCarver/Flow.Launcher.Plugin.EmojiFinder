@@ -10,6 +10,7 @@
     "dogfood:check": "node tools/check-dogfood.mjs",
     "lint": "eslint",
     "package": "npm run build && node tools/package.mjs",
+    "paste:selftest": "node tools/paste-selftest.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -86,6 +86,12 @@ describe('buildPasteScript', () => {
       expect(script).toContain("$logPath = 'C:\\Users\\o''brien\\dogfood\\runtime.log'");
     });
 
+    test('creates its own log folder, because it can beat the plugin to it', () => {
+      const script = buildPasteScript('🙈', 'C:\\plugins\\emoji\\dogfood\\runtime.log');
+
+      expect(script).toContain('New-Item -ItemType Directory -Force -Path (Split-Path -Parent $logPath)');
+    });
+
     test('narrates every decision point, so a failure can be read from the log', () => {
       const script = buildPasteScript('🙈', 'C:\\log.txt');
 

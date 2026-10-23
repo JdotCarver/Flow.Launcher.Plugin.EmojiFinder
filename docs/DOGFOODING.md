@@ -20,6 +20,18 @@ npm run dogfood:check                 # 4. read the verdict
 git add dogfood && git commit -m "dogfood: <what happened>"
 ```
 
+When paste at cursor is the suspect, there is a cheaper experiment first that has nothing
+to do with Flow Launcher:
+
+```bash
+npm run paste:selftest                # then click into Notepad during the countdown
+```
+
+It copies an emoji, counts down, sends Ctrl+V, and writes `dogfood/selftest.log`. If the
+emoji does not appear in Notepad, the injection mechanism does not work on that machine
+and no amount of plugin timing work will help: the answer is a different injector (see
+docs/PASTE_AT_CURSOR.md §2).
+
 `npm run diagnose` also copies the installed plugin's trace back into the repository's
 `dogfood/` folder, so step 3 is the only step you need to remember beyond the packaging.
 
@@ -29,7 +41,8 @@ Commit `dogfood/`. The next session reads it and stops guessing.
 
 | Piece | Answers |
 |---|---|
-| `npm run diagnose` | Does PowerShell start, and how fast? Does `System.Windows.Forms` load? Does the clipboard give back the emoji exactly? Does `SendKeys` deliver a keystroke at all? What are Flow's processes called and do they have a visible window? What is focused right now? |
+| `npm run diagnose` | Does PowerShell start, and how fast? Does `System.Windows.Forms` load? Does the clipboard give back the emoji exactly? Does `SendKeys` deliver a keystroke at all? What are Flow's processes called and do they have a visible window? What is focused right now? Is the installed plugin the build we just packaged, and is tracing on in it? |
+| `npm run paste:selftest` | Does this machine paste an emoji into Notepad at all, with Flow Launcher out of the picture? |
 | tracing (`--trace`) | What did the plugin actually do, in order: which method Flow called, whether the helper spawned, every state transition while waiting, which condition stayed false, whether `SendKeys` was called, and any exception. |
 | `npm run dogfood:check` | Both of the above, turned into findings and a verdict, in the order the paste path can fail. |
 
@@ -42,6 +55,13 @@ self-test typing `abc` into it, which needs a real window to type into.
 |---|---|---|
 | `dogfood/diagnose.json` | `npm run diagnose` (on your machine) | yes |
 | `dogfood/runtime.log` | the plugin, only when `trace.on` exists next to `plugin.json` | yes |
+| `dogfood/selftest.log` | `npm run paste:selftest` | yes |
+| `dogfood/diagnose-linux.json` | `npm run diagnose` in the sandbox | no (gitignored) |
+| `dogfood/windows-probe.json` | the PowerShell probe's raw report | no (gitignored) |
+
+`npm run diagnose` only ever writes `diagnose.json` on Windows. In the Linux sandbox it
+writes `diagnose-linux.json` instead, so a sandbox run cannot destroy the committed
+Windows evidence. (That happened once, on 2026-10-23.)
 
 Inside the *installed* plugin folder, `npm run package -- --trace` puts `trace.on` beside
 `plugin.json`. Copy the resulting `dogfood/runtime.log` back into the repository's

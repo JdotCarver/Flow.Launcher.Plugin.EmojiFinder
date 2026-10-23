@@ -54,6 +54,9 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
 - Paste injection cannot be tested here (no Windows/PowerShell). Do not claim it works:
   ask for a dogfood run (`docs/DOGFOODING.md`) and read `npm run dogfood:check`.
   `dogfood/diagnose.json` + `dogfood/runtime.log` are the maintainer's committed evidence.
+- PowerShell: any .NET call can emit output (`Control.Focus()` returns a bool). Never let
+  a probe print its payload to stdout: the first diagnostic wrote `True` in front of its
+  JSON and Node could not parse it. Write reports to a file instead.
 - Tracing: `src/utils/trace.ts` writes JSONL only when `trace.on` sits next to
   plugin.json (`npm run package -- --trace`, gitignored). Never on the query path.
 - The paste helper accepts **either** "no visible Flow window" **or** "focus is not in a
