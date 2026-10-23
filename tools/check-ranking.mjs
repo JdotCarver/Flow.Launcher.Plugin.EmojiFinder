@@ -241,10 +241,16 @@ function checkContextMenu () {
     String(hint?.Subtitle ?? '')
   );
   // Flow decodes our stdout with the console code page, so the emoji must not be written literally.
+  const printableAscii = [...stdout].every((character) => {
+    const code = character.charCodeAt(0);
+
+    return code === 10 || code === 13 || (code >= 32 && code < 127);
+  });
+
   finding(
-    stdout === '' || [...stdout].every((character) => character.charCodeAt(0) < 128),
+    stdout !== '' && printableAscii,
     'nothing but ASCII is written to stdout (Flow reads it with the console code page)',
-    stdout === '' ? 'no output' : 'non-ASCII bytes found'
+    stdout === '' ? 'no output at all' : printableAscii ? '' : [...stdout].filter((character) => character.charCodeAt(0) > 127).slice(0, 8).join('')
   );
 }
 
