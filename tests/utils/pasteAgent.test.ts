@@ -14,6 +14,7 @@ import {
   buildAgentScript,
   ensureAgentScript,
   HEARTBEAT_STALE_AFTER_MILLISECONDS,
+  AGENT_PID_FILE_NAME,
   readAgentStatus,
   requestPaste,
   resolveAgentPaths,
@@ -174,6 +175,37 @@ describe('readAgentStatus', () => {
 
     expect(status.running).toBe(false);
     expect(status.heartbeatAgeMilliseconds).toBeGreaterThan(HEARTBEAT_STALE_AFTER_MILLISECONDS);
+  });
+
+  test('a fresh heartbeat from a process that is gone means it is not running', () => {
+    const paths = createPaths();
+    fs.mkdirSync(paths.directory, { recursive: true });
+    fs.writeFileSync(paths.heartbeat, new Date().toISOString());
+    // Above the largest pid Windows hands out, so no real process can match it.
+    fs.writeFileSync(path.join(paths.directory, AGENT_PID_FILE_NAME), '999999999');
+
+    const status = readAgentStatus(paths);
+
+    expect(status.running).toBe(false);
+    expect(status.heartbeatAgeMilliseconds).toBeLessThanOrEqual(HEARTBEAT_STALE_AFTER_MILLISECONDS);
+  });
+
+  test('a fresh heartbeat and a live pid mean it is running', () => {
+    const paths = createPaths();
+    fs.mkdirSync(paths.directory, { recursive: true });
+    fs.writeFileSync(paths.heartbeat, new Date().toISOString());
+    fs.writeFileSync(path.join(paths.directory, AGENT_PID_FILE_NAME), String(process.pid));
+
+    expect(readAgentStatus(paths).running).toBe(true);
+  });
+
+  test('a pid file that cannot be read is ignored rather than trusted', () => {
+    const paths = createPaths();
+    fs.mkdirSync(paths.directory, { recursive: true });
+    fs.writeFileSync(paths.heartbeat, new Date().toISOString());
+    fs.writeFileSync(path.join(paths.directory, AGENT_PID_FILE_NAME), 'not a pid');
+
+    expect(readAgentStatus(paths).running).toBe(true);
   });
 
   test('no heartbeat at all means it has never run', () => {

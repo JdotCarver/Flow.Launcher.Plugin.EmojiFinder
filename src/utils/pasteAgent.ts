@@ -53,6 +53,9 @@ const POLL_INTERVAL_MILLISECONDS = 50;
 /** A heartbeat older than this means the agent is not running any more. */
 export const HEARTBEAT_STALE_AFTER_MILLISECONDS = 5000;
 
+/** The agent writes its own process id here, beside the heartbeat. */
+export const AGENT_PID_FILE_NAME = 'agent.pid';
+
 export interface PasteAgentPaths {
   directory: string;
   script: string;
@@ -380,8 +383,55 @@ export function readAgentStatus (paths: PasteAgentPaths = resolveAgentPaths()): 
   try {
     const age = Date.now() - fs.statSync(paths.heartbeat).mtimeMs;
 
-    return { running: age <= HEARTBEAT_STALE_AFTER_MILLISECONDS, heartbeatAgeMilliseconds: age };
+    if (age > HEARTBEAT_STALE_AFTER_MILLISECONDS) {
+      return { running: false, heartbeatAgeMilliseconds: age };
+    }
+
+    // A heartbeat keeps looking fresh for up to five seconds after its process dies, and that
+    // window is not academic: an agent killed just before a paste made the plugin - and the
+    // installer - answer "already running" and start nothing, so paste did nothing at all.
+    // Asking the process itself closes the window.
+    const pid = readAgentProcessId(paths);
+
+    if (pid !== null && !isProcessAlive(pid)) {
+      return { running: false, heartbeatAgeMilliseconds: age };
+    }
+
+    return { running: true, heartbeatAgeMilliseconds: age };
   } catch {
     return { running: false, heartbeatAgeMilliseconds: null };
+  }
+}
+
+/**
+ * The pid the agent published, or null when it has not published one.
+ *
+ * A pid file that cannot be parsed is treated as absent rather than as a reason to report the
+ * agent dead: a half-written file is a moment in time, not an answer.
+ */
+function readAgentProcessId (paths: PasteAgentPaths): number | null {
+  try {
+    const value = Number.parseInt(fs.readFileSync(path.join(paths.directory, AGENT_PID_FILE_NAME), 'utf8').trim(), 10);
+
+    return Number.isInteger(value) && value > 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Whether a process with this id exists.
+ *
+ * Signal 0 performs the existence check without sending anything. `EPERM` means the process is
+ * there but owned by somebody else, which still counts: the agent is per user, so this only
+ * happens if the pid was recycled by an unrelated process.
+ */
+function isProcessAlive (pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === 'EPERM';
   }
 }
