@@ -6,7 +6,7 @@ Paste the body below into the PR description. Everything in <angle brackets> or 
 "Showcase placeholder" block is for you to replace or delete.
 -->
 
-# Paste where you are typing, name emoji in your own words, and a much cheaper query
+# Paste to Cursor, Custom emoji Aliases, and a much cheaper query
 
 This PR keeps everything the plugin already does — type `e`, search, press Enter, emoji on the
 clipboard — and adds the three things it could not do before:
@@ -75,25 +75,27 @@ as the Enter Mode. Copy Mode, the default, starts nothing at all.
 | Terminals that paste with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> | They receive what plain <kbd>Ctrl</kbd>+<kbd>V</kbd> means for them. |
 | Remote sessions | Depends on the client's forwarding. |
 
-## Aliases: the words you actually use
+## Aliases
 
 > Addresses [#3 — *Feature Suggestion/Enquiry: Customizable Keywords for Emoji Matching*](https://github.com/kalvn/Flow.Launcher.Plugin.EmojiFinder/issues/3),
 > which asked for `e addterm 💪 muscle` and for a way to make "muscle" find 💪 without editing a
 > dependency's JSON.
 
+#### The situation
 The emoji database is `emojilib`'s file inside `node_modules`. Editing it looks like the obvious
-answer and is a trap: the plugin folder is replaced on every update, so **anything written there
-disappears**, and the plugin cannot tell a hand-edited keyword from an upstream one. So aliases
-live in the plugin's own settings folder instead, and the database stays read-only.
+answer and is a trap: the plugin folder is replaced on every update, so **anything written there and the plugin cannot tell a hand-edited keyword from an upstream one. 
+disappears**
+#### The solution
+So now, aliases live in their own file, in the plugin's own settings folder, and the database is left alone.
 
 ```
-e addalias 💪 swole        save "swole" for 💪
-e aliases                  list them; Enter removes one
-e removealias swole        remove it
+-- You Type --             -- It Does --
+e addalias 💪 swole       Assigns the term "swole" for the emoji 💪
+e removealias swole       Removes the alias "swole"
+e aliases                 Display a list of your aliases. And a easy way to remove them.
 ```
 
-An alias is an extra name, not a separate search space: scoring takes the better of the keyword
-score and the alias score, so an alias can never make an emoji *harder* to find.
+An alias is simply another name under which the emoji can be found. So scoring takes the better of the keyword score and the alias score, so an alias can never make an emoji harder to find!
 
 **The grammar is deliberately strict: the emoji comes first, and nothing is guessed.** An earlier
 revision accepted either order and searched for the emoji when it could not find one, which made a
