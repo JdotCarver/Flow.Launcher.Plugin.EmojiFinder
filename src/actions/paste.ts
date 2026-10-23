@@ -10,9 +10,12 @@
 
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
 import { spawnPasteHelper } from '../utils/pasteHelper.js';
+import { trace } from '../utils/trace.js';
 
 export function paste (text: string | undefined): void {
   if (text === undefined || text === '') {
+    trace('paste:skipped', { reason: 'no emoji in the action parameters' });
+
     return;
   }
 
@@ -24,5 +27,7 @@ export function paste (text: string | undefined): void {
     parameters: [text, false, false]
   });
 
-  spawnPasteHelper(text);
+  const outcome = spawnPasteHelper(text);
+
+  trace('paste:spawn', { emoji: text, ...outcome });
 }

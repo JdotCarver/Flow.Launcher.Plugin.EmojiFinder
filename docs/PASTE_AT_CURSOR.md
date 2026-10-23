@@ -1,6 +1,9 @@
 # Design: instant copy, and paste at the cursor
 
-Status: **implemented.** Decisions taken with the maintainer: PowerShell injector to
+Status: **implemented, not yet proven on Windows.** The first dogfood run showed the
+helper starting and the app pausing, but no paste. This revision adds the instrumentation
+to find out why (`docs/DOGFOODING.md`) and a second, independent focus signal (UI
+Automation) so a minimised Flow Launcher no longer blocks the paste. Decisions taken with the maintainer: PowerShell injector to
 start with, a single setting for copy vs paste (no second keyword — the maintainer would
 use paste all the time, so a per-use switch buys nothing), copy landed first.
 
@@ -221,3 +224,32 @@ version behind `spawnPasteHelper` is a contained swap.
 
 - A "paste without touching the clipboard" mode (Unicode key events) — see §2.
 - Measuring the real Windows number: needs a run on the maintainer's machine.
+
+---
+
+## 6. First dogfood result (2026-10-23)
+
+Reported: setting paste, Enter, "noticeable pause, nothing visibly happens."
+
+Facts established from Flow's source: it waits for our process to exit and calls
+`process.Kill()` (not the whole tree) on timeout, so the detached helper is not the
+victim. That leaves the script itself, and the sandbox cannot run it.
+
+Changes made in response:
+
+1. **Second focus signal.** The helper used to require
+   `MainWindowHandle -eq 0` for every Flow process. That is true when Flow *hides* its
+   window; if Flow minimises instead, the handle stays non-zero and the helper waits out
+   its timeout and types nothing — indistinguishable from "nothing happened". It now
+   accepts either "no visible main window" **or** "the focused window belongs to a
+   non-Flow process" (UI Automation, an assembly load, no C# compilation).
+2. **Full narration.** The helper traces PowerShell version, apartment state, execution
+   policy, whether WinForms and UI Automation loaded, every state transition while
+   waiting, the resulting decision, and any exception from `SendKeys`.
+3. **Evidence pipeline.** `npm run diagnose` (environment) + `--trace` (runtime) +
+   `npm run dogfood:check` (verdict), all committable.
+4. **Clipboard comparison ignores U+FE0E / U+FE0F / U+200D**, because some clipboard
+   producers drop variation selectors, which would leave the helper waiting for an emoji
+   that is already on the clipboard.
+
+Nothing here is claimed to be fixed. The next dogfood report decides.

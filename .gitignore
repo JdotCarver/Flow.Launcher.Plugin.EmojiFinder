@@ -5,3 +5,5 @@ src/debug.js
 *.xcf
 
 artifacts
+# Local tracing switch, created by `npm run package -- --trace`.
+trace.on

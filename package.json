@@ -6,6 +6,8 @@
   "scripts": {
     "build": "tsc",
     "benchmark": "node tools/bench.mjs",
+    "diagnose": "node tools/diagnose.mjs",
+    "dogfood:check": "node tools/check-dogfood.mjs",
     "lint": "eslint",
     "package": "npm run build && node tools/package.mjs",
     "test": "vitest run",

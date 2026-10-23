@@ -20,6 +20,10 @@
 // Usage
 //   npm run package              # build into artifacts/
 //   npm run package -- --install # ...and copy it into the Flow Launcher plugins folder
+//   npm run package -- --install --trace
+//                                # ...with runtime tracing switched on (writes
+//                                #    dogfood/runtime.log next to the plugin, see
+//                                #    docs/DOGFOODING.md)
 //
 // Exit code 0 means the folder is ready.
 
@@ -40,12 +44,17 @@ function main () {
   assertBuildExists();
 
   const shouldInstall = process.argv.includes('--install');
+  const shouldTrace = process.argv.includes('--trace');
 
   cleanOutputDirectory();
   copyFiles();
   copyProductionDependencies();
 
-  report();
+  if (shouldTrace) {
+    enableTracing();
+  }
+
+  report(shouldTrace);
 
   if (shouldInstall) {
     installIntoFlowLauncher();
@@ -133,12 +142,24 @@ function isNotDevelopmentNoise (source) {
   return name !== 'test' && name !== 'tests' && name !== '.bin';
 }
 
-function report () {
+/**
+ * Drops the `trace.on` marker next to plugin.json. The plugin only writes trace lines
+ * when it finds that file, so a normal install stays silent.
+ */
+function enableTracing () {
+  fs.writeFileSync(path.join(OUTPUT_DIR, 'trace.on'), '');
+}
+
+function report (tracing) {
   const totalBytes = directorySize(OUTPUT_DIR);
 
   console.log(`packaged ${PLUGIN_FOLDER_NAME}`);
   console.log(`  ${OUTPUT_DIR}`);
   console.log(`  ${(totalBytes / 1024 / 1024).toFixed(1)} MB`);
+
+  if (tracing) {
+    console.log('  tracing ON: the plugin will append to dogfood/runtime.log in this folder');
+  }
 }
 
 function directorySize (directory) {

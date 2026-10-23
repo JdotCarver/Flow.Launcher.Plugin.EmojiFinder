@@ -8,7 +8,10 @@ export default [
   {
     ignores: [
       'dist/*',
-      'node_modules/*'
+      'node_modules/*',
+      // Packaged plugin output and the committed diagnostic evidence.
+      'artifacts/*',
+      'dogfood/*'
     ]
   }
 ];

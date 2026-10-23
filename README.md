@@ -43,6 +43,10 @@ npm ci
 npm run package -- --install
 ```
 
+If something misbehaves on Windows (paste at cursor is the one that needs real hardware),
+see [docs/DOGFOODING.md](docs/DOGFOODING.md): `npm run diagnose` and a traced install
+produce a report that can be committed.
+
 This compiles the plugin and copies a ready-to-run folder into your Flow Launcher
 plugins folder. Note that Flow Launcher runs `dist/main.js`, which does not exist in a
 fresh checkout: copying the repository into the plugins folder is not enough, and a

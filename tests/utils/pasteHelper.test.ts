@@ -1,13 +1,14 @@
 // tests/utils/pasteHelper.test.ts
 //
 // The helper is a PowerShell script we cannot execute here (no Windows, no PowerShell),
-// so the tests check the two things that can actually be wrong on our side: the script
-// we generate, and how it is encoded for -EncodedCommand.
+// so these tests check the two things that can actually be wrong on our side: the script
+// we generate, and how it is encoded and spawned.
 
 import { describe, expect, test } from 'vitest';
 import {
   buildPasteScript,
-  encodePowerShellCommand
+  encodePowerShellCommand,
+  spawnPasteHelper
 } from '../../src/utils/pasteHelper.js';
 
 describe('buildPasteScript', () => {
@@ -16,14 +17,31 @@ describe('buildPasteScript', () => {
 
     expect(script).toContain('Get-Process -Name \'Flow.Launcher*\'');
     expect(script).toContain('MainWindowHandle');
-    expect(script).toContain('-not $flowWindowIsVisible');
+    expect(script).toContain('-not $flowVisible');
+  });
+
+  test('accepts either "no visible window" or "focus moved elsewhere"', () => {
+    const script = buildPasteScript('🙈');
+
+    // The second signal exists because a minimised Flow keeps MainWindowHandle non-zero.
+    expect(script).toContain('$flowHasFocus');
+    expect(script).toContain('AutomationElement]::FocusedElement');
+    expect(script).toContain('(-not $flowVisible -or -not $flowHasFocus)');
   });
 
   test('waits for the clipboard to hold the emoji before typing', () => {
     const script = buildPasteScript('🙈');
 
-    expect(script).toContain('$clipboardHoldsEmoji');
+    expect(script).toContain('$clipboardMatches');
     expect(script).toContain('[System.Windows.Forms.Clipboard]::GetText()');
+  });
+
+  test('ignores variation selectors and joiners when comparing', () => {
+    // Some clipboard producers drop U+FE0F, which would otherwise make the loop wait
+    // forever for an emoji that is already there.
+    const script = buildPasteScript('❤️');
+
+    expect(script).toContain('-replace \'[\\uFE0E\\uFE0F\\u200D]\'');
   });
 
   test('sends Ctrl+V only when both conditions held', () => {
@@ -36,8 +54,6 @@ describe('buildPasteScript', () => {
   test('gives up instead of typing into Flow when the conditions never hold', () => {
     const script = buildPasteScript('🙈');
 
-    // $shouldPaste starts false and is only set inside the wait loop, so a timeout ends
-    // the script without typing anything anywhere.
     expect(script).toContain('$shouldPaste = $false');
     expect(script.indexOf('$shouldPaste = $true')).toBeLessThan(
       script.indexOf('if ($shouldPaste)')
@@ -49,12 +65,34 @@ describe('buildPasteScript', () => {
   });
 
   test('escapes an apostrophe in the payload', () => {
-    // Not an emoji, but the function must not produce a syntax error for anything.
     expect(buildPasteScript("o'clock")).toContain("$targetEmoji = 'o''clock'");
   });
 
   test('works for multi-codepoint emoji', () => {
     expect(buildPasteScript('👨‍👩‍👧‍👦')).toContain("$targetEmoji = '👨‍👩‍👧‍👦'");
+  });
+
+  describe('tracing', () => {
+    test('stays silent when no log path is given', () => {
+      const script = buildPasteScript('🙈');
+
+      expect(script).toContain("$logPath = ''");
+      expect(script).toContain('[string]::IsNullOrEmpty($logPath)');
+    });
+
+    test('writes to the path it is given, escaped for PowerShell', () => {
+      const script = buildPasteScript('🙈', "C:\\Users\\o'brien\\dogfood\\runtime.log");
+
+      expect(script).toContain("$logPath = 'C:\\Users\\o''brien\\dogfood\\runtime.log'");
+    });
+
+    test('narrates every decision point, so a failure can be read from the log', () => {
+      const script = buildPasteScript('🙈', 'C:\\log.txt');
+
+      for (const marker of ['start pid=', 'winforms-error', 'uiautomation-error', 'poll ', 'decision paste=', 'sendkeys sent', 'exit']) {
+        expect(script).toContain(marker);
+      }
+    });
   });
 });
 
@@ -71,5 +109,22 @@ describe('encodePowerShellCommand', () => {
 
     expect(decoded).toContain("$targetEmoji = '❤️'");
     expect(decoded).toBe(script);
+  });
+});
+
+describe('spawnPasteHelper', () => {
+  test('refuses to pretend on platforms without PowerShell', () => {
+    // The test suite runs on Linux, so this result is deterministic here and proves the
+    // guard exists. On Windows the same call would start the helper instead.
+    const outcome = spawnPasteHelper('🙈');
+
+    if (process.platform === 'win32') {
+      expect(outcome.started).toBe(true);
+    } else {
+      expect(outcome).toEqual({
+        started: false,
+        reason: expect.stringContaining('Windows-only')
+      });
+    }
   });
 });

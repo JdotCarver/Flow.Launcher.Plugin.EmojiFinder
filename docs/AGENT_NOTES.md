@@ -51,6 +51,14 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
   more than the feature saves. Windows PowerShell 5.1 (what `powershell.exe` is) runs STA,
   which `Clipboard::GetText()` requires.
 - Dependency policy and audit reasoning: `docs/DEPENDENCIES.md`.
+- Paste injection cannot be tested here (no Windows/PowerShell). Do not claim it works:
+  ask for a dogfood run (`docs/DOGFOODING.md`) and read `npm run dogfood:check`.
+  `dogfood/diagnose.json` + `dogfood/runtime.log` are the maintainer's committed evidence.
+- Tracing: `src/utils/trace.ts` writes JSONL only when `trace.on` sits next to
+  plugin.json (`npm run package -- --trace`, gitignored). Never on the query path.
+- The paste helper accepts **either** "no visible Flow window" **or** "focus is not in a
+  Flow process" (UI Automation). The second exists because a minimised Flow keeps
+  `MainWindowHandle` non-zero forever.
 
 ## Code conventions in this repo
 
