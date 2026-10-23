@@ -51,29 +51,6 @@ function readIfPresent (filePath) {
   }
 }
 
-/**
- * Runs the agent CLI and returns its output either way.
- *
- * The first version let a non-zero exit throw, so a failing start produced no report at all
- * and the step looked like a silent no-op. An experiment that cannot report its own failure
- * is not an experiment.
- */
-function runCli (flag) {
-  try {
-    return execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), flag], {
-      cwd: PLUGIN_ROOT,
-      encoding: 'utf8',
-      timeout: 30000,
-      stdio: ['ignore', 'pipe', 'pipe']
-    }).trim();
-  } catch (error) {
-    const stdout = String(error.stdout ?? '').trim();
-    const stderr = String(error.stderr ?? '').trim();
-
-    return `exit ${error.status}: ${stderr || stdout || error.message}`;
-  }
-}
-
 /** An emoji that is not on the clipboard, so a bug cannot paste into a runner window. */
 function chooseEmojiNotOnClipboard () {
   const candidates = ['🧪', '🫧', '🛠️', '🧭'];
