@@ -3,13 +3,13 @@ body:
     attributes:
       name: enableNotification
       label: Show a system notification when selecting an emoji
-      description: "Shows which emoji was copied. Turn this off for the fastest possible copy: the clipboard is then filled directly by Flow Launcher instead of by an extra process."
+      description: "Useful when starting. You can turn this off when unneeded for the fastest possible copy."
       defaultValue: true
   - type: dropdown
     attributes:
       name: maxResults
       label: Maximum number of emoji to show
-      description: "Matching is fuzzy, so a broad query can match thousands of emoji. Every result costs time to render, so a lower value shows the list sooner. The default (25) is about two screens."
+      description: "Due to the amount of emojis, a broad query can match thousands of results. So a lower value is recommended for snappier results. Defaults to 25, which is about two screens."
       defaultValue: "25"
       options:
         - "10"
