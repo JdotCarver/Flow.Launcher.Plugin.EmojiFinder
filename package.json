@@ -4,11 +4,10 @@
   "main": "dist/main.js",
   "type": "module",
   "scripts": {
+    "agent": "node tools/paste-agent.mjs",
     "build": "tsc",
+    "check:paste-agent": "node tools/check-paste-agent.mjs",
     "benchmark": "node tools/bench.mjs",
-    "check:paste-helper": "node tools/check-paste-helper.mjs",
-    "check:paste-exit": "node tools/paste-exit-probe.mjs",
-    "check:paste-spawn": "node tools/paste-spawn-probe.mjs",
     "diagnose": "node tools/diagnose.mjs",
     "doctor": "node tools/doctor.mjs",
     "dogfood:check": "node tools/check-dogfood.mjs",

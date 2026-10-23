@@ -93,8 +93,8 @@ If nothing happens:
    Flow and the problem is only in the paste helper.
 
 The helper cannot be run from this repository's tests (no Windows, no PowerShell), so the
-script itself is reviewed in `src/utils/pasteHelper.ts` and its generated output is
-asserted in `tests/utils/pasteHelper.test.ts`.
+script itself is reviewed in `src/utils/pasteAgent.ts` and its generated output is asserted
+in `tests/utils/pasteAgent.test.ts`.
 
 ## Everyday loop
 

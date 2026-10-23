@@ -1,18 +1,18 @@
 // src/actions/paste.ts
 //
-// Puts the chosen emoji at the user's cursor: copy it, then press Ctrl+V in the window
-// the user came from.
+// Puts the chosen emoji at the user's cursor: copy it, then tell the resident paste agent to
+// press Ctrl+V in the window the user came from.
 //
-// The copy itself is delegated to Flow Launcher (`Flow.Launcher.CopyToClipboard`), which
-// runs in-process: unicode-safe, no extra node process, and it settles the clipboard
-// before our helper starts typing. Our process only exists to start that helper and then
-// get out of the way (see src/utils/pasteHelper.ts for why that matters).
+// The copy itself is delegated to Flow Launcher (`Flow.Launcher.CopyToClipboard`), which runs
+// in-process: unicode-safe, no extra node process, and it settles the clipboard before the
+// agent types. Nothing is started here - this process is destroyed by Flow the moment it
+// returns, and anything it starts dies with it (see src/utils/pasteAgent.ts).
 
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
-import { spawnPasteHelper } from '../utils/pasteHelper.js';
+import { ensureAgentScript, requestPaste } from '../utils/pasteAgent.js';
 import { trace } from '../utils/trace.js';
 
-export async function paste (text: string | undefined): Promise<void> {
+export function paste (text: string | undefined): void {
   if (text === undefined || text === '') {
     trace('paste:skipped', { reason: 'no emoji in the action parameters' });
 
@@ -27,9 +27,11 @@ export async function paste (text: string | undefined): Promise<void> {
     parameters: [text, false, false]
   });
 
-  // Awaited: the helper must be running before this process disappears, otherwise Flow
-  // takes it down mid-start-up and nothing is ever pasted. See src/utils/pasteHelper.ts.
-  const outcome = await spawnPasteHelper(text);
+  // Keep the agent's script current with this build, then ask it to paste. Writing a small
+  // file and returning is all this process has time for - and all it needs to do.
+  ensureAgentScript();
 
-  trace('paste:spawn', { emoji: text, ...outcome });
+  const outcome = requestPaste(text);
+
+  trace('paste:request', { emoji: text, ...outcome });
 }

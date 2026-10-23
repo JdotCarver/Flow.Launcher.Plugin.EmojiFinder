@@ -1,23 +1,26 @@
 // tests/actions/paste.test.ts
 //
 // paste() does two things: it asks Flow Launcher to fill the clipboard (by printing a
-// Flow.Launcher request) and it starts the helper that presses Ctrl+V. The helper is
-// mocked, so nothing is ever spawned by the test suite.
+// Flow.Launcher request) and it publishes a paste request for the resident agent. Both are
+// mocked, so the test suite never writes outside the repository or starts anything.
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-const { spawnPasteHelper, sendJsonRpcRequest } = vi.hoisted(() => ({
-  spawnPasteHelper: vi.fn(),
+const { ensureAgentScript, requestPaste, sendJsonRpcRequest } = vi.hoisted(() => ({
+  ensureAgentScript: vi.fn(),
+  requestPaste: vi.fn(),
   sendJsonRpcRequest: vi.fn()
 }));
 
-vi.mock('../../src/utils/pasteHelper.js', () => ({ spawnPasteHelper }));
+vi.mock('../../src/utils/pasteAgent.js', () => ({ ensureAgentScript, requestPaste }));
 vi.mock('../../src/utils/flowLauncher.js', () => ({ sendJsonRpcRequest }));
 
 const { paste } = await import('../../src/actions/paste.js');
 
 beforeEach(() => {
-  spawnPasteHelper.mockReset();
+  ensureAgentScript.mockReset();
+  requestPaste.mockReset();
+  requestPaste.mockReturnValue({ sequence: 1, agentRunning: true });
   sendJsonRpcRequest.mockReset();
 });
 
@@ -37,20 +40,32 @@ describe('paste', () => {
     });
   });
 
-  test('starts the paste helper with the same emoji', () => {
+  test('publishes a paste request for the same emoji', () => {
     paste('🙈');
 
-    expect(spawnPasteHelper).toHaveBeenCalledWith('🙈');
+    expect(requestPaste).toHaveBeenCalledWith('🙈');
   });
 
-  test('requests the copy before starting the helper', () => {
+  test('requests the copy before the paste request', () => {
     const order: string[] = [];
     sendJsonRpcRequest.mockImplementation(() => order.push('copy'));
-    spawnPasteHelper.mockImplementation(() => order.push('helper'));
+    requestPaste.mockImplementation(() => {
+      order.push('request');
+
+      return { sequence: 1, agentRunning: true };
+    });
 
     paste('🙈');
 
-    expect(order).toEqual(['copy', 'helper']);
+    expect(order).toEqual(['copy', 'request']);
+  });
+
+  test('starts nothing: the agent is already running, or it is not, and this process dies either way', () => {
+    paste('🙈');
+
+    // Regression guard for the design we abandoned. A process started here is killed with
+    // this one when Flow releases it, which is exactly why paste never worked.
+    expect(ensureAgentScript).toHaveBeenCalledTimes(1);
   });
 
   test('does nothing without an emoji', () => {
@@ -58,6 +73,6 @@ describe('paste', () => {
     paste('');
 
     expect(sendJsonRpcRequest).not.toHaveBeenCalled();
-    expect(spawnPasteHelper).not.toHaveBeenCalled();
+    expect(requestPaste).not.toHaveBeenCalled();
   });
 });

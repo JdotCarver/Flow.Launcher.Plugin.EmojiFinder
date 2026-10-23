@@ -20,6 +20,17 @@ npm run dogfood:check                 # 4. read the verdict
 git add dogfood && git commit -m "dogfood: <what happened>"
 ```
 
+Paste at the cursor is served by a resident agent instead of a per-paste process (see
+`docs/PASTE_AGENT.md`). Its controls:
+
+```bash
+npm run agent -- --status          # is it running?
+npm run agent -- --start           # start it (the installer does this too)
+npm run agent -- --stop
+npm run agent -- --install-startup # come back at login
+npm run check:paste-agent          # start it, request a paste, verify it refuses
+```
+
 When paste at cursor is the suspect, there is a cheaper experiment first that has nothing
 to do with Flow Launcher:
 
