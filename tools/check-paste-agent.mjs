@@ -3,13 +3,20 @@
 // Exercises the resident paste agent on a real Windows machine, without a human in front of
 // the screen and without typing anything into any window.
 //
-// What it proves
-//   1. the agent starts from a script this repository generated, and stops running twice;
+// It runs the whole experiment once per PowerShell host: Windows PowerShell 5.1
+// (powershell.exe, present on every Windows machine) and PowerShell 7 (pwsh, only when the
+// user installed it). Their text-encoding defaults differ, and that difference is exactly
+// what silently broke paste once: under 5.1 the request file's UTF-8 emoji arrived as four
+// meaningless characters and the clipboard could never match. Running both hosts is how that
+// class of bug is caught before a user finds it.
+//
+// What it proves, per host
+//   1. the agent starts from a script this repository generated;
 //   2. it publishes a heartbeat, which is how the plugin knows it is alive;
 //   3. it picks up a request file and logs the sequence number;
-//   4. it refuses to paste when the clipboard does not hold the emoji, which is the rule
-//      that keeps a wrong paste from happening;
-//   5. it is still alive afterwards, so a request cannot kill it.
+//   4. the emoji survives the trip through that file with the right code points;
+//   5. it refuses to paste when the clipboard does not hold the emoji;
+//   6. it is still alive afterwards.
 //
 // What it deliberately does not prove: that Ctrl+V lands in the right window. That needs a
 // human and a focused application; docs/DOGFOODING.md covers that side.
@@ -40,9 +47,19 @@ const REPORT_FILE = path.join(DOGFOOD_DIRECTORY, 'paste-agent-check.json');
 /** Long enough for the agent to see the request and finish its (refused) paste attempt. */
 const REQUEST_SETTLE_MILLISECONDS = 4000;
 
+/** Long enough for a cold PowerShell to start on a busy machine. */
+const START_WAIT_MILLISECONDS = 15000;
+
 const style = createStyle();
 
-/** Size of a file in bytes, or 0 when it does not exist. */
+function readIfPresent (filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
 function existingBytes (filePath) {
   try {
     return fs.statSync(filePath).size;
@@ -51,12 +68,22 @@ function existingBytes (filePath) {
   }
 }
 
-function readIfPresent (filePath) {
+/** Both hosts when both exist: `pwsh` is an optional install on Windows 10 and 11 alike. */
+function availableHosts () {
+  const hosts = ['powershell.exe'];
+
   try {
-    return fs.readFileSync(filePath, 'utf8');
+    execFileSync('pwsh.exe', ['-NoProfile', '-NonInteractive', '-Command', '$PSVersionTable.PSVersion.ToString()'], {
+      encoding: 'utf8',
+      timeout: 20000,
+      stdio: ['ignore', 'pipe', 'ignore']
+    });
+    hosts.push('pwsh.exe');
   } catch {
-    return '';
+    // Not installed. That is a normal machine, not a problem to report.
   }
+
+  return hosts;
 }
 
 /** An emoji that is not on the clipboard, so a bug cannot paste into a runner window. */
@@ -70,9 +97,13 @@ function chooseEmojiNotOnClipboard () {
   return candidates.find((candidate) => candidate !== clipboard) ?? candidates[0];
 }
 
-/** Waits for the agent's first heartbeat, or gives up. */
+/** The UTF-16 code units a text editor would show, which is what the agent logs. */
+function codePointsOf (text) {
+  return [...text.split('')].map((character) => character.charCodeAt(0)).join(',');
+}
+
 async function waitForHeartbeat (paths) {
-  const deadline = Date.now() + 15000;
+  const deadline = Date.now() + START_WAIT_MILLISECONDS;
 
   while (Date.now() < deadline) {
     if (readAgentStatus(paths).running) {
@@ -85,112 +116,133 @@ async function waitForHeartbeat (paths) {
   return false;
 }
 
-async function checkOnWindows () {
-  const failures = [];
-  const collect = (label, action) => {
-    try {
-      return action();
-    } catch (error) {
-      failures.push(`${label}: ${error.message}`);
+/** Stops whatever agent is running, through the CLI, so a host run starts from nothing. */
+function stopAnyAgent () {
+  try {
+    execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), '--stop'], {
+      cwd: PLUGIN_ROOT,
+      encoding: 'utf8',
+      timeout: 30000,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+  } catch {
+    // "was not running" is not an error here.
+  }
+}
 
-      return null;
-    }
-  };
-
-  fs.mkdirSync(DOGFOOD_DIRECTORY, { recursive: true });
-
+/**
+ * Runs the full experiment under one host.
+ *
+ * @returns Findings, plus the raw log lines the assertions were made from.
+ */
+async function checkHost (host, emoji) {
   const paths = resolveAgentPaths();
-
-  // Note where the log ends instead of deleting it: the shared log also holds what really
-  // happened when the user last tried, and deleting it erased exactly the evidence we came
-  // for. Only lines written after this point count as ours.
-  const logOffset = existingBytes(paths.log);
   ensureAgentScript(paths);
 
-  // The check starts the agent itself and keeps the handle. The CLI would have exited, and
-  // a CI job object takes a child down with its parent - this way the agent is alive for
-  // exactly as long as the experiment needs it, and is stopped deliberately at the end.
   const findings = [];
+  const startupLog = path.join(paths.directory, `agent-startup-${host.replace('.exe', '')}.log`);
+  const logOffset = existingBytes(paths.log);
 
-  // A resident agent may already be running, which is the normal state on the maintainer's
-  // machine. Then this check reuses it: starting a second copy would exit on the
-  // single-instance guard, and killing that no-op would leave the real agent untouched -
-  // which is exactly how "agent stops" started failing on a healthy machine.
-  const alreadyRunning = readAgentStatus(paths).running;
-  const startupLog = path.join(paths.directory, 'agent-startup.log');
+  stopAnyAgent();
   fs.rmSync(startupLog, { force: true });
 
-  if (alreadyRunning) {
-    findings.push({ label: 'agent starts and publishes a heartbeat', ok: true, detail: 'reused the resident agent (already running)' });
-  }
-
   let agent = null;
-  if (!alreadyRunning) {
-    agent = collect('start', () => spawn(
-      'powershell.exe',
+  try {
+    agent = spawn(
+      host,
       ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', paths.script],
       { stdio: ['ignore', 'ignore', fs.openSync(startupLog, 'a')], windowsHide: true }
-    ));
+    );
+  } catch (error) {
+    findings.push({ label: 'agent starts', ok: false, detail: error.message });
   }
 
-  const alive = alreadyRunning || await waitForHeartbeat(paths);
-  if (!alreadyRunning) {
-    findings.push({
-      label: 'agent starts and publishes a heartbeat',
-      ok: alive,
-      detail: alive ? '' : `start-up log: ${readIfPresent(startupLog).trim().slice(0, 400) || '(empty)'}`
-    });
-  }
+  const alive = await waitForHeartbeat(paths);
+  findings.push({
+    label: 'agent starts and publishes a heartbeat',
+    ok: alive,
+    detail: alive ? '' : `start-up log: ${readIfPresent(startupLog).trim().slice(0, 400) || '(empty)'}`
+  });
 
-  const emoji = chooseEmojiNotOnClipboard();
   const request = requestPaste(emoji, paths);
   findings.push({ label: 'the plugin can see a running agent before it asks', ok: request.agentRunning });
 
   await new Promise((resolve) => setTimeout(resolve, REQUEST_SETTLE_MILLISECONDS));
 
   const log = readIfPresent(paths.log).slice(logOffset);
+  const expectedCodes = codePointsOf(emoji);
+
   findings.push({ label: 'agent logs the request with its sequence number', ok: log.includes(`request sequence=${request.sequence}`) });
+  findings.push({
+    label: `emoji survives the request file intact (expected code points ${expectedCodes})`,
+    ok: log.includes(`targetCodes=[${expectedCodes}]`),
+    detail: log.includes(`targetCodes=[${expectedCodes}]`) ? '' : 'the agent read something other than the emoji that was written: an encoding problem'
+  });
   findings.push({ label: 'agent refuses to paste while the clipboard holds something else', ok: log.includes('decision paste=False') });
   findings.push({ label: 'agent is still alive after handling a request', ok: readAgentStatus(paths).running });
 
-  // Stop only what this check started. Killing someone else's resident agent would be rude
-  // and would also break the paste feature for the person using the machine.
-  if (!alreadyRunning) {
-    agent?.kill();
-    // Longer than the stale limit on purpose: "is it gone" is answered by the heartbeat
-    // stopping, and a heartbeat that is merely young proves nothing.
-    await new Promise((resolve) => setTimeout(resolve, HEARTBEAT_STALE_AFTER_MILLISECONDS + 1000));
-    findings.push({
-      label: 'agent stops when its process is ended',
-      ok: !readAgentStatus(paths).running,
-      detail: readAgentStatus(paths).running ? 'heartbeat still fresh after the kill' : ''
+  agent?.kill();
+  // Longer than the stale limit on purpose: "is it gone" is answered by the heartbeat stopping.
+  await new Promise((resolve) => setTimeout(resolve, HEARTBEAT_STALE_AFTER_MILLISECONDS + 1000));
+  findings.push({ label: 'agent stops when its process is ended', ok: !readAgentStatus(paths).running });
+
+  return { host, findings, logTail: log.trim() === '' ? [] : log.trim().split('\n').slice(-10) };
+}
+
+async function checkOnWindows () {
+  fs.mkdirSync(DOGFOOD_DIRECTORY, { recursive: true });
+
+  const emoji = chooseEmojiNotOnClipboard();
+  const hosts = availableHosts();
+  const results = [];
+
+  for (const host of hosts) {
+    results.push(await checkHost(host, emoji));
+  }
+
+  // Leave the machine able to paste: the last host run ended with a killed agent.
+  try {
+    execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), '--start'], {
+      cwd: PLUGIN_ROOT,
+      encoding: 'utf8',
+      timeout: 60000,
+      stdio: ['ignore', 'pipe', 'pipe']
     });
+  } catch {
+    results.push({ host: 'restart', findings: [{ label: 'agent restarted after the checks', ok: false }], logTail: [] });
   }
 
   return {
     generatedAt: new Date().toISOString(),
     platform: process.platform,
     emoji,
-    dataFolder: paths.directory,
-    findings,
-    failures,
-    agentScriptExists: fs.existsSync(paths.script),
-    agentScriptBytes: fs.existsSync(paths.script) ? fs.statSync(paths.script).size : 0,
-    agentLogTail: log.trim() === '' ? [] : log.trim().split('\n').slice(-12)
+    hosts,
+    dataFolder: resolveAgentPaths().directory,
+    results
   };
 }
 
+function allFindings (report) {
+  return report.results.flatMap((result) => result.findings.map((finding) => ({ ...finding, host: result.host })));
+}
+
 function report (result) {
-  for (const failure of result.failures ?? []) {
-    console.log(style.finding('fail', failure));
+  for (const hostResult of result.results) {
+    console.log(style.finding('info', `--- ${hostResult.host} ---`));
+
+    for (const finding of hostResult.findings) {
+      console.log(style.finding(finding.ok ? 'ok' : 'fail', finding.label));
+
+      if (!finding.ok && finding.detail) {
+        console.log(style.finding('warn', `    ${finding.detail}`));
+      }
+    }
   }
 
-  for (const finding of result.findings) {
-    console.log(style.finding(finding.ok ? 'ok' : 'fail', finding.label));
-  }
+  const findings = allFindings(result);
+  const failures = findings.filter((finding) => !finding.ok).length;
 
-  const failures = result.findings.filter((finding) => !finding.ok).length;
-  console.log(style.finding(failures === 0 ? 'ok' : 'fail', `${result.findings.length - failures}/${result.findings.length} checks passed`));
+  console.log(style.finding(failures === 0 ? 'ok' : 'fail', `${findings.length - failures}/${findings.length} checks passed across ${result.hosts.join(' and ')}`));
 }
 
 function annotate (result) {
@@ -198,8 +250,8 @@ function annotate (result) {
     return;
   }
 
-  for (const finding of result.findings) {
-    console.log(`::${finding.ok ? 'notice' : 'error'} title=paste agent::${finding.label}`);
+  for (const finding of allFindings(result)) {
+    console.log(`::${finding.ok ? 'notice' : 'error'} title=paste agent (${finding.host})::${finding.label}`);
   }
 }
 
@@ -213,10 +265,12 @@ async function main () {
   const result = await checkOnWindows().catch((error) => ({
     generatedAt: new Date().toISOString(),
     platform: process.platform,
-    findings: [],
-    failures: [`the check itself threw: ${error.message}`],
-    agentLogTail: []
+    emoji: '',
+    hosts: [],
+    dataFolder: '',
+    results: [{ host: 'check', findings: [{ label: `the check itself threw: ${error.message}`, ok: false }], logTail: [] }]
   }));
+
   fs.writeFileSync(REPORT_FILE, JSON.stringify(result, null, 2) + '\n');
   report(result);
   annotate(result);

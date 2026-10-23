@@ -43,11 +43,12 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
   *types* (`IPublicAPI.GetMethod`), so optional C# parameters do not exist for us: send
   every argument. `CopyToClipboard(string, bool directCopy, bool showDefaultNotification)`.
 - `IPublicAPI` has no key-injection/paste API (checked the whole interface). Paste at the
-  cursor synthesises Ctrl+V from a separate PowerShell helper; design + limits in
-  `docs/PASTE_AT_CURSOR.md`.
-- Paste helper: `powershell.exe -EncodedCommand` (base64 UTF-16LE) avoids quoting hell.
-  Foreground detection uses `Get-Process -Name 'Flow.Launcher*'` + `MainWindowHandle`,
-  **not** `Add-Type` P/Invoke: compiling C# at run time costs several hundred ms, which is
+  cursor synthesises Ctrl+V from a **resident** PowerShell agent, because anything the plugin
+  starts is killed when the plugin process ends. Design in `docs/PASTE_AGENT.md`, history and
+  the discarded approaches in `docs/PASTE_AT_CURSOR.md`.
+- Paste agent: foreground detection uses `Get-Process -Name 'Flow.Launcher*'` +
+  `MainWindowHandle`, **not** `Add-Type` P/Invoke: compiling C# at run time costs several
+  hundred ms, which is
   more than the feature saves. Windows PowerShell 5.1 (what `powershell.exe` is) runs STA,
   which `Clipboard::GetText()` requires.
 - Dependency policy and audit reasoning: `docs/DEPENDENCIES.md`.
@@ -71,9 +72,13 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
   JSON and Node could not parse it. Write reports to a file instead.
 - Tracing: `src/utils/trace.ts` writes JSONL only when `trace.on` sits next to
   plugin.json (`npm run package -- --trace`, gitignored). Never on the query path.
-- The paste helper accepts **either** "no visible Flow window" **or** "focus is not in a
+- The paste agent accepts **either** "no visible Flow window" **or** "focus is not in a
   Flow process" (UI Automation). The second exists because a minimised Flow keeps
   `MainWindowHandle` non-zero forever.
+- Never use `Get-Content`/`Add-Content`/`Set-Content` for data the plugin and the agent
+  exchange: their default encoding differs between Windows PowerShell 5.1 and PowerShell 7,
+  and that difference silently destroyed every emoji for a whole afternoon. Use
+  `[System.IO.File]` with `[System.Text.Encoding]::UTF8`.
 
 ## Code conventions in this repo
 

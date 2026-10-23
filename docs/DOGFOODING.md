@@ -28,7 +28,7 @@ npm run agent -- --status          # is it running?
 npm run agent -- --start           # start it (the installer does this too)
 npm run agent -- --stop
 npm run agent -- --install-startup # come back at login
-npm run check:paste-agent          # start it, request a paste, verify it refuses
+npm run check:paste-agent          # per PowerShell host: request an emoji, verify it survives
 ```
 
 When paste at cursor is the suspect, there is a cheaper experiment first that has nothing
@@ -38,10 +38,11 @@ to do with Flow Launcher:
 npm run paste:selftest                # then click into Notepad during the countdown
 ```
 
-It copies an emoji, counts down, sends Ctrl+V, and writes `dogfood/selftest.log`. If the
-emoji does not appear in Notepad, the injection mechanism does not work on that machine
-and no amount of plugin timing work will help: the answer is a different injector (see
-docs/PASTE_AT_CURSOR.md §2).
+It puts an emoji on the clipboard through the same request file the plugin uses, waits for
+the agent to read it, and writes `dogfood/selftest.json`. If the emoji does not appear in
+Notepad the agent is not doing its job on that machine, and no amount of plugin timing work
+will help. If the report says the agent was not running, start it first
+(`npm run agent -- --start`).
 
 `npm run diagnose` also copies the installed plugin's trace back into the repository's
 `dogfood/` folder, so step 3 is the only step you need to remember beyond the packaging.
@@ -75,8 +76,8 @@ machine, not just built.
 | Piece | Answers |
 |---|---|
 | `npm run diagnose` | Does PowerShell start, and how fast? Does `System.Windows.Forms` load? Does the clipboard give back the emoji exactly? Does `SendKeys` deliver a keystroke at all? What are Flow's processes called and do they have a visible window? What is focused right now? Is the installed plugin the build we just packaged, and is tracing on in it? |
-| `npm run paste:selftest` | Does this machine paste an emoji into Notepad at all, with Flow Launcher out of the picture? |
-| tracing (`--trace`) | What did the plugin actually do, in order: which method Flow called, whether the helper spawned, every state transition while waiting, which condition stayed false, whether `SendKeys` was called, and any exception. |
+| `npm run paste:selftest` | Does the agent paste into the window you focus, with Flow Launcher out of the picture? |
+| tracing (`--trace`) | What the plugin actually did: which method Flow called, whether it saw a running agent, and for which emoji. The agent's own log covers the rest. |
 | `npm run dogfood:check` | Both of the above, turned into findings and a verdict, in the order the paste path can fail. |
 
 `npm run diagnose` flashes a small window with a text box. That is the `SendKeys`
@@ -88,9 +89,10 @@ self-test typing `abc` into it, which needs a real window to type into.
 |---|---|---|
 | `dogfood/diagnose.json` | `npm run diagnose` (on your machine) | yes |
 | `dogfood/runtime.log` | the plugin, only when `trace.on` exists next to `plugin.json` | yes |
-| `dogfood/selftest.log` | `npm run paste:selftest` | yes |
+| `dogfood/agent.log` | the paste agent, *always* (copied back by `npm run diagnose`) | yes |
+| `dogfood/selftest.json` | `npm run paste:selftest` | yes |
 | `dogfood/diagnose-linux.json` | `npm run diagnose` in the sandbox | no (gitignored) |
-| `dogfood/windows-probe.json` | the PowerShell probe's raw report | no (gitignored) |
+| `dogfood/paste-agent-check.json` | `npm run check:paste-agent` | no (gitignored) |
 
 `npm run diagnose` only ever writes `diagnose.json` on Windows. In the Linux sandbox it
 writes `diagnose-linux.json` instead, so a sandbox run cannot destroy the committed
@@ -105,31 +107,40 @@ query path.
 
 ## Reading a trace yourself
 
-`dogfood/runtime.log` is JSON Lines for plugin lines and plain text for helper lines:
+There are two processes, so there are two logs.
+
+`dogfood/runtime.log` is the plugin's own trace, JSON Lines:
 
 ```
 {"at":"...","event":"method","method":"paste","parameters":["🙈"]}
-{"at":"...","event":"paste:spawn","emoji":"🙈","started":true,"pid":12345}
-2026-10-23T... | helper | start pid=4567 ps=5.1 apartment=STA policy=Restricted user=you
-2026-10-23T... | helper | poll flowProcesses=1 flowVisible=True flowHasFocus=True focusedProcess=1234 clipboardMatches=True ...
-2026-10-23T... | helper | decision paste=false elapsedMs=2500
-2026-10-23T... | helper | exit
+{"at":"...","event":"paste:request","emoji":"🙈","sequence":1792755460200,"agentRunning":true}
 ```
 
-That example says: Flow kept the focus and a visible window for 2.5 s, so the helper
-refused to type. That is a real failure mode, and exactly the kind of thing that used to
-be invisible.
+`dogfood/agent.log` is the resident agent's log, plain text:
 
-## Interpreting the five ways paste can fail
+```
+2026-10-23T... | agent | start pid=38876 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T... | agent | request sequence=1792755460200 emoji=[🙈] targetCodes=[55357,56935]
+2026-10-23T... | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False clipboardMatches=True ...
+2026-10-23T... | agent | decision paste=True elapsedMs=25
+2026-10-23T... | agent | sendkeys sent
+```
+
+That pair says: the plugin published a request while an agent was alive, the agent read the
+emoji with the right code points, everything matched, and Ctrl+V was sent 25 ms later.
+
+## Interpreting the ways paste can fail
 
 1. **`paste:skipped`** — Flow sent an empty emoji. Look at the query payload.
-2. **no `paste:spawn` line** — Flow is still calling `copy`: the installed plugin is not
-   the one you packaged, or the setting is not on paste.
-3. **`started:false`** — the helper could not be spawned (platform guard, or a message
-   naming the reason).
-4. **`started:true` then no `| helper |` line** — PowerShell died before its first
-   statement: execution policy, antivirus, or something in the command line.
-5. **a `decision paste=false`** — read the last `poll` line: it names which of
-   `flowVisible`, `flowHasFocus`, `clipboardMatches` blocked the paste.
+2. **no `paste:request` line** — Flow is still calling `copy`: the installed plugin is not the
+   one you packaged, or the setting is not on paste.
+3. **`agentRunning:false`** — the plugin asked, but no agent was running. Start it with
+   `npm run agent -- --start`; the Startup shortcut brings it back at login.
+4. **`targetCodes` that look like several small numbers** — the emoji was read with the wrong
+   encoding (its UTF-8 bytes). See §5 of `docs/PASTE_AT_CURSOR.md`.
+5. **`decision paste=false`** — read the last `poll` line: it names which of `flowVisible`,
+   `flowHasFocus`, `clipboardMatches` blocked the paste.
+6. **`sendkeys sent` and still nothing** — the keystroke went somewhere else: an elevated
+   window, a fullscreen app, or focus that did not return to your editor.
 
 `npm run dogfood:check` does this reading for you and prints the matching explanation.

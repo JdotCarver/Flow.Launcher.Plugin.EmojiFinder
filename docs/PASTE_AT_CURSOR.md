@@ -1,299 +1,97 @@
-# Design: instant copy, and paste at the cursor
+# Paste at the cursor: the decision log
 
-Status: **implemented, not yet proven on Windows.** The first dogfood run showed the
-helper starting and the app pausing, but no paste. This revision adds the instrumentation
-to find out why (`docs/DOGFOODING.md`) and a second, independent focus signal (UI
-Automation) so a minimised Flow Launcher no longer blocks the paste. Decisions taken with the maintainer: PowerShell injector to
-start with, a single setting for copy vs paste (no second keyword — the maintainer would
-use paste all the time, so a per-use switch buys nothing), copy landed first.
+This document is the *history* of one feature: how "press Enter, get the emoji where your
+cursor is" was made to work, including the approaches that failed and the measurements that
+ruled them out. The current design lives in `docs/PASTE_AGENT.md`; read that first if you only
+want to know how it works today.
 
-Implementation notes and the parts that differ from the plan are at the bottom (§5). Numbers below are measured in this repository or
-read from Flow Launcher's source; the Windows-specific latency is the one thing I cannot
-measure from here, so it is called out where it matters.
+Keeping this record matters because every failed approach here looked *plausible*. Without the
+measurements, the next person will try at least two of them again.
 
----
+## 1. The copy half (shipped, unchanged)
 
-## 1. Why Enter feels slow today
+Pressing Enter used to start a second node process just to put text on the clipboard. Flow
+Launcher has a faster path: print a `Flow.Launcher.CopyToClipboard` request on stdout and Flow
+performs the copy in-process, in an STA thread, with retries. No process start, no clipboard
+race, unicode-safe.
 
-Pressing Enter runs `method: "copy"` in a *second* node process:
+All three arguments are required - `CopyToClipboard(string text, bool directCopy, bool
+showDefaultNotification)`. Flow resolves `Flow.Launcher.*` methods by exact parameter types, and
+C# optional parameters are invisible to that lookup.
 
-| Step | Cost | Where |
+That is why copy feels instant and why paste starts from a correctly filled clipboard.
+
+## 2. Why paste is genuinely hard
+
+Three facts, each verified in Flow's source or on the machine:
+
+1. **Flow hides its window *after* the result action returns.** Anything our process types
+   during the action lands in Flow's own search box.
+2. **`IPublicAPI` has no key-injection or paste method.** Whatever we do, we synthesise Ctrl+V
+   ourselves.
+3. **Flow destroys the plugin process when the action returns.** This is the one that took a
+   day to prove, and it is why five plausible designs failed in a row.
+
+## 3. What was tried, and what the measurements said
+
+| # | attempt | result |
 |---|---|---|
-| Flow spawns `node dist/main.js` | ~40–80 ms (cold, Windows) | Flow |
-| `import clipboardy` → `execa`, `is-wsl`, `is64bit`, `is-inside-container` | ~30–40 ms | measured |
-| `execaSync(clipboard_x86_64.exe --copy)` | ~20–40 ms | native exe, unicode-safe |
-| exit + Flow parses stdout | ~5 ms | Flow |
+| 1 | Start a PowerShell helper per paste, `detached: true` | plugin logged `paste:spawn started=true pid=…`, then the helper wrote **nothing** - not even its first line |
+| 2 | Same, but capture the helper's stderr | proved the failure was silent: an empty `helper-stderr.log`, no PowerShell error |
+| 3 | Same, `detached: false` (a probe compared one flag at a time) | the helper ran when its parent stayed alive: **6 trace lines vs 0** |
+| 4 | Add a readiness handshake: the helper prints one line, the plugin waits for it | plugin logged `ready=true` - PowerShell really did start - and the helper was still killed with our process microseconds later |
+| 5 | `cmd /c start`, Explorer-launched shortcut, direct spawn | all die with the job that started them |
+| 6 | **Resident agent** (what shipped) | `decision paste=True elapsedMs=25`, `sendkeys sent` |
 
-So roughly **100–150 ms** of dead time between Enter and the launcher closing, which is
-exactly what you are feeling.
+The two lessons worth keeping:
 
-### The fix: let Flow do the copying
+- **`detached: true` is not "survives the parent" on Windows.** libuv turns it into
+  `DETACHED_PROCESS`; PowerShell gets no console, starts, exits with code 0 and executes none of
+  the script. It is worse than useless for this purpose.
+- **A launcher that owns a job object takes its children down.** A CI job, an installer, a
+  terminal - anything that starts a process and exits can take the helper with it. The only
+  process that reliably outlives that is one that is already running (a resident agent), or one
+  started by something that never exits (Task Scheduler, Explorer, the Startup folder).
 
-Flow intercepts any result action whose method starts with `Flow.Launcher.` and executes
-it **in-process** — it never starts our plugin at all:
+## 4. Why a PowerShell agent, and what it costs
 
-```csharp
-// Flow.Launcher.Core/Plugin/JsonRPCPlugin.cs
-if (result.JsonRPCAction.Method.StartsWith("Flow.Launcher."))
-    ExecuteFlowLauncherAPI(result.JsonRPCAction.Method["Flow.Launcher.".Length..],
-                           result.JsonRPCAction.Parameters);
-```
+A compiled helper or a `cscript` shim would start faster, but neither removes the fundamental
+problem: the injector must be *resident*, and a resident process is a resident process whatever
+language it is written in. PowerShell costs one hidden process of roughly 40-60 MB and no build
+step, no installer, and no unsigned binary for antivirus to flag.
 
-`PublicAPIInstance.CopyToClipboard(string, bool directCopy, bool showDefaultNotification)`
-is Unicode-safe (`Clipboard.SetText` on an STA thread, with 6 retries for a locked
-clipboard), and can show Flow's own localized notification.
+The injector's limits are unchanged and worth stating plainly:
 
-So the result becomes:
+- **Elevated windows.** A non-elevated process cannot send input to an elevated one. UIPI blocks
+  it; this is a Windows security boundary, not a bug.
+- **Fullscreen exclusive apps** (some games) ignore synthetic input.
+- **Applications that paste with Ctrl+Shift+V** (some terminals) will paste whatever plain
+  Ctrl+V means for them, not necessarily what the user expected.
+- **Remote sessions** may or may not forward synthetic input, depending on the client.
 
-```json
-{
-  "Title": "Red Heart",
-  "JsonRPCAction": {
-    "method": "Flow.Launcher.CopyToClipboard",
-    "parameters": ["❤️", false, true]
-  }
-}
-```
+## 5. The encoding trap (the last bug, and the sneakiest)
 
-**One catch, verified in Flow's source:** `ExecuteFlowLauncherAPI` resolves the method by
-exact parameter types (`typeof(IPublicAPI).GetMethod(name, parameterTypes)`), and C#
-optional parameters do not participate in that lookup. All three arguments must be sent
-explicitly, or the call is silently dropped.
-
-Consequences:
-
-- Enter cost drops from ~100–150 ms to **0 extra work** (Flow's own code path);
-- `clipboardy` leaves `dependencies` → 17 fewer packages and **two fewer unsigned native
-  `.exe` files** in the release zip (`clipboard_x86_64.exe`, `clipboard_i686.exe`);
-- `src/actions/copy.ts` and the whole `copy` method disappear;
-- the notification becomes Flow's localized one ("Copy Text / Completed successfully")
-  instead of our "❤️ — Copied to clipboard!". That is the only visible regression, and it
-  is avoidable by keeping our own process — at the price of the 100 ms we just removed.
-  **Decision needed.**
-
----
-
-## 2. Paste at the cursor
-
-### What Flow offers
-
-Nothing. `IPublicAPI` (checked in full) has `CopyToClipboard`, `HideMainWindow`,
-`ShowMainWindow`, `ShellRun`, `ChangeQuery`, settings and logging calls — no key
-injection, no clipboard-paste-into-focused-app. So the plugin has to synthesise Ctrl+V
-itself.
-
-### The timing problem
-
-Flow hides its window **after** the result action completes (`ExecuteResultAsync` returns
-a "hide" flag, the caller hides afterwards). Anything we inject during the action lands in
-Flow's own search box. So the injection must happen *after* our process has exited and
-Flow has hidden — which means a separate helper process that waits, and outlives us.
-
-### The shape I propose
+With the agent running, every request arrived, was logged, and ended in `decision paste=False`
+while the clipboard held exactly the right emoji. The agent logged the code points it had read:
 
 ```
-Enter (paste mode)
-  └─ our process, method "paste"
-       ├─ prints {"method":"Flow.Launcher.CopyToClipboard","parameters":[emoji,false,false]}
-       │     → Flow sets the clipboard in-process, unicode-safe, no second process
-       └─ spawns ONE helper process, then exits (so Flow can hide)
-
-helper (separate process, not detached)
-  ├─ wait until: foreground window is not Flow Launcher
-  ├─ wait until: clipboard text === emoji   (both polls, 15 ms, 1.5 s timeout)
-  ├─ send Ctrl+V
-  └─ exit
+request sequence=… emoji=[🧪] targetCodes=[240,376,167,170]
 ```
 
-Why poll instead of a fixed `sleep 250`: the two things we must wait for (window hidden,
-clipboard written) take different, machine-dependent times. Polling typically pastes in
-~80–150 ms after Enter; a fixed delay is either slow or flaky.
+240, 376, 167, 170 are the **UTF-8 bytes** of 🧪 read as Windows-1252. Windows PowerShell 5.1
+reads files with the ANSI code page unless told otherwise, so the emoji was destroyed on the way
+in and could never match the clipboard. The fix is explicit `.NET` reads and writes with
+`[System.Text.Encoding]::UTF8`, and never `Get-Content`/`Add-Content`/`Set-Content`, whose
+defaults differ between PowerShell 5.1 and PowerShell 7.
 
-No notification in paste mode — it would steal focus and defeat the point.
+Two tests now hold that line: one asserts the script uses explicit encodings, and
+`npm run check:paste-agent` round-trips a real emoji through the request file under **both**
+PowerShell hosts and compares code points.
 
-### Choosing the injector (the real trade-off)
+## 6. Where the code is
 
-All three sit behind one function, `injectPaste()`, in `src/utils/paste.ts`, so swapping
-later is a 10-line change. What differs is startup cost and dependency footprint:
-
-| Option | Extra cost before the key lands | New files in release | Risk |
-|---|---|---|---|
-| **A. PowerShell one-shot** `powershell -NoProfile -WindowStyle Hidden -Command "…[System.Windows.Forms.SendKeys]::SendWait('^v')"` | ~250–450 ms (PS 5.1 cold start + assembly load) | none | Slowest; some locked-down machines restrict `powershell -Command` |
-| **B. cscript + VBScript shim** (`WScript.Shell.SendKeys "^v"`) | ~40–90 ms | one 5-line `paste.vbs` | cscript can be blocked by policy; AV heuristics on scripted key injection |
-| **C. Compiled native helper** (C# `SendInput`, ~10 KB exe) | ~5–15 ms | one binary | Needs a Windows build step; a binary in a JS plugin repo is a supply-chain wart; unsigned |
-
-**Recommendation: start with A**, because it adds no files and no binaries, then measure
-it on your machine (`node tools/measure-paste.mjs` — I would add it in the same step).
-If ~300 ms feels bad, B is a small, contained upgrade behind the same interface; C only
-if B is blocked by policy.
-
-### Known limits (document honestly, not "bugs")
-
-- Cannot inject into **elevated** windows when Flow runs unelevated (Windows UIPI
-  blocks it, silently). Reversing that requires running Flow as admin, which we should
-  not recommend.
-- `SendKeys` uses the SendInput path, so it works in most apps including Electron ones,
-  but some fullscreen/game windows ignore synthetic input.
-- Clipboard is overwritten by the paste (that is also what makes re-pasting work).
-
-### Alternative worth considering later
-
-Instead of clipboard + Ctrl+V, inject the emoji as **Unicode key events**
-(`KEYEVENTF_UNICODE`) so the user's existing clipboard is untouched. Faster and cleaner
-UX, but fewer applications accept it. Keep clipboard+Ctrl+V as the default; this is a
-possible setting, not a first step.
-
----
-
-## 3. How the user picks copy vs paste
-
-Flow Launcher supports **multiple action keywords** per plugin (`ActionKeywords` in
-`plugin.json`; the first one is the default). Three options:
-
-| Option | UX | Cost |
-|---|---|---|
-| a. Setting: "Default action: Copy / Paste at cursor" | one setting, one keystroke to change behaviour | one more setting; switching requires the settings window |
-| b. Second keyword `ep` = paste, `e` = copy | paste on demand, no settings trip | one more keyword to document; `e`/`ep` prefix collision is Flow's to resolve |
-| c. Both: setting picks what `e` does, `ep` always pastes | best of both | slightly more code and docs |
-
-**Recommendation: c, implemented as a first step** (setting + keyword), because both
-mechanisms are cheap and the setting alone forces a detour for a one-off paste.
-
----
-
-## 4. Plan once approved
-
-1. `query()` emits `Flow.Launcher.CopyToClipboard` results; delete `copy.ts`, the `copy`
-   method, and `clipboardy`. Tests for payload shape and parameters (all three, always).
-2. Settings: `defaultAction` (`copy` | `paste`) dropdown; `paste` keyword if we go with c.
-3. `src/utils/paste.ts` with `injectPaste()`, option A; `tools/measure-paste.mjs` to time
-   it on Windows and record the number in this document.
-4. `docs/DEVELOPMENT.md`: paste limits (elevation, fullscreen), and how to switch.
-5. Re-run the benchmark: Enter latency should show up as "no extra process", so
-   `tools/bench.mjs` gets an action-mode row.
-
----
-
-## 5. What was actually built
-
-```
-setting "What pressing Enter does": copy (default) | paste
-```
-
-| Mode | Result action | Processes started on Enter |
-|---|---|---|
-| copy, notifications off | `Flow.Launcher.CopyToClipboard` | none |
-| copy, notifications on | `copy` (our own) | one, short-lived |
-| paste | `paste` (our own) | one, short-lived + one PowerShell helper |
-
-`paste` prints a `Flow.Launcher.CopyToClipboard` request first, so Flow fills the clipboard
-in-process, then starts the helper and exits immediately (which is what lets Flow hide).
-
-The helper (originally `src/utils/pasteHelper.ts`, now the resident agent in
-`src/utils/pasteAgent.ts`) is a PowerShell script run through
-`-EncodedCommand` (base64 UTF-16LE), which sidesteps every quoting and code-page problem
-that `-Command` has with emoji and apostrophes. It waits for both conditions below, then
-sends Ctrl+V. If they never hold within 2 s it does **nothing** — pressing Ctrl+V into
-Flow's search box would paste the emoji back into the query, which is worse than a missed
-paste.
-
-1. no visible Flow Launcher main window (`Get-Process -Name 'Flow.Launcher*'` and
-   `MainWindowHandle -eq 0`);
-2. the clipboard actually holds the emoji (`Clipboard::GetText()`), because Flow's
-   in-process copy can finish a few milliseconds *after* the window hides.
-
-### Deviation from the plan, and why
-
-The plan used `GetForegroundWindow` through a C# snippet (`Add-Type`). That compiles at
-run time, which costs several hundred milliseconds — more than the feature saves. The
-`MainWindowHandle` check needs no compilation and answers the same question for our
-purposes ("has Flow gone?"), so it won. If it ever proves unreliable, the P/Invoke
-version behind `spawnPasteHelper` is a contained swap.
-
-### Known limits
-
-- **Elevated windows**: Windows blocks synthetic input from non-elevated processes to
-  elevated ones, silently. Paste does nothing there; copy still works.
-- **Fullscreen/game windows** sometimes ignore synthetic input.
-- **Clipboard is left holding the emoji** (same as copy mode), which is what makes a
-  second Ctrl+V work.
-- Around **300–500 ms** between Enter and the emoji appearing, most of it PowerShell's
-  own start-up. Moving to a cscript shim (~40–90 ms) or a compiled helper (~10 ms) is
-  described in §2 and is one function's worth of change.
-
-### Still open, deliberately
-
-- A "paste without touching the clipboard" mode (Unicode key events) — see §2.
-- Measuring the real Windows number: needs a run on the maintainer's machine.
-
----
-
-## 6. First dogfood result (2026-10-23)
-
-Reported: setting paste, Enter, "noticeable pause, nothing visibly happens."
-
-Facts established from Flow's source: it waits for our process to exit and calls
-`process.Kill()` (not the whole tree) on timeout, so the helper process is not the
-victim. That leaves the script itself, and the sandbox cannot run it.
-
-Changes made in response:
-
-1. **Second focus signal.** The helper used to require
-   `MainWindowHandle -eq 0` for every Flow process. That is true when Flow *hides* its
-   window; if Flow minimises instead, the handle stays non-zero and the helper waits out
-   its timeout and types nothing — indistinguishable from "nothing happened". It now
-   accepts either "no visible main window" **or** "the focused window belongs to a
-   non-Flow process" (UI Automation, an assembly load, no C# compilation).
-2. **Full narration.** The helper traces PowerShell version, apartment state, execution
-   policy, whether WinForms and UI Automation loaded, every state transition while
-   waiting, the resulting decision, and any exception from `SendKeys`.
-3. **Evidence pipeline.** `npm run diagnose` (environment) + `--trace` (runtime) +
-   `npm run dogfood:check` (verdict), all committable.
-4. **Clipboard comparison ignores U+FE0E / U+FE0F / U+200D**, because some clipboard
-   producers drop variation selectors, which would leave the helper waiting for an emoji
-   that is already on the clipboard.
-
-Nothing here is claimed to be fixed. The next dogfood report decides.
-
-
-## 7. The bug was `detached: true` (2026-10-23)
-
-The traced failure was narrow and specific: the plugin logged `paste:spawn` with a live pid
-and then the helper wrote **nothing**, not even its first line. The script was fine - the
-Windows runner runs it happily when started by hand - so the fault had to be in *how* it
-was started.
-
-`tools/paste-spawn-probe.mjs` settled it by running the production `spawnPasteHelper()`
-and then the same script five more times, changing one spawn property at a time. Trace
-lines written, measured on `DESKTOP-SK3RC8N`:
-
-| variant | changed | trace lines |
-|---|---|---|
-| plugin (production argv) | - | 0 |
-| no-window-style | `-WindowStyle Hidden` removed | 0 |
-| no-hide | `windowsHide: false` | 0 |
-| attached | `detached: false` | **6** |
-| file | `-File script.ps1` | 0 |
-| production, after the fix | - | **6** |
-
-Detached was the only axis that mattered. On Windows libuv turns `detached: true` into
-`DETACHED_PROCESS`: the child gets no console, and `powershell.exe` starts, exits with code
-0 and executes not one statement. Its own complaint never surfaced, because stderr had been
-sent to `/dev/null` - the second fix (`dogfood/helper-stderr.log`) was what made the silent
-half of this diagnosable.
-
-Why nothing needs detaching: Windows does not kill a child when its parent exits (no job
-object is involved), and Flow calls `process.Kill()` on our process only. `child.unref()`
-is what frees our event loop, and that is now the whole mechanism.
-
-The helper now also logs `winforms loaded` / `uiautomation loaded`, so a future silent run
-distinguishes "PowerShell refused" from "the script ran and decided not to paste".
-
-## 8. Superseded: the helper must not be our child
-
-Section 7 fixed how the helper is spawned, and the real machine then showed that spawning
-was not the whole story: the plugin logged `paste:spawn started=true ready=true` three times,
-so PowerShell did start - and the helper still wrote nothing, because Flow destroys the
-plugin's process tree the moment the action returns. Anything we start dies with us.
-
-The replacement design, and the trade-offs it carries, are in `docs/PASTE_AGENT.md`.
+- `src/utils/pasteAgent.ts` - the agent script, the request/heartbeat protocol, liveness.
+- `src/actions/paste.ts` - asks Flow to copy, then publishes a request. Starts nothing.
+- `tools/paste-agent.mjs` - start/stop/status and the Startup entry.
+- `tools/check-paste-agent.mjs` - the Windows experiment, per PowerShell host.
+- `docs/PASTE_AGENT.md` - what running the agent means for the user.

@@ -110,8 +110,9 @@ step**, and the agent reads its result through `gh`.
 
 - **Annotations** are a second, lighter channel: any `::notice title=…::…` or
   `::error title=…::…` printed by a tool shows up in
-  `gh api repos/{owner}/{repo}/check-runs/<job-id>/annotations`. That is how the spawn
-  probe reports each variant's exit code, and how the publisher explains its own failure.
+  `gh api repos/{owner}/{repo}/check-runs/<job-id>/annotations`. That is how the paste-agent
+  check reports each assertion per PowerShell host, and how the publisher explains its own
+  failure.
 - **Shell gotcha 1**: `shell: bash` on Windows resolves `bash` from `PATH`, and the first
   thing on `PATH` is `C:\Windows\system32\bash.exe` - the **WSL** launcher, which fails
   instantly with no output when no distribution is installed. Git Bash (which

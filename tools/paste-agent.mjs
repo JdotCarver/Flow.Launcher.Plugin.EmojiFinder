@@ -8,6 +8,7 @@
 //
 // Usage
 //   npm run agent -- --status            # is it running, and how old is its heartbeat?
+//   npm run agent -- --start --host pwsh # start it under PowerShell 7 instead of 5.1
 //   npm run agent -- --start             # start it now (detached; survives this terminal)
 //   npm run agent -- --stop              # stop it
 //   npm run agent -- --install-startup   # add the Startup shortcut, so it returns at login
@@ -50,6 +51,26 @@ const STARTUP_LOG_NAME = 'agent-startup.log';
 
 const paths = resolveAgentPaths();
 
+/**
+ * Which PowerShell runs the agent.
+ *
+ * `powershell.exe` is Windows PowerShell 5.1 and is on every Windows machine; `pwsh` is
+ * PowerShell 7 and only exists if the user installed it. Windows 10 and 11 both ship 5.1, so
+ * the choice is about what someone installed, not about the OS. Both hosts are supported and
+ * `check:paste-agent` exercises both - their text-encoding defaults differ, and that
+ * difference is what silently broke paste once already.
+ */
+function resolveHost () {
+  const fromArgument = process.argv.indexOf('--host') === -1
+    ? null
+    : process.argv[process.argv.indexOf('--host') + 1];
+  const requested = fromArgument ?? process.env.EMOJI_PASTE_AGENT_HOST ?? 'powershell';
+
+  return requested === 'pwsh' ? 'pwsh.exe' : 'powershell.exe';
+}
+
+const POWERSHELL = resolveHost();
+
 function agentPid () {
   try {
     return Number(fs.readFileSync(`${paths.directory}\\agent.pid`, 'utf8').trim()) || null;
@@ -83,6 +104,7 @@ function reportStatus () {
   }
 
   console.log(style.finding('info', `data folder: ${paths.directory}`));
+  console.log(style.finding('info', `host: ${POWERSHELL}`));
 
   return status.running;
 }
@@ -180,7 +202,7 @@ function launchThroughStartupShortcut () {
  * sometimes Explorer opened the folder instead of running the shortcut.
  */
 function launchThroughTaskScheduler (scriptPath) {
-  const command = `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "${scriptPath}"`;
+  const command = `${POWERSHELL} -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "${scriptPath}"`;
 
   try {
     execFileSync('schtasks.exe', [
@@ -213,7 +235,7 @@ function launchDirectly (scriptPath, startupLog) {
 
   try {
     const child = spawn(
-      'powershell.exe',
+      POWERSHELL,
       ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', scriptPath],
       // NOT detached: on Windows libuv turns that into DETACHED_PROCESS, PowerShell gets no
       // console, and it starts, exits 0 and runs none of the script.
@@ -265,7 +287,7 @@ function configureStartup (shouldInstall) {
       ? 'if (Test-Path $shortcutPath) { Remove-Item $shortcutPath -Force };' +
         '$shell = New-Object -ComObject WScript.Shell;' +
         '$shortcut = $shell.CreateShortcut($shortcutPath);' +
-        '$shortcut.TargetPath = (Get-Command powershell.exe).Source;' +
+        `$shortcut.TargetPath = (Get-Command ${POWERSHELL}).Source;` +
         `$shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "${scriptPath}"';` +
         '$shortcut.WindowStyle = 7;' +
         '$shortcut.Description = \'Keeps paste-at-cursor available for the Flow Launcher emoji plugin\';' +

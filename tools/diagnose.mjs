@@ -44,7 +44,7 @@ const report = {
 };
 
 report.windows = runWindowsDiagnostic();
-report.pasteHelperTrace = collectRuntimeTrace();
+report.pluginTrace = collectRuntimeTrace();
 report.pasteAgent = collectAgentLog();
 
 fs.mkdirSync(REPORT_DIRECTORY, { recursive: true });
@@ -325,7 +325,7 @@ function printSummary (diagnosis) {
     console.log(`  ui automation focus probe: ${describeUiAutomation(result.uiAutomation)}`);
   }
 
-  console.log(`  trace lines: ${diagnosis.pasteHelperTrace.totalLines ?? 0}`);
+  console.log(`  trace lines: ${diagnosis.pluginTrace.totalLines ?? 0}`);
   console.log('\ncommit dogfood/ so the next session can read it.');
 }
 

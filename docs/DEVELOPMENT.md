@@ -86,15 +86,15 @@ If nothing happens:
 1. **Is the target window running as administrator?** Windows silently blocks synthetic
    input from non-elevated processes to elevated ones. Notepad started normally is fine;
    an admin PowerShell is not.
-2. **Did Flow hide?** The helper only types once Flow has no visible window. If Flow stays
-   open (a pinned preview, a dialog), it gives up after 2 seconds instead of pasting into
+2. **Did Flow hide?** The agent only types once Flow has no visible window. If Flow stays
+   open (a pinned preview, a dialog), it gives up after 2.5 seconds instead of pasting into
    your query.
-3. **Try copy mode first** with notifications off; if that works, the action is reaching
-   Flow and the problem is only in the paste helper.
+3. **Try copy mode first** with notifications off; if that works, Flow is reaching the
+   plugin and the problem is only in the agent.
 
-The helper cannot be run from this repository's tests (no Windows, no PowerShell), so the
-script itself is reviewed in `src/utils/pasteAgent.ts` and its generated output is asserted
-in `tests/utils/pasteAgent.test.ts`.
+The agent cannot be run from this repository's tests (no Windows, no PowerShell), so the
+script is asserted in `tests/utils/pasteAgent.test.ts` and exercised for real on the Windows
+runner by `npm run check:paste-agent`, which runs it under both PowerShell hosts.
 
 ## Everyday loop
 

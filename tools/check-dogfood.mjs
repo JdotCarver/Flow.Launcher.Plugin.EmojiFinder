@@ -9,9 +9,14 @@
 //
 // Exit code 0 when everything looks healthy, 1 when a finding needs attention.
 //
-// Inputs (both written by the maintainer's Windows machine):
+// Inputs (all written by the maintainer's Windows machine):
 //   dogfood/diagnose.json  - npm run diagnose
 //   dogfood/runtime.log    - the plugin's trace, from an install packaged with --trace
+//   dogfood/agent.log      - the paste agent's own log, copied back by diagnose
+//
+// Two processes are involved now: the plugin (which returns in milliseconds and is destroyed
+// by Flow) and the resident agent (which does the pasting). Each has its own log, and the
+// order below follows the path an emoji takes through them.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -23,6 +28,7 @@ const style = createStyle();
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
 const REPORT_FILE = path.join(PLUGIN_ROOT, 'dogfood', 'diagnose.json');
 const RUNTIME_LOG = path.join(PLUGIN_ROOT, 'dogfood', 'runtime.log');
+const AGENT_LOG = path.join(PLUGIN_ROOT, 'dogfood', 'agent.log');
 
 const findings = [];
 let problems = 0;
@@ -39,7 +45,14 @@ if (diagnose === null) {
 if (traceLines.length === 0) {
   finding('skip', `no ${path.relative(PLUGIN_ROOT, RUNTIME_LOG)} yet: run "npm run package -- --install --trace", reproduce, then commit dogfood/`);
 } else {
-  checkTrace(traceLines);
+  checkPluginTrace(traceLines);
+}
+
+const agentLines = readTraceLines(AGENT_LOG);
+if (agentLines.length === 0) {
+  finding('skip', `no ${path.relative(PLUGIN_ROOT, AGENT_LOG)} yet: the agent has never run on this machine, so nothing could have been pasted`);
+} else {
+  checkAgentLog(agentLines);
 }
 
 printFindings();
@@ -111,99 +124,159 @@ function checkEnvironment (report) {
   }
 }
 
-function checkTrace (lines) {
-  const helperLines = lines.filter(line => line.includes('| helper |'));
+/** The plugin half: did it receive a paste action, and could it see an agent? */
+function checkPluginTrace (lines) {
   const pluginLines = lines.filter(line => line.startsWith('{'));
 
   if (pluginLines.length === 0) {
-    finding('warn', 'trace file has helper lines but no plugin lines; the trace was probably written by an older build');
+    finding('warn', 'the plugin trace contains no plugin events; it was probably written by an older build');
+
+    return;
   }
 
-  const spawn = parseEvents(pluginLines, 'paste:spawn');
-  if (spawn.length === 0) {
+  const requests = parseEvents(pluginLines, 'paste:request');
+
+  if (requests.length === 0) {
     finding('fail', 'the plugin never received a "paste" action. Flow is still calling "copy": check that the setting is on paste, and that the installed plugin is the one just packaged.');
+
     return;
   }
 
-  const lastSpawn = spawn[spawn.length - 1];
-  if (lastSpawn.started === false) {
-    finding('fail', `the paste helper was not started: ${lastSpawn.reason}`);
+  const lastRequest = requests[requests.length - 1];
+
+  if (lastRequest.agentRunning === false) {
+    finding('fail', 'the plugin asked for a paste, but no agent was running. Start it with "npm run agent -- --start" (the installer does this, and the Startup shortcut brings it back at login).');
+
     return;
   }
 
-  if (parseEvents(pluginLines, 'paste:spawn-error').length > 0) {
-    finding('fail', 'PowerShell failed to spawn asynchronously (see paste:spawn-error in the trace)');
-  }
+  finding('pass', `the plugin published a paste request and could see a running agent (sequence ${lastRequest.sequence})`);
+}
 
-  if (helperLines.length === 0) {
-    finding('fail', 'the helper was spawned but never wrote a line: PowerShell died before its first statement (execution policy, antivirus, or an encoding problem)');
+/**
+ * The agent half: did a request arrive, was the emoji read correctly, and what did it decide?
+ *
+ * The encoding check is the one that matters most in practice: under Windows PowerShell 5.1 a
+ * UTF-8 emoji read with the default encoding arrives as its own bytes, the clipboard can never
+ * match, and the agent then correctly refuses to paste - which looks like "nothing happened".
+ */
+function checkAgentLog (lines) {
+  const agentLines = lines.filter(line => line.includes('| agent |'));
+
+  if (agentLines.length === 0) {
+    finding('fail', 'the agent log has no agent lines: the process is writing somewhere else, or it never started');
+
     return;
   }
 
-  const helperText = helperLines.join('\n');
+  const startLine = lastMatchingLine(agentLines, 'start pid=');
 
-  if (helperText.includes('uiautomation-error')) {
-    finding('info', 'the helper could not load UI Automation; it relied on main-window visibility alone');
+  if (startLine.includes('start pid=')) {
+    const host = /host=(\S+)/.exec(startLine)?.[1] ?? 'unknown host';
+    const version = /ps=(\S+)/.exec(startLine)?.[1] ?? 'unknown version';
+
+    finding('info', `the agent is running under ${host} (PowerShell ${version})`);
   }
 
-  if (helperText.includes('winforms-error')) {
-    finding('fail', 'the helper could not load System.Windows.Forms, so it can neither read the clipboard nor send Ctrl+V');
+  if (agentLines.some(line => line.includes('winforms-error'))) {
+    finding('fail', 'the agent could not load System.Windows.Forms, so it can neither read the clipboard nor send Ctrl+V');
   }
 
-  const decision = helperLines.filter(line => line.includes('decision paste=')).pop();
-  if (decision === undefined) {
-    finding('warn', 'the helper never reached a decision: it was still running when the trace was copied, or it crashed mid-loop');
-  } else if (decision.includes('decision paste=false')) {
-    describeWhyNothingWasPasted(helperLines);
+  if (agentLines.some(line => line.includes('uiautomation-error'))) {
+    finding('info', 'the agent could not load UI Automation; it relied on main-window visibility alone');
   }
 
-  if (helperText.includes('sendkeys sent')) {
-    finding('info', 'SendKeys was called. If the emoji still did not appear, the keystroke went to a window that is not the one you were typing in (an elevated window, a fullscreen app, or focus that did not return to your editor).');
+  const requestLine = lastMatchingLine(agentLines, 'request sequence=');
+
+  if (!requestLine.includes('request sequence=')) {
+    finding('warn', 'the agent never saw a request: it started, but no emoji reached it');
+
+    return;
   }
 
-  if (helperText.includes('sendkeys-error')) {
-    finding('fail', 'SendKeys threw: ' + lastMatchingLine(helperLines, 'sendkeys-error'));
+  const targetCodes = /targetCodes=\[([^\]]*)\]/.exec(requestLine)?.[1] ?? '';
+
+  if (targetCodes !== '') {
+    const units = targetCodes.split(',').filter(Boolean);
+
+    // A single character that arrives as several low numbers is the classic 5.1 encoding
+    // failure. Legitimate emoji are one or two units (surrogate pair), more only for ZWJ
+    // sequences, which then look like 8+ units with a 8205 in the middle.
+    const looksMangled = units.length >= 3 && !targetCodes.includes('8205') && Number(units[0]) < 256;
+
+    if (looksMangled) {
+      finding('fail', `the agent read the emoji as code points [${targetCodes}], which are its UTF-8 bytes: the request file is being decoded with the wrong encoding. This is the bug that made every paste fail silently.`);
+    }
   }
 
-  if (helperText.includes('mismatch clipboardCodes=')) {
-    finding('warn', 'clipboard content did not match the emoji; the code points are in the trace, so compare them with the expected ones');
+  const decision = lastMatchingLine(agentLines, 'decision paste=');
+
+  if (!decision.includes('decision paste=')) {
+    finding('warn', 'the agent saw a request but never reached a decision: it was still running when the log was copied, or it crashed mid-loop');
+
+    return;
   }
 
-  const mismatchFree = !helperText.includes('mismatch clipboardCodes=');
-  if (decision?.includes('decision paste=true') && helperText.includes('sendkeys sent') && mismatchFree) {
-    finding('pass', 'the helper did everything it was asked to do');
+  if (decision.includes('decision paste=false')) {
+    describeWhyNothingWasPasted(agentLines);
+
+    return;
+  }
+
+  const sentKeys = lastMatchingLine(agentLines, 'sendkeys sent');
+
+  if (sentKeys.includes('sendkeys-error')) {
+    finding('fail', 'SendKeys threw: ' + sentKeys);
+
+    return;
+  }
+
+  if (sentKeys.includes('sendkeys sent')) {
+    finding('pass', 'the agent pasted: it saw the emoji on the clipboard and sent Ctrl+V');
+
+    if (agentLines.some(line => line.includes('sendkeys-error'))) {
+      finding('fail', 'SendKeys threw: ' + lastMatchingLine(agentLines, 'sendkeys-error'));
+    }
+
+    finding('info', 'if the emoji did not appear, the keystroke went to a window that is not the one you were typing in (an elevated window, a fullscreen app, or focus that did not return to your editor).');
   }
 }
 
-function describeWhyNothingWasPasted (helperLines) {
-  const polls = helperLines.filter(line => line.includes('poll '));
+function describeWhyNothingWasPasted (agentLines) {
+  const polls = agentLines.filter(line => line.includes('poll '));
   const lastPoll = polls[polls.length - 1] ?? '';
 
   if (lastPoll.includes('clipboardEmpty=True')) {
     finding('fail', 'the clipboard never received the emoji. Flow did not run the Flow.Launcher.CopyToClipboard request we printed; the trace contains the emoji we sent, so this is a Flow-side dispatch problem.');
+
     return;
   }
 
   if (lastPoll.includes('clipboardMatches=False')) {
-    finding('warn', 'the clipboard had text that never matched the emoji. See the mismatch line above for the exact code points.');
+    finding('warn', 'the clipboard held text that never matched the emoji. The agent logs the clipboard code points on mismatch; compare them with the request line above.');
+
+    return;
   }
 
   if (lastPoll.includes('flowVisible=True') && lastPoll.includes('flowHasFocus=True')) {
-    finding('fail', 'Flow kept both a visible main window and the focus for the whole wait, so the helper refused to type (by design). This is what a Flow window that minimises to the tray without hiding looks like; both signals need work.');
+    finding('fail', 'Flow kept both a visible main window and the focus for the whole wait, so the agent refused to type (by design). This is what a Flow window that minimises to the tray without hiding looks like; both signals need work.');
+
     return;
   }
 
   if (lastPoll.includes('flowVisible=True')) {
-    finding('warn', 'Flow kept a visible main window, but focus had moved away. The helper should have accepted that; check the decision line.');
+    finding('warn', 'Flow kept a visible main window, but focus had moved away. The agent should have accepted that; check the decision line.');
+
     return;
   }
 
   if (lastPoll.includes('clipboardError=[') && !lastPoll.includes('clipboardError=[]')) {
     finding('fail', 'reading the clipboard kept throwing: ' + lastPoll);
+
     return;
   }
 
-  finding('warn', 'the helper timed out without a state line that explains it: ' + lastPoll);
+  finding('warn', 'the agent timed out without a state line that explains it: ' + lastPoll);
 }
 
 // ---------------------------------------------------------------------------

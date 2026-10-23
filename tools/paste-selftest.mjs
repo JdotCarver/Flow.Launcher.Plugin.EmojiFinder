@@ -1,29 +1,37 @@
 // tools/paste-selftest.mjs
 //
-// Isolates the paste mechanism from Flow Launcher: copies an emoji, waits while you click
-// into Notepad, sends Ctrl+V, and records what happened.
+// "Does pasting work on this machine at all?" - answered by the agent, not by Flow.
+//
+// It counts down while you click into Notepad (or anything else that accepts text), then asks
+// the resident paste agent to paste an emoji, and reports what the agent did with it. If the
+// emoji does not appear here, the problem is the agent or the machine, not Flow Launcher.
 //
 // Usage
 //   npm run paste:selftest                 # 5 second countdown
 //   npm run paste:selftest -- --delay 8
 //   npm run paste:selftest -- --emoji ❤️
 //
-// Writes dogfood/selftest.json and dogfood/selftest.log, both committable.
+// Writes dogfood/selftest.json, which is committable.
 //
-// Read this before blaming Flow: if the emoji does not appear in Notepad here, then the
-// injection mechanism itself does not work on this machine, and no amount of timing
-// work inside the plugin will change that.
+// The emoji is put on the clipboard by this script, the same way Flow does it in-process, so
+// the agent's clipboard check has something to match. The agent only pastes when the clipboard
+// holds exactly the emoji it was asked for.
 
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { execFileSync } from 'node:child_process';
+import { readAgentStatus, requestPaste, resolveAgentPaths } from '../dist/utils/pasteAgent.js';
+import { createStyle } from './report-style.mjs';
+
+const style = createStyle();
 
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
 const DOGFOOD_DIRECTORY = path.join(PLUGIN_ROOT, 'dogfood');
-const SCRIPT = path.join(PLUGIN_ROOT, 'tools', 'paste-selftest.ps1');
 const RESULT_FILE = path.join(DOGFOOD_DIRECTORY, 'selftest.json');
-const LOG_FILE = path.join(DOGFOOD_DIRECTORY, 'selftest.log');
+
+/** How long the agent gets to see the request and paste it. */
+const SETTLE_MILLISECONDS = 4000;
 
 function argument (name, fallback) {
   const index = process.argv.indexOf(name);
@@ -31,61 +39,72 @@ function argument (name, fallback) {
   return index === -1 ? fallback : process.argv[index + 1];
 }
 
-if (process.platform !== 'win32') {
-  console.error('paste:selftest is Windows-only (it needs PowerShell, a clipboard and SendKeys).');
-  process.exit(1);
+function copyToClipboard (text) {
+  execFileSync('powershell.exe', [
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    `Set-Clipboard -Value '${text.replaceAll("'", "''")}'`
+  ], { timeout: 15000 });
 }
 
-fs.mkdirSync(DOGFOOD_DIRECTORY, { recursive: true });
-fs.rmSync(RESULT_FILE, { force: true });
-
-const result = spawnSync(
-  'powershell.exe',
-  [
-    '-NoProfile', '-ExecutionPolicy', 'Bypass',
-    '-File', SCRIPT,
-    '-Emoji', argument('--emoji', '🙈'),
-    '-DelaySeconds', argument('--delay', '5'),
-    '-OutFile', RESULT_FILE
-  ],
-  { stdio: 'inherit', windowsHide: false }
-);
-
-const report = readJson(RESULT_FILE);
-
-if (report !== null) {
-  fs.writeFileSync(LOG_FILE, JSON.stringify(report, null, 2) + '\n');
-
-  console.log('');
-  console.log(`  target window: ${report.focusedAfter?.title ?? 'unknown'} [${report.focusedAfter?.className ?? '?'}]`);
-  console.log(`  clipboard round-trip: ${report.clipboardOk ? 'ok' : 'MISMATCH'}`);
-  console.log(`  SendKeys sent: ${report.sendKeysSent}`);
-
-  if (report.error !== '') {
-    console.log(`  error: ${report.error}`);
-  }
-
-  if ((report.focusedAfter?.title ?? '') === '') {
-    console.log('\n  No window had focus when the key was sent. Run again and click into Notepad during the countdown.');
-  } else if ((report.focusedAfter?.className ?? '').toLowerCase().includes('console')) {
-    console.log('\n  Focus never left the terminal. Run again and click into Notepad during the countdown.');
-  }
-
-  console.log('\n  commit dogfood/selftest.log with your next message.');
-} else {
-  console.error('the self-test did not produce a report (see the PowerShell output above)');
-}
-
-process.exitCode = report === null ? 1 : exitCodeFor(result.status);
-
-function exitCodeFor (status) {
-  return typeof status === 'number' ? status : 1;
-}
-
-function readJson (filePath) {
-  try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, ''));
-  } catch {
-    return null;
+async function countdown (seconds) {
+  for (let remaining = seconds; remaining > 0; remaining -= 1) {
+    console.log(style.finding('info', `${remaining}… click into the window you want the emoji in`));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }
+
+async function main () {
+  if (process.platform !== 'win32') {
+    console.log(style.finding('skip', `the paste self-test needs Windows; this is ${process.platform}`));
+
+    return;
+  }
+
+  const delay = Number(argument('--delay', '5'));
+  const emoji = argument('--emoji', '❤️');
+  const paths = resolveAgentPaths();
+  const status = readAgentStatus(paths);
+
+  if (!status.running) {
+    console.log(style.finding('fail', `the paste agent is not running (heartbeat: ${status.heartbeatAgeMilliseconds ?? 'none'}). Start it with: npm run agent -- --start`));
+
+    return;
+  }
+
+  console.log(style.finding('info', `agent is running (heartbeat ${status.heartbeatAgeMilliseconds} ms old), pasting ${emoji}`));
+
+  copyToClipboard(emoji);
+  await countdown(delay);
+
+  const logBefore = fs.existsSync(paths.log) ? fs.readFileSync(paths.log, 'utf8').length : 0;
+  const request = requestPaste(emoji, paths);
+
+  await new Promise((resolve) => setTimeout(resolve, SETTLE_MILLISECONDS));
+
+  const log = fs.existsSync(paths.log) ? fs.readFileSync(paths.log, 'utf8').slice(logBefore) : '';
+  const pasted = log.includes('sendkeys sent') && log.includes('decision paste=True');
+
+  fs.mkdirSync(DOGFOOD_DIRECTORY, { recursive: true });
+  fs.writeFileSync(RESULT_FILE, JSON.stringify({
+    generatedAt: new Date().toISOString(),
+    emoji,
+    sequence: request.sequence,
+    pasted,
+    agentLogTail: log.trim() === '' ? [] : log.trim().split('\n').slice(-10)
+  }, null, 2) + '\n');
+
+  if (pasted) {
+    console.log(style.finding('ok', 'the agent sent Ctrl+V. If the emoji did not appear, the keystroke went to a different window than the one you clicked.'));
+
+    return;
+  }
+
+  console.log(style.finding('fail', 'the agent did not paste. Its log tail is in ' + path.relative(PLUGIN_ROOT, RESULT_FILE)));
+  for (const line of log.trim().split('\n').slice(-5)) {
+    console.log(style.finding('warn', `    ${line}`));
+  }
+}
+
+await main();

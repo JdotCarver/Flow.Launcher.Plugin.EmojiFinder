@@ -42,10 +42,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      # The environment probe does not need Flow Launcher to be running, but it does need
-      # an interactive desktop for the SendKeys self-test.
-      - name: Paste helper, for real
-        run: npm run check:paste-helper
+      # Runs before the environment probe, which copies the agent's log: the check writes
+      # its own requests into that same log.
+      - name: Paste agent, for real
+        run: npm run check:paste-agent
         continue-on-error: true
 
       - name: Installation doctor (is the plugin loadable at all?)

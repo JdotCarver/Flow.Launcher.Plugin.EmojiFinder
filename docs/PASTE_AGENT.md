@@ -33,10 +33,10 @@ So the helper stops being a child and becomes a resident agent.
 
 | | |
 |---|---|
-| Process | `powershell.exe -NoProfile -WindowStyle Hidden -File paste-agent.ps1` |
+| Process | `powershell.exe` (or `pwsh.exe`) `-NoProfile -WindowStyle Hidden -File paste-agent.ps1` |
 | Owner | the logged-in user, same desktop session as Flow Launcher |
 | When | from login until logout, started by a shortcut in the user's Startup folder |
-| Memory | roughly 40–60 MB (a Windows PowerShell 5.1 host: that is the floor, not our code) |
+| Memory | roughly 40–60 MB (that is the PowerShell host's floor, not our code) |
 | Idle CPU | one file-timestamp check every 50 ms, well under 1 % of one core |
 | Visible | nothing: no window, no tray icon, no notification |
 | Network | none, ever |
@@ -90,6 +90,26 @@ happened: the installer started the agent, the run finished, and every later pas
 current user (no password, no elevation, interactive session), and the task is deleted
 immediately afterwards. Launching the Startup shortcut through Explorer was tried first and
 worked intermittently, so it is only a fallback now.
+
+## Which PowerShell it runs on
+
+Every Windows 10 and 11 machine has Windows PowerShell 5.1 (`powershell.exe`). PowerShell 7
+(`pwsh.exe`) is a separate, optional install on either OS. Both are supported; the agent does
+not care which one hosts it.
+
+- **Discovery order**: `pwsh.exe` if it is on `PATH`, otherwise `powershell.exe`, which is
+  present everywhere. `npm run agent -- --status` prints the host and version it found.
+- **Override**: `--host pwsh` / `--host powershell`, or the `EMOJI_PASTE_AGENT_HOST`
+  environment variable. The Startup shortcut, the scheduled task and a direct start all use
+  the same resolved host, and `--status` reports it.
+- **Why the agent is host-neutral by construction**: file I/O never goes through
+  `Get-Content`/`Set-Content`, whose default encoding differs between the two hosts (5.1 uses
+  the ANSI code page, 7 uses UTF-8). Every read and write is `[System.IO.File]` with an
+  explicit `UTF8Encoding($false)`, so the code points survive under either host.
+- **Proof, not assumption**: `npm run check:paste-agent` runs the whole experiment once per
+  host - `powershell.exe` always, `pwsh.exe` only when it is installed - and asserts that the
+  emoji's code points survive the request file, that the agent decides to paste, that it stays
+  alive, and that it stops when killed. CI runs it on the Windows runner.
 
 ## Installing, starting, stopping
 

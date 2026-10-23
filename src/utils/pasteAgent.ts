@@ -118,20 +118,28 @@ $logPath = '${toPowerShellLiteral(paths.log)}'
 $pollMilliseconds = ${POLL_INTERVAL_MILLISECONDS}
 $pasteWindowMilliseconds = ${MAXIMUM_PASTE_WAIT_MILLISECONDS}
 
+# Every file read and write below goes through .NET with an explicit UTF-8 encoding.
+# Get-Content/Add-Content/Set-Content take their encoding from the host's defaults, and those
+# defaults differ between Windows PowerShell 5.1 and PowerShell 7 - which is how an emoji
+# turned into four meaningless characters (240,376,167,170) and every paste silently refused.
+# Explicit encodings cannot drift with the host.
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
 $logDirectoryReady = $false
 function Write-Trace([string] $message) {
   if (-not $logDirectoryReady) {
     $null = New-Item -ItemType Directory -Force -Path (Split-Path -Parent $logPath) -ErrorAction SilentlyContinue
     $logDirectoryReady = $true
   }
-  # Capped: a resident process must never be able to fill a disk.
-  $existing = Get-Item -LiteralPath $logPath -ErrorAction SilentlyContinue
-  if ($null -ne $existing -and $existing.Length -gt 262144) {
-    Set-Content -LiteralPath $logPath -Value '' -Encoding UTF8
-  }
   $line = '{0} | agent | {1}' -f (Get-Date).ToString('o'), $message
-  # UTF8 as well, so the log the emoji it claims to have seen is the emoji it actually saw.
-  Add-Content -LiteralPath $logPath -Value $line -Encoding UTF8 -ErrorAction SilentlyContinue
+  try {
+    # Capped: a resident process must never be able to fill a disk.
+    $existing = Get-Item -LiteralPath $logPath -ErrorAction SilentlyContinue
+    if ($null -ne $existing -and $existing.Length -gt 262144) {
+      [System.IO.File]::WriteAllText($logPath, '', $utf8NoBom)
+    }
+    [System.IO.File]::AppendAllText($logPath, $line + [Environment]::NewLine, $utf8NoBom)
+  } catch { }
 }
 
 # Variation selectors and zero-width joiners are invisible and are dropped by some
@@ -142,7 +150,9 @@ function Get-ComparableText([string] $text) {
 }
 
 # Never run twice: a second copy would paste every emoji twice.
-$existing = Get-Content -LiteralPath (Join-Path (Split-Path -Parent $heartbeatPath) 'agent.pid') -ErrorAction SilentlyContinue
+$pidPath = Join-Path (Split-Path -Parent $heartbeatPath) 'agent.pid'
+$existing = $null
+try { $existing = [System.IO.File]::ReadAllText($pidPath).Trim() } catch { }
 if ($existing) {
   $other = Get-Process -Id ([int]$existing) -ErrorAction SilentlyContinue
   if ($null -ne $other) {
@@ -150,9 +160,12 @@ if ($existing) {
     exit 0
   }
 }
-$PID | Set-Content -LiteralPath (Join-Path (Split-Path -Parent $heartbeatPath) 'agent.pid') -ErrorAction SilentlyContinue
+try { [System.IO.File]::WriteAllText($pidPath, [string]$PID, $utf8NoBom) } catch { }
 
-Write-Trace ('start pid={0} ps={1}' -f $PID, $PSVersionTable.PSVersion.ToString())
+# The host and its version are logged because the two PowerShell hosts behave differently
+# around text encoding, and a report without this line cannot tell them apart.
+$hostName = [System.Diagnostics.Process]::GetCurrentProcess().ProcessName
+Write-Trace ('start pid={0} host={1} ps={2} edition={3}' -f $PID, $hostName, $PSVersionTable.PSVersion.ToString(), $PSVersionTable.PSEdition)
 
 try {
   Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
@@ -174,7 +187,17 @@ try {
 # Requests seen before this process started are not pasted: after a restart the agent picks
 # up from wherever the sequence number is now.
 $lastSequence = 0
-$x = Get-Content -LiteralPath $requestPath -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+function Read-Request {
+  # File.ReadAllText with an explicit encoding also strips a byte-order mark, which
+  # ConvertFrom-Json would otherwise choke on.
+  try {
+    return [System.IO.File]::ReadAllText($requestPath, [System.Text.Encoding]::UTF8)
+  } catch {
+    return ''
+  }
+}
+
+$x = Read-Request
 if ($x) {
   try { $lastSequence = [double](ConvertFrom-Json $x).sequence } catch { }
 }
@@ -259,15 +282,13 @@ Write-Trace 'waiting for requests'
 
 while ($true) {
   if (((Get-Date) - $lastHeartbeat).TotalMilliseconds -gt 500) {
-    (Get-Date).ToString('o') | Set-Content -LiteralPath $heartbeatPath -Encoding UTF8 -ErrorAction SilentlyContinue
+    try {
+      [System.IO.File]::WriteAllText($heartbeatPath, (Get-Date).ToString('o'), $utf8NoBom)
+    } catch { }
     $lastHeartbeat = Get-Date
   }
 
-  # -Encoding UTF8 is not optional. Windows PowerShell 5.1 reads files with the ANSI code
-  # page by default, which turns an emoji written as UTF-8 into four meaningless characters
-  # (measured: 🧪 arrived as code points 240,376,167,170 - its UTF-8 bytes). The clipboard can
-  # then never match, and the agent silently refuses to paste. This cost a full afternoon.
-  $content = Get-Content -LiteralPath $requestPath -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+  $content = Read-Request
   if ($content) {
     $request = $null
     try { $request = ConvertFrom-Json $content } catch { }

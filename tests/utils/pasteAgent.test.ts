@@ -87,12 +87,29 @@ describe('buildAgentScript', () => {
     expect(script).not.toContain("''''");
   });
 
-  test('reads the request file as UTF-8, or every emoji becomes its own bytes', () => {
-    // Windows PowerShell 5.1 defaults to the ANSI code page. Without this, an emoji arrives
-    // as four characters, the clipboard never matches, and the agent silently does nothing.
+  test('reads the request file through .NET with an explicit UTF-8 encoding', () => {
+    // Not Get-Content: its default encoding differs between Windows PowerShell 5.1 and
+    // PowerShell 7, and under 5.1 an emoji arrives as its four UTF-8 bytes, the clipboard
+    // never matches, and the agent silently does nothing. Explicit encodings cannot drift.
     const script = buildAgentScript(createPaths());
 
-    expect(script).toContain('Get-Content -LiteralPath $requestPath -Raw -Encoding UTF8');
+    expect(script).toContain('[System.IO.File]::ReadAllText($requestPath, [System.Text.Encoding]::UTF8)');
+    expect(script).not.toContain('Get-Content -LiteralPath $requestPath');
+  });
+
+  test('writes the log and heartbeat as UTF-8 without a byte-order mark', () => {
+    const script = buildAgentScript(createPaths());
+
+    expect(script).toContain('New-Object System.Text.UTF8Encoding($false)');
+    expect(script).toContain('[System.IO.File]::AppendAllText($logPath');
+  });
+
+  test('records which PowerShell host it is running under', () => {
+    // 5.1 (powershell.exe) and 7 (pwsh) are different hosts with different defaults, and a
+    // report that does not say which one ran cannot be compared with another.
+    const script = buildAgentScript(createPaths());
+
+    expect(script).toContain('host={1} ps={2} edition={3}');
   });
 
   test('always writes a log, so "did the request arrive" can be answered afterwards', () => {
