@@ -91,4 +91,27 @@ here, survive a locked screen). Keep one runner with several labels rather than 
 runners: `--labels flowlauncher,unreal`.
 
 The pattern to remember: **anything that only exists on your machine becomes a workflow
-step plus an artifact**, and the agent reads both through `gh`.
+step**, and the agent reads its result through `gh`.
+
+## How the agent reads a run
+
+- **Job and step status**: `gh run view <id> --json jobs`, or
+  `gh api repos/{owner}/{repo}/actions/jobs/<job-id>`. Always available.
+- **The log itself**: *not* available to an agent sandbox. GitHub serves logs from
+  `results-receiver.actions.githubusercontent.com` and artifacts from Azure blob storage,
+  and both are blocked there. `gh run view --log` and `gh run download` fail with `EOF`.
+- **So the job ships its own report**: the `windows` job copy-commits `dogfood/` to the
+  `dogfood-reports` branch, which is plain git and therefore reachable:
+
+  ```bash
+  git fetch origin refs/heads/dogfood-reports:refs/remotes/origin/dogfood-reports
+  git show origin/dogfood-reports:doctor.json
+  ```
+
+- **Annotations** are a second, lighter channel: any `::notice title=…::…` or
+  `::error title=…::…` printed by a tool shows up in
+  `gh api repos/{owner}/{repo}/check-runs/<job-id>/annotations`. That is how the spawn
+  probe reports each variant's exit code, and how the publisher explains its own failure.
+- **Shell gotcha**: a `shell: bash` step that fails with no output at all usually means the
+  shell could not start. This runner has Git Bash and PowerShell, but `pwsh` (7) is not
+  guaranteed - `shell: powershell` (5.1) always is.

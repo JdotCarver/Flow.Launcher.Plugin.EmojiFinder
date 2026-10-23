@@ -87,7 +87,7 @@ itself.
 Flow hides its window **after** the result action completes (`ExecuteResultAsync` returns
 a "hide" flag, the caller hides afterwards). Anything we inject during the action lands in
 Flow's own search box. So the injection must happen *after* our process has exited and
-Flow has hidden — which means a detached helper that waits.
+Flow has hidden — which means a separate helper process that waits, and outlives us.
 
 ### The shape I propose
 
@@ -96,9 +96,9 @@ Enter (paste mode)
   └─ our process, method "paste"
        ├─ prints {"method":"Flow.Launcher.CopyToClipboard","parameters":[emoji,false,false]}
        │     → Flow sets the clipboard in-process, unicode-safe, no second process
-       └─ spawns ONE detached helper, then exits (so Flow can hide)
+       └─ spawns ONE helper process, then exits (so Flow can hide)
 
-helper (detached)
+helper (separate process, not detached)
   ├─ wait until: foreground window is not Flow Launcher
   ├─ wait until: clipboard text === emoji   (both polls, 15 ms, 1.5 s timeout)
   ├─ send Ctrl+V
@@ -184,7 +184,7 @@ setting "What pressing Enter does": copy (default) | paste
 |---|---|---|
 | copy, notifications off | `Flow.Launcher.CopyToClipboard` | none |
 | copy, notifications on | `copy` (our own) | one, short-lived |
-| paste | `paste` (our own) | one, short-lived + one detached PowerShell helper |
+| paste | `paste` (our own) | one, short-lived + one PowerShell helper |
 
 `paste` prints a `Flow.Launcher.CopyToClipboard` request first, so Flow fills the clipboard
 in-process, then starts the helper and exits immediately (which is what lets Flow hide).
@@ -232,7 +232,7 @@ version behind `spawnPasteHelper` is a contained swap.
 Reported: setting paste, Enter, "noticeable pause, nothing visibly happens."
 
 Facts established from Flow's source: it waits for our process to exit and calls
-`process.Kill()` (not the whole tree) on timeout, so the detached helper is not the
+`process.Kill()` (not the whole tree) on timeout, so the helper process is not the
 victim. That leaves the script itself, and the sandbox cannot run it.
 
 Changes made in response:
@@ -253,3 +253,37 @@ Changes made in response:
    that is already on the clipboard.
 
 Nothing here is claimed to be fixed. The next dogfood report decides.
+
+
+## 7. The bug was `detached: true` (2026-10-23)
+
+The traced failure was narrow and specific: the plugin logged `paste:spawn` with a live pid
+and then the helper wrote **nothing**, not even its first line. The script was fine - the
+Windows runner runs it happily when started by hand - so the fault had to be in *how* it
+was started.
+
+`tools/paste-spawn-probe.mjs` settled it by running the production `spawnPasteHelper()`
+and then the same script five more times, changing one spawn property at a time. Trace
+lines written, measured on `DESKTOP-SK3RC8N`:
+
+| variant | changed | trace lines |
+|---|---|---|
+| plugin (production argv) | - | 0 |
+| no-window-style | `-WindowStyle Hidden` removed | 0 |
+| no-hide | `windowsHide: false` | 0 |
+| attached | `detached: false` | **6** |
+| file | `-File script.ps1` | 0 |
+| production, after the fix | - | **6** |
+
+Detached was the only axis that mattered. On Windows libuv turns `detached: true` into
+`DETACHED_PROCESS`: the child gets no console, and `powershell.exe` starts, exits with code
+0 and executes not one statement. Its own complaint never surfaced, because stderr had been
+sent to `/dev/null` - the second fix (`dogfood/helper-stderr.log`) was what made the silent
+half of this diagnosable.
+
+Why nothing needs detaching: Windows does not kill a child when its parent exits (no job
+object is involved), and Flow calls `process.Kill()` on our process only. `child.unref()`
+is what frees our event loop, and that is now the whole mechanism.
+
+The helper now also logs `winforms loaded` / `uiautomation loaded`, so a future silent run
+distinguishes "PowerShell refused" from "the script ran and decided not to paste".

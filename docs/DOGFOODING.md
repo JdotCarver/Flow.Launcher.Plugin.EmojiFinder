@@ -37,6 +37,29 @@ docs/PASTE_AT_CURSOR.md §2).
 
 Commit `dogfood/`. The next session reads it and stops guessing.
 
+## When someone else runs the checks for you
+
+The maintainer's Windows machine is also a self-hosted GitHub Actions runner
+(`docs/WINDOWS_RUNNER.md`). Put `[windows]` anywhere in the commit message and that commit
+runs the same checks on real Windows: lint, tests, build, `check:paste-helper` (runs the
+helper for real), `doctor`, `diagnose`, and `check:paste-spawn` (runs the plugin's own
+spawn function and compares it against one changed option at a time).
+
+Reading the results back is the awkward part. Actions logs and artifacts are served from
+`results-receiver.actions.githubusercontent.com` and Azure blob storage, which an agent
+sandbox cannot reach. Two channels work instead:
+
+1. **A report branch.** The job copies `dogfood/` to the `dogfood-reports` branch
+   (`git fetch origin refs/heads/dogfood-reports:refs/remotes/origin/dogfood-reports`), so
+   every run's evidence is one `git show` away.
+2. **Annotations.** Tool output can emit `::notice title=…::…` lines; those are served by
+   `api.github.com` (`repos/{owner}/{repo}/check-runs/{job_id}/annotations`), so a run that
+   cannot publish still explains itself.
+
+Add `[install]` to a commit message as well and the job installs the freshly built plugin
+into Flow Launcher with tracing on - useful when a fix has to be *tried* on the real
+machine, not just built.
+
 ## What each piece gives you
 
 | Piece | Answers |
