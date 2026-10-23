@@ -209,6 +209,16 @@ async function checkHost (host, emoji) {
     detail: wroteAnything ? '' : `start-up log: ${startupText || '(empty)'}`
   });
 
+  // The start line names the host and its version, which is the only way a log from a user's
+  // machine can be attributed to one PowerShell without guessing.
+  const startLine = log.split(/\r?\n/).find((line) => line.includes('| start ')) ?? '';
+  const expectedProcessName = host.replace(/\.exe$/, '');
+  findings.push({
+    label: `the start line names this host (${expectedProcessName}) and its version`,
+    ok: startLine.includes(`host=${expectedProcessName} `) && /ps=\d+\.\d+/.test(startLine),
+    detail: startLine.trim() || 'no start line in the log'
+  });
+
   findings.push({ label: 'agent logs the request with its sequence number', ok: log.includes(`request sequence=${request.sequence}`) });
   findings.push({
     label: `emoji survives the request file intact (expected code points ${expectedCodes})`,
@@ -225,6 +235,7 @@ async function checkHost (host, emoji) {
 
   return {
     host,
+    startLine: startLine.trim() || null,
     findings,
     startupLog: startupText || null,
     logTail: log.trim() === '' ? [] : log.trim().split('\n').slice(-10)
