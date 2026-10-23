@@ -83,6 +83,12 @@ jobs:
         run: npm run check:paste-spawn
         continue-on-error: true
 
+      # The same script, but with the parent process dying immediately - which is what Flow
+      # Launcher does to us right after a result action returns.
+      - name: Paste helper exit probe
+        run: npm run check:paste-exit
+        continue-on-error: true
+
       # Runs after the probe on purpose: diagnose copies the installed plugin's trace, and
       # the probe writes to the repository's copy, so this order keeps the real evidence.
       - name: Windows environment probe
