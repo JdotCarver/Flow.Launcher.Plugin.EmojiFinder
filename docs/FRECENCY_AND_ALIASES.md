@@ -92,9 +92,14 @@ e aliases                  list them, plus "open my aliases file" and "open the 
 e removealias swole        remove one
 ```
 
-Right arrow on an emoji → **Add an alias for this emoji** explains the command; it cannot type for
-you (see below). The menu's working entries are removing that emoji's aliases and opening the
-file.
+Right arrow on an emoji gives: **Add an alias for this emoji** (explains the command; it cannot
+type for you, see below), **Copy only (no paste)** — the same emoji on the clipboard without the
+Ctrl+V, which is what paste-mode users need when they want just a copy — the remove entries for
+that emoji's aliases, and **Open my aliases file**.
+
+**Icons, not glyphs.** An emoji written into a Title renders as a monochrome outline glyph in
+Flow's list, and showing it in the title *and* the subtitle looks like a rendering bug. Every
+alias entry uses the emoji's own coloured PNG as its icon and keeps the title text to the name.
 
 **Queries never write.** Flow Launcher runs the plugin once per keystroke, so saving during a
 query would leave `s`, `sw`, `swo`, ... behind as aliases. Everything that changes a file is an

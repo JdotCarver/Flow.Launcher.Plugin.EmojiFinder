@@ -240,6 +240,13 @@ function checkContextMenu () {
     'the add-an-alias entry explains the command instead of typing for the user',
     String(hint?.Subtitle ?? '')
   );
+  const copyOnly = menu.find((item) => item.Title === 'Copy only (no paste)');
+
+  finding(
+    copyOnly?.JsonRPCAction?.method === 'copy' && copyOnly?.JsonRPCAction?.parameters?.[0] === '💪',
+    'the menu offers a copy-only action for paste-mode users',
+    JSON.stringify(copyOnly?.JsonRPCAction ?? null)
+  );
   // Flow decodes our stdout with the console code page, so the emoji must not be written literally.
   const printableAscii = [...stdout].every((character) => {
     const code = character.charCodeAt(0);

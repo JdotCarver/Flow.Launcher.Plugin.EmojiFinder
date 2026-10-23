@@ -45,6 +45,14 @@ import process from 'node:process';
 /** Folder under the user's local app data; also the name of the Startup shortcut. */
 export const AGENT_DATA_FOLDER = 'Flow.Launcher.Plugin.EmojiFinder';
 
+/**
+ * Environment variable that moves the agent's files somewhere else.
+ *
+ * For the checks, and for anyone who wants a second, isolated agent while developing. The
+ * plugin never sets it: in normal use the folder is the one above.
+ */
+export const AGENT_DIRECTORY_VARIABLE = 'EMOJI_PASTE_AGENT_DIRECTORY';
+
 /** How long the agent waits for Flow to get out of the way before giving up, per request. */
 const MAXIMUM_PASTE_WAIT_MILLISECONDS = 2500;
 
@@ -99,9 +107,22 @@ export interface PasteAgentStatus {
  * @param environment Injected for tests.
  */
 export function resolveAgentPaths (environment: NodeJS.ProcessEnv = process.env): PasteAgentPaths {
-  const root = environment.LOCALAPPDATA ?? environment.TEMP ?? os.tmpdir();
-  const directory = path.join(root, AGENT_DATA_FOLDER);
+  // An explicit folder wins. The checks use it to run their own agent in a temporary folder,
+  // so proving the agent works never stops the user's agent - which used to interrupt paste
+  // for a minute on every Windows run, and looked exactly like an intermittent bug.
+  const overridden = environment[AGENT_DIRECTORY_VARIABLE]?.trim();
 
+  if (overridden !== undefined && overridden !== '') {
+    return pathsIn(path.resolve(overridden));
+  }
+
+  const root = environment.LOCALAPPDATA ?? environment.TEMP ?? os.tmpdir();
+
+  return pathsIn(path.join(root, AGENT_DATA_FOLDER));
+}
+
+/** The file names are fixed; only the folder varies. */
+function pathsIn (directory: string): PasteAgentPaths {
   return {
     directory,
     script: path.join(directory, 'paste-agent.ps1'),

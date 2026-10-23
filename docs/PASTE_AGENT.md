@@ -127,6 +127,9 @@ not care which one hosts it.
   `Get-Content`/`Set-Content`, whose default encoding differs between the two hosts (5.1 uses
   the ANSI code page, 7 uses UTF-8). Every read and write is `[System.IO.File]` with an
   explicit `UTF8Encoding($false)`, so the code points survive under either host.
+- **Isolated from the user**: `npm run check:paste-agent` runs everything in a temporary folder
+  of its own (`EMOJI_PASTE_AGENT_DIRECTORY`), so a Windows run never stops the agent the user is
+  relying on. It used to, and that read exactly like an intermittent paste bug.
 - **Proof, not assumption**: `npm run check:paste-agent` runs the whole experiment once per
   host - `powershell.exe` always, `pwsh.exe` only when it is installed - and asserts that the
   emoji's code points survive the request file, that the agent decides to paste, that it stays

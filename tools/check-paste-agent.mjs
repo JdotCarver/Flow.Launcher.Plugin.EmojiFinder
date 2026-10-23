@@ -10,6 +10,10 @@
 // meaningless characters and the clipboard could never match. Running both hosts is how that
 // class of bug is caught before a user finds it.
 //
+// The agent runs in a temporary folder, never the user's. Proving the agent works used to
+// stop and restart the real one, so paste on this machine failed for about a minute on every
+// Windows run - indistinguishable from a bug in the feature, and reported as one.
+//
 // What it proves, per host
 //   1. the agent starts from a script this repository generated;
 //   2. it publishes a heartbeat, which is how the plugin knows it is alive;
@@ -30,9 +34,11 @@
 
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import {
+  AGENT_DIRECTORY_VARIABLE,
   AGENT_LAUNCHER_FILE_NAME,
   ensureAgentLauncher,
   ensureAgentScript,
@@ -55,6 +61,15 @@ const REQUEST_SETTLE_MILLISECONDS = 4000;
 const START_WAIT_MILLISECONDS = 15000;
 
 const style = createStyle();
+
+/**
+ * The whole run happens in here, so it can never touch the agent the user is relying on.
+ * Set before anything resolves the paths: the module reads this variable on every call, and
+ * every subprocess started below inherits it.
+ */
+const AGENT_DIRECTORY = fs.mkdtempSync(path.join(os.tmpdir(), 'paste-agent-check-'));
+
+process.env[AGENT_DIRECTORY_VARIABLE] = AGENT_DIRECTORY;
 
 function readIfPresent (filePath) {
   try {
@@ -160,20 +175,6 @@ async function waitForHeartbeat (paths) {
   return false;
 }
 
-/** Stops whatever agent is running, through the CLI, so a host run starts from nothing. */
-function stopAnyAgent () {
-  try {
-    execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), '--stop'], {
-      cwd: PLUGIN_ROOT,
-      encoding: 'utf8',
-      timeout: 30000,
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
-  } catch {
-    // "was not running" is not an error here.
-  }
-}
-
 /**
  * Runs the full experiment under one host.
  *
@@ -186,9 +187,10 @@ async function checkHost (host, emoji) {
   const findings = [];
   const startupLog = path.join(paths.directory, `agent-startup-${host.replace('.exe', '')}.log`);
 
-  stopAnyAgent();
+  // A fresh folder per host would be cleaner still, but the paths are fixed for the whole run;
+  // what matters is that nothing is running before this host starts.
   const stopped = await waitUntilStopped(paths);
-  findings.push({ label: 'the previous agent is gone before this host starts', ok: stopped });
+  findings.push({ label: 'no agent is running before this host starts', ok: stopped });
 
   // After the stop, so nothing the previous host wrote can be mistaken for this host's work.
   const logOffset = existingBytes(paths.log);
@@ -280,7 +282,6 @@ async function checkLauncher () {
   const host = resolvePowerShellHost();
   const launcher = ensureAgentLauncher(paths, host);
 
-  stopAnyAgent();
   const stopped = await waitUntilStopped(paths);
   findings.push({ label: 'no agent is running before the launcher is used', ok: stopped });
   findings.push({ label: 'the launcher exists beside the agent script', ok: fs.existsSync(launcher) });
@@ -315,18 +316,9 @@ async function checkOnWindows () {
 
     results.push(await checkLauncher());
   } finally {
-    // Leave the machine able to paste, even if a host's run threw: the last thing the loop
-    // does is kill its agent, and a user's paste setting must not stay broken after a check.
-    try {
-      execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), '--start'], {
-        cwd: PLUGIN_ROOT,
-        encoding: 'utf8',
-        timeout: 60000,
-        stdio: ['ignore', 'pipe', 'pipe']
-      });
-    } catch {
-      results.push({ host: 'restart', findings: [{ label: 'agent restarted after the checks', ok: false }], logTail: [] });
-    }
+    // The user's agent and its files were never touched, so there is nothing to restore. Only
+    // the evidence is copied out, by diagnose, before this folder goes.
+    fs.rmSync(AGENT_DIRECTORY, { recursive: true, force: true });
   }
 
   return {
@@ -334,7 +326,7 @@ async function checkOnWindows () {
     platform: process.platform,
     emoji,
     hosts,
-    dataFolder: resolveAgentPaths().directory,
+    dataFolder: AGENT_DIRECTORY,
     results
   };
 }

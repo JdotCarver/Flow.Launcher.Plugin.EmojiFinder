@@ -19,6 +19,7 @@
 // Both paths end in the same save call, and aliases then behave as extra names in `find()`.
 
 import { ALIASES_FILE_NAME, readAliases } from '../utils/pluginData.js';
+import { getIconFileName } from '../utils/utils.js';
 import type { JsonRpcAction, Result } from '../types.js';
 
 /** How many emoji the picker offers at once. The same ceiling the search uses. */
@@ -87,6 +88,17 @@ export function parseAliasCommand (input: string): AliasCommand {
   return alias === '' ? { kind: 'add-incomplete', emoji } : { kind: 'add', emoji, alias };
 }
 
+/**
+ * The icon for one emoji.
+ *
+ * The emoji's own PNG, in colour. Emoji written into a Title render as monochrome outline
+ * glyphs in Flow's result list, and repeating the emoji in the title and the subtitle shows it
+ * twice - once as text, once as an icon - which reads as a rendering bug.
+ */
+function emojiIcon (emoji: string): string {
+  return getIconFileName(emoji) ?? 'img\\app.png';
+}
+
 /** An action that opens a file with whatever the user has associated with it. */
 function openFileAction (filePath: string): JsonRpcAction {
   // ShellRun(cmd, filename): with an empty command the file name is started on its own, which
@@ -134,9 +146,9 @@ export function buildAliasCommandResults (
     const alias = command.alias.trim().toLowerCase();
 
     return [{
-      Title: `Save “${alias}” for ${command.emoji}`,
-      Subtitle: 'Press Enter to save this alias',
-      IcoPath: 'img\\app.png',
+      Title: `Save the alias “${alias}”`,
+      Subtitle: `Enter to save it. “${alias}” will find this emoji.`,
+      IcoPath: emojiIcon(command.emoji),
       JsonRPCAction: { method: 'addalias', parameters: [alias, command.emoji] }
     }];
   }
@@ -185,19 +197,18 @@ function pickerResults (command: { kind: 'add-search', term: string } | { kind: 
   const term = command.kind === 'add-search' ? command.term : '';
   const emoji = search(term, PICKER_LIMIT);
 
-  return emoji.map(({ emoji: candidate, title, subtitle }) => (command.kind === 'add-search'
-    ? {
-        Title: `${candidate}  ${title}`,
-        Subtitle: `Press Enter to make “${term}” an alias for ${candidate}`,
-        IcoPath: 'img\\app.png',
-        JsonRPCAction: { method: 'addalias', parameters: [term, candidate] }
-      }
-    : {
-        Title: `${candidate}  ${title}`,
-        Subtitle: `${subtitle} - Enter, then type the name`,
-        IcoPath: 'img\\app.png',
-        JsonRPCAction: { method: 'Flow.Launcher.ChangeQuery', parameters: [`addalias ${candidate} `, true] }
-      }));
+  return emoji.map(({ emoji: candidate, title }) => ({
+    // The name in text, the emoji as the icon: Flow renders an emoji inside a title as a
+    // monochrome glyph, and showing it in both places reads as a glitch.
+    Title: title,
+    Subtitle: command.kind === 'add-search'
+      ? `${term} → this emoji. Enter to save the alias.`
+      : 'Enter, then type the name',
+    IcoPath: emojiIcon(candidate),
+    JsonRPCAction: command.kind === 'add-search'
+      ? { method: 'addalias', parameters: [term, candidate] }
+      : { method: 'Flow.Launcher.ChangeQuery', parameters: [`addalias ${candidate} `, true] }
+  }));
 }
 
 /**
@@ -237,9 +248,9 @@ function listingResults (paths: { settingsDirectory: string | null, emojiDatabas
 
   for (const [alias, emoji] of entries) {
     results.push({
-      Title: `${emoji}  ${alias}`,
-      Subtitle: 'Press Enter to remove this alias',
-      IcoPath: 'img\\app.png',
+      Title: alias,
+      Subtitle: 'Enter to remove this alias. It finds the emoji shown.',
+      IcoPath: emojiIcon(emoji),
       JsonRPCAction: { method: 'removealias', parameters: [alias] }
     });
   }
@@ -276,11 +287,20 @@ export function buildContextMenu (
   // entries, so a pre-filled query is filtered away as soon as the user types.
   const menu: Result[] = [buildAddAliasHintResult(emoji)];
 
+  // Copy-only, for anyone whose Enter mode is Paste Mode: the same emoji, without the Ctrl+V.
+  // It runs our own copy action, which is what records the pick and shows the confirmation.
+  menu.push({
+    Title: 'Copy only (no paste)',
+    Subtitle: 'Puts this emoji on the clipboard and leaves the cursor alone',
+    IcoPath: emojiIcon(emoji),
+    JsonRPCAction: { method: 'copy', parameters: [emoji, true] }
+  });
+
   for (const [alias] of own) {
     menu.push({
-      Title: `Remove alias “${alias}”`,
-      Subtitle: `${emoji} would stop answering to it`,
-      IcoPath: 'img\\app.png',
+      Title: `Remove the alias “${alias}”`,
+      Subtitle: 'This emoji would stop answering to it',
+      IcoPath: emojiIcon(emoji),
       JsonRPCAction: { method: 'removealias', parameters: [alias] }
     });
   }

@@ -14,6 +14,7 @@ import {
   buildAgentScript,
   ensureAgentScript,
   HEARTBEAT_STALE_AFTER_MILLISECONDS,
+  AGENT_DIRECTORY_VARIABLE,
   AGENT_LAUNCHER_FILE_NAME,
   AGENT_PID_FILE_NAME,
   STARTUP_GRACE_MILLISECONDS,
@@ -225,6 +226,30 @@ describe('readAgentStatus', () => {
 
   test('no heartbeat at all means it has never run', () => {
     expect(readAgentStatus(createPaths())).toEqual({ running: false, heartbeatAgeMilliseconds: null });
+  });
+});
+
+describe('resolveAgentPaths', () => {
+  test('lives under the local app data folder by default', () => {
+    const paths = resolveAgentPaths({ LOCALAPPDATA: 'C:\\Users\\someone\\AppData\\Local' });
+
+    expect(paths.directory).toBe(path.join('C:\\Users\\someone\\AppData\\Local', 'Flow.Launcher.Plugin.EmojiFinder'));
+  });
+
+  test('an explicit folder wins, which is how the checks leave the user\'s agent alone', () => {
+    const paths = resolveAgentPaths({
+      LOCALAPPDATA: 'C:\\Users\\someone\\AppData\\Local',
+      [AGENT_DIRECTORY_VARIABLE]: 'C:\\Temp\\isolated-agent'
+    });
+
+    expect(paths.directory).toBe(path.resolve('C:\\Temp\\isolated-agent'));
+    expect(paths.log).toBe(path.join(paths.directory, 'agent.log'));
+  });
+
+  test('an empty override is ignored rather than writing into the current folder', () => {
+    const paths = resolveAgentPaths({ LOCALAPPDATA: 'C:\\Local', [AGENT_DIRECTORY_VARIABLE]: '  ' });
+
+    expect(paths.directory).toBe(path.join('C:\\Local', 'Flow.Launcher.Plugin.EmojiFinder'));
   });
 });
 

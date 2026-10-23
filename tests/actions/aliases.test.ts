@@ -90,7 +90,9 @@ describe('buildAliasCommandResults', () => {
     const [result] = results({ kind: 'add', emoji: '💪', alias: 'Swole' }, directory);
 
     expect(result?.Title).toContain('swole');
-    expect(result?.Title).toContain('💪');
+    // The emoji arrives as the icon, not as a monochrome glyph inside the title.
+    expect(result?.Subtitle).toContain('this emoji');
+    expect(result?.IcoPath).toMatch(/^icons\\/);
     // A query is run per keystroke: saving here would leave `s`, `sw`, `swo` behind as aliases.
     expect(readAliases(directory)).toEqual({});
     expect(result?.JsonRPCAction).toEqual({ method: 'addalias', parameters: ['swole', '💪'] });
@@ -99,8 +101,9 @@ describe('buildAliasCommandResults', () => {
   test('a name without an emoji becomes a picker that saves the name', () => {
     const [result] = results({ kind: 'add-search', term: 'swole' }, createSettingsDirectory());
 
-    expect(result?.Title).toContain('💪');
+    expect(result?.Title).toBe('Flexed Biceps');
     expect(result?.Subtitle).toContain('swole');
+    expect(result?.IcoPath).toMatch(/^icons\\/);
     expect(result?.JsonRPCAction).toEqual({ method: 'addalias', parameters: ['swole', '💪'] });
   });
 
@@ -182,8 +185,16 @@ describe('the context menu', () => {
 
     const menu = buildContextMenu('💪', paths(directory));
 
-    expect(menu.map((result) => result.Title)).toContain('Remove alias “swole”');
-    expect(menu.map((result) => result.Title)).not.toContain('Remove alias “shipit”');
+    expect(menu.map((result) => result.Title)).toContain('Remove the alias “swole”');
+    expect(menu.map((result) => result.Title)).not.toContain('Remove the alias “shipit”');
+  });
+
+  test('offers a copy-only action, for when Enter mode is paste', () => {
+    const menu = buildContextMenu('💪', paths(createSettingsDirectory()));
+    const copyOnly = menu.find((result) => result.Title === 'Copy only (no paste)');
+
+    // Our own copy action, so the pick is recorded and the user gets a confirmation.
+    expect(copyOnly?.JsonRPCAction).toEqual({ method: 'copy', parameters: ['💪', true] });
   });
 
   test('offers the file, even when there are no aliases yet', () => {
@@ -202,7 +213,9 @@ describe('the context menu', () => {
   test('offers no file entry when there is no settings folder', () => {
     const menu = buildContextMenu('💪', paths(null));
 
-    // The hint stays, because it works without any file; a file entry would be a dead link.
-    expect(menu).toEqual([buildAddAliasHintResult('💪')]);
+    // The hint and copy-only stay, because neither needs a file; a file entry would be a dead
+    // link, so it is the only thing missing.
+    expect(menu.map((result) => result.Title)).toEqual(['Add an alias for this emoji', 'Copy only (no paste)']);
+    expect(menu[0]).toEqual(buildAddAliasHintResult('💪'));
   });
 });
