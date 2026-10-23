@@ -48,13 +48,24 @@ the agent needs.
 
 5. In the repository: **Actions → windows-dogfood → Run workflow**.
 
+## Two Windows quirks that cost real time here
+
+- **`shell: bash` does not mean Git Bash on Windows.** It resolves to
+  `C:\Windows\system32\bash.exe`, which is the WSL launcher. Without a WSL distribution it
+  exits instantly with no output, so the step fails with nothing in the log. Use `shell: pwsh`
+  for anything on Windows.
+- **The runner's PowerShell wrapper sets `$ErrorActionPreference = 'stop'`.** Native commands
+  write progress to stderr, and PowerShell turns that into a terminating
+  `NativeCommandError` - so `git push` can appear to fail while it actually succeeded. Capture
+  output with `2>&1 | Out-String` and lower the preference while calling native tools.
+
 ## What the agent does with it
 
 ```bash
 gh workflow run windows-dogfood.yml          # start it
 gh run list --workflow windows-dogfood.yml   # find the run
 gh run watch <id>                            # live progress
-gh run view <id> --log                       # full log
+gh run view <id>                          # per-step status and annotations
 gh run download <id> -n dogfood              # the reports
 ```
 
