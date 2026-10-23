@@ -81,6 +81,12 @@ jobs:
         run: npm run diagnose
         continue-on-error: true
 
+      # The real experiment behind the paste bug: run the plugin's own spawn function and
+      # compare it with the same script under one changed spawn option at a time.
+      - name: Paste helper spawn probe
+        run: npm run check:paste-spawn
+        continue-on-error: true
+
       # Logs and artifacts are served from hosts an agent sandbox cannot reach (Azure blob
       # storage), but git is always reachable. Publishing to a branch is what lets the
       # agent read the evidence instead of asking the maintainer to paste it.
@@ -91,7 +97,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -u
-          reports="$RUNNER_TEMP/dogfood-reports"
+          # Built from $PWD, never from $RUNNER_TEMP: on Windows that variable is a
+          # D:\... path, which bash cannot mkdir or cd into (this is what failed the
+          # first attempt). $PWD is already in bash's own /d/... form.
+          reports="$PWD/../dogfood-reports"
           rm -rf "$reports"
           mkdir -p "$reports"
           if [ -d dogfood ]; then cp -r dogfood/. "$reports/"; fi

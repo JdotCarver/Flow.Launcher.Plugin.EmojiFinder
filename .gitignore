@@ -10,3 +10,9 @@ trace.on
 dogfood/diagnose-linux.json
 dogfood/windows-probe.json
 dogfood/doctor-linux.json
+# Probe output from a Windows run: regenerated every time, published from the
+# dogfood-reports branch instead of being committed here.
+dogfood/probe-*.log
+dogfood/paste-spawn-probe.json
+dogfood/paste-spawn-probe.ps1
+dogfood/helper-stderr.log
