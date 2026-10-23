@@ -24,7 +24,10 @@ Press <kbd>E</kbd>, type what you are looking for, and get it copied to the clip
 ## Configuration
 You can change the action keyword in the plugins settings menu.
 
-You can also enable or disabled system notifications from the same menu.
+You can also enable or disable system notifications from the same menu, and choose how
+many emoji a query returns. Matching is fuzzy, so a broad query ("e *a*") can match
+almost the whole emoji table; every extra result is work for Flow Launcher before the
+list can appear. The default, 25, is about two screens and keeps the list instant.
 
 ## Resources
 

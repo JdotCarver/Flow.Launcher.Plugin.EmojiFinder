@@ -1,3 +1,8 @@
+// src/main.ts
+//
+// Entry point. Flow Launcher runs `node dist/main.js '<json>'` once per keystroke
+// (method "query") and once when the user picks a result (method "copy").
+
 import process from 'node:process';
 import type { Arguments } from './types.js';
 import { copy } from './actions/copy.js';
@@ -16,5 +21,6 @@ if (method === 'copy') {
   const emoji = parameters[0] as string;
   const enableNotification = parameters[1] as boolean ?? true;
 
-  copy(emoji, enableNotification);
+  // Awaited so the process lives long enough for the deferred clipboard import.
+  await copy(emoji, enableNotification);
 }

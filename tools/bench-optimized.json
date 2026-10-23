@@ -1,0 +1,72 @@
+[
+  {
+    "label": "empty",
+    "input": "",
+    "meanMs": 50.143006719999995,
+    "medianMs": 49.570916,
+    "p95Ms": 56.175155,
+    "minMs": 46.969301,
+    "resultCount": 25,
+    "payloadBytes": 5409
+  },
+  {
+    "label": "1 letter",
+    "input": "a",
+    "meanMs": 55.547579279999994,
+    "medianMs": 55.366862,
+    "p95Ms": 65.247429,
+    "minMs": 50.160053,
+    "resultCount": 25,
+    "payloadBytes": 6331
+  },
+  {
+    "label": "2 letters",
+    "input": "he",
+    "meanMs": 54.05544543999999,
+    "medianMs": 53.391364,
+    "p95Ms": 59.39607,
+    "minMs": 49.827779,
+    "resultCount": 25,
+    "payloadBytes": 5357
+  },
+  {
+    "label": "common",
+    "input": "smile",
+    "meanMs": 50.03949000000001,
+    "medianMs": 49.704642,
+    "p95Ms": 57.361977,
+    "minMs": 45.548564,
+    "resultCount": 25,
+    "payloadBytes": 5374
+  },
+  {
+    "label": "multi-word",
+    "input": "red heart",
+    "meanMs": 48.844644399999986,
+    "medianMs": 48.573342,
+    "p95Ms": 54.811816,
+    "minMs": 44.673357,
+    "resultCount": 3,
+    "payloadBytes": 602
+  },
+  {
+    "label": "medium",
+    "input": "face",
+    "meanMs": 55.13671939999998,
+    "medianMs": 53.396478,
+    "p95Ms": 62.557697,
+    "minMs": 49.611992,
+    "resultCount": 25,
+    "payloadBytes": 5270
+  },
+  {
+    "label": "no match",
+    "input": "zzzzzz",
+    "meanMs": 50.82861872,
+    "medianMs": 49.929885,
+    "p95Ms": 54.977395,
+    "minMs": 45.714132,
+    "resultCount": 0,
+    "payloadBytes": 14
+  }
+]

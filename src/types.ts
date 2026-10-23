@@ -1,3 +1,5 @@
+// src/types.ts
+
 export type Parameters = Array<string | boolean>;
 
 export type Arguments = {
@@ -8,6 +10,8 @@ export type Arguments = {
 
 export type Settings = {
   enableNotification: boolean
+  /** Chosen in SettingsTemplate.yaml, so it arrives as a string ("25"). */
+  maxResults?: string
 };
 
 export type Result = {

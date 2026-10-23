@@ -5,3 +5,15 @@ body:
       label: Show a system notification when selecting an emoji
       description: "If checked, a system notification is shown when an emoji is copied to the clipboard."
       defaultValue: true
+  - type: dropdown
+    attributes:
+      name: maxResults
+      label: Maximum number of emoji to show
+      description: "Matching is fuzzy, so a broad query can match thousands of emoji. Every result costs time to render, so a lower value shows the list sooner. The default (25) is about two screens."
+      defaultValue: "25"
+      options:
+        - "10"
+        - "25"
+        - "50"
+        - "100"
+        - "250"

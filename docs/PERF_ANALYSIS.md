@@ -168,3 +168,42 @@ is equivalent on the full emoji corpus):
 | copy action | ~90 ms + PowerShell spawn | **~0 ms** (handled by Flow) |
 | payload for `a` | 241 KB / 1 866 items | **~6 KB / 50 items** |
 | runtime deps | clipboardy, emoji-unicode, emojilib | emojilib (until step 4) |
+
+---
+
+## 5. Results (implemented)
+
+Same machine, same benchmark (`node tools/bench.mjs --runs 25`), end-to-end process
+spawn per query — the way Flow Launcher calls the plugin.
+
+| query | before | after | Δ |
+|---|---|---|---|
+| empty | 111.7 ms | **49.6 ms** | −56 % |
+| 1 letter (`a`) | 103.5 ms | 55.4 ms | −47 % |
+| 2 letters (`he`) | 84.8 ms | 53.4 ms | −37 % |
+| common (`smile`) | 75.6 ms | 49.7 ms | −34 % |
+| medium (`face`) | 84.2 ms | 53.4 ms | −37 % |
+| multi-word (`red heart`) | 77.8 ms | 48.6 ms | −38 % |
+| no match | 75.6 ms | 49.9 ms | −34 % |
+
+Payload for the widest queries: **373 KB → 5.3 KB** (−98 %), which is the part the user
+actually felt (~700 ms of list rendering in the launcher).
+
+What produced it:
+
+1. `query()` caps results (setting `maxResults`, default 25, ceiling 250).
+2. `find()` rewritten: no `Array.from` per emoji, no `split('_')` allocation in the
+   scoring loop, humanised strings built only for the returned slice, correct stable
+   comparator, whitespace runs collapsed.
+3. `clipboardy` is imported lazily inside `copy()` instead of at module load: the
+   query path no longer pays ~30 ms for a module it never uses.
+
+Deliberate behaviour changes (all documented in tests):
+
+- an empty query now lists emoji in data-file order instead of "most keywords first"
+  (the old order came from scoring an empty string against every keyword part);
+- equal scores keep the data-file order instead of an arbitrary one;
+- a query containing a double space no longer matches the entire table.
+
+Not done yet: the native `Flow.Launcher.CopyToClipboard` action (deferred with the
+"paste at cursor" feature), the precomputed index (deferred with user-defined aliases).
