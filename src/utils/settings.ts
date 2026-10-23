@@ -53,12 +53,15 @@ export function parseMaxResults (value: string | number | undefined): number {
 /**
  * Resolves what picking a result should do.
  *
- * Only the exact value "paste" switches modes; anything else (missing setting, an old
- * Settings.json, a hand-edited value) keeps copying, which is what every version before
- * this one did.
+ * The value is whatever SettingsTemplate.yaml puts in the dropdown, which is user-facing text:
+ * it has been "copy"/"paste" and is now "Copy Mode"/"Paste Mode". Matching on a word inside the
+ * value instead of the whole string is what keeps the setting working when the wording changes -
+ * a rename in the template once turned Paste Mode into a silent Copy Mode.
+ *
+ * Anything unrecognised keeps copying, which is what every version before paste existed did.
  */
 export function parseDefaultAction (value: string | undefined): DefaultAction {
-  return value === 'paste' ? 'paste' : DEFAULT_ACTION;
+  return (value ?? '').toLowerCase().includes('paste') ? 'paste' : DEFAULT_ACTION;
 }
 
 /**

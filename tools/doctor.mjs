@@ -418,6 +418,13 @@ function finding (kind, message) {
   if (kind === 'fail') {
     blockers++;
   }
+
+  // In CI, every blocker is repeated as an annotation. The job continues past this step, so
+  // without it a stale install scrolled past unread in a log nobody can open from the sandbox
+  // - which is exactly how the installed plugin stayed an hour behind the build.
+  if (kind === 'fail' && process.env.GITHUB_ACTIONS === 'true') {
+    console.log(`::error title=installation::${message.replaceAll('%', '%25').replaceAll('\r', ' ').replaceAll('\n', ' ')}`);
+  }
 }
 
 function printFindings () {

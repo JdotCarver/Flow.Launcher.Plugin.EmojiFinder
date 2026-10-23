@@ -92,10 +92,34 @@ jobs:
         run: npm run doctor
         continue-on-error: true
 
+      # Is this commit something the installed copy should have? Anything under src/, the
+      # settings template or the manifest is, because this runner is also the dogfooding
+      # machine. [install] forces it for a commit that changes none of those.
+      #
+      # Without this the machine kept running an hour-old build while the change under test
+      # sat in the repository: the context menu did not change, the settings did not change,
+      # and the only clue was one FAIL line in a log the sandbox cannot open.
+      - name: Does the installed copy need this commit?
+        id: changes
+        shell: powershell
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $files = @()
+          if (Test-Path '.git') {
+            $files = @(git diff --name-only 'HEAD~1' 'HEAD' 2>$null)
+          }
+          $pluginFiles = @($files | Where-Object { $_ -match '^(src/|plugin\.json$|SettingsTemplate\.yaml$|package\.json$)' })
+          $forced = $env:COMMIT_MESSAGE -match '\[install\]'
+          $needs = $forced -or ($pluginFiles.Count -gt 0)
+          Write-Host "::notice title=install::changed files that affect the installed copy: $($pluginFiles.Count); forced: $forced"
+          "needs_install=$($needs.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+
       # Installs the freshly built plugin into this machine's Flow Launcher, with tracing
-      # on, so a fix can be tried by hand straight away. Opt-in per commit: [install].
-      - name: Install into Flow Launcher (opt-in)
-        if: contains(github.event.head_commit.message, '[install]')
+      # on, so a fix can be tried by hand straight away.
+      - name: Install into Flow Launcher
+        if: steps.changes.outputs.needs_install == 'true'
         run: npm run package -- --install --trace
         continue-on-error: true
 
@@ -103,7 +127,7 @@ jobs:
       # This one is what proves a fresh install is complete: manifest, dist, and the
       # production dependencies the plugin cannot run without.
       - name: Installation doctor (after install)
-        if: contains(github.event.head_commit.message, '[install]')
+        if: steps.changes.outputs.needs_install == 'true'
         run: npm run doctor
         continue-on-error: true
 

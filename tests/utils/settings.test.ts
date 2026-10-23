@@ -48,15 +48,23 @@ describe('parseDefaultAction', () => {
     expect(parseDefaultAction('copy')).toBe('copy');
   });
 
+  test('reads the friendly wording the settings template now offers', () => {
+    // SettingsTemplate.yaml is user-facing text and has already been reworded once. When the
+    // options became "Copy Mode"/"Paste Mode", an exact match on 'paste' turned Paste Mode
+    // into a silent Copy Mode - the setting looked right and did nothing.
+    expect(parseDefaultAction('Paste Mode')).toBe('paste');
+    expect(parseDefaultAction('Copy Mode')).toBe('copy');
+    expect(parseDefaultAction('paste mode')).toBe('paste');
+  });
+
   test('keeps copying when the setting is missing, as every earlier version did', () => {
     expect(parseDefaultAction(undefined)).toBe(DEFAULT_ACTION);
     expect(parseDefaultAction('')).toBe('copy');
   });
 
   test('ignores anything it does not recognise', () => {
-    expect(parseDefaultAction('PASTE')).toBe('copy');
-    expect(parseDefaultAction('paste ')).toBe('copy');
     expect(parseDefaultAction('true')).toBe('copy');
+    expect(parseDefaultAction('neither')).toBe('copy');
   });
 });
 
