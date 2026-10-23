@@ -15,6 +15,7 @@
 // On a non-Windows machine the windows half is skipped with a note instead of failing:
 // the plugin-side facts are still worth having.
 
+import { readAgentStatus, resolveAgentPaths, buildAgentScript } from '../dist/utils/pasteAgent.js';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -46,6 +47,7 @@ const report = {
 report.windows = runWindowsDiagnostic();
 report.pluginTrace = collectRuntimeTrace();
 report.pasteAgent = collectAgentLog();
+report.pasteAgentStatus = collectAgentStatus();
 
 fs.mkdirSync(REPORT_DIRECTORY, { recursive: true });
 fs.writeFileSync(REPORT_FILE, JSON.stringify(report, null, 2));
@@ -283,6 +285,37 @@ function collectAgentLog () {
     totalLines: lines.length,
     lastLines: lines.slice(-20)
   };
+}
+
+/**
+ * Whether an agent is alive *right now*, as the plugin would see it.
+ *
+ * The log says what happened; this says whether anything is listening at all. They answer
+ * different questions, and "nothing pastes" is usually the second one: the plugin publishes a
+ * request and, by design, starts nothing, so with no resident agent the request goes nowhere.
+ */
+function collectAgentStatus () {
+  try {
+    const paths = resolveAgentPaths();
+    const status = readAgentStatus(paths);
+
+    return {
+      running: status.running,
+      dataDirectory: paths.directory,
+      scriptOnDisk: fs.existsSync(paths.script),
+      scriptIsCurrent: ensureAgentScriptIsCurrent(paths)
+    };
+  } catch (error) {
+    return { running: false, error: error.message };
+  }
+}
+
+/**
+ * Rebuilds the expected script and compares it with the one on disk, without writing anything:
+ * a resident agent keeps the script it loaded, so a stale file is a normal, quiet failure.
+ */
+function ensureAgentScriptIsCurrent (paths) {
+  return readIfPresent(paths.script) === buildAgentScript(paths);
 }
 
 function installedPluginTrace () {

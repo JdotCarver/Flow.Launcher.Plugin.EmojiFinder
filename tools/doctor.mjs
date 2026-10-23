@@ -22,7 +22,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { readAgentStatus, resolveAgentPaths } from '../dist/utils/pasteAgent.js';
+import { buildAgentScript, readAgentStatus, resolveAgentPaths } from '../dist/utils/pasteAgent.js';
 import { createStyle } from './report-style.mjs';
 
 const style = createStyle();
@@ -54,14 +54,18 @@ if (dataDirectory === null) {
   // What the *running* agent must have loaded. A resident process keeps its script in
   // memory, so a rebuilt plugin can be correct while the agent still runs yesterday's code -
   // which is indistinguishable from "the fix did nothing" unless it is checked here.
+  // Compared by content, not by date: the script is only rewritten when it differs, so an old
+  // timestamp is normal and a date comparison would cry wolf. An older build once looked for
+  // the string '-Encoding UTF8', which this script no longer contains for good reasons, and
+  // reported every healthy install as broken.
   if (fs.existsSync(agentPaths.script)) {
-    const script = fs.readFileSync(agentPaths.script, 'utf8');
-    const readsUtf8 = script.includes('-Encoding UTF8');
+    const onDisk = fs.readFileSync(agentPaths.script, 'utf8');
+    const expected = buildAgentScript(agentPaths);
     const modifiedAt = new Date(fs.statSync(agentPaths.script).mtimeMs).toISOString();
 
-    finding(readsUtf8 ? 'pass' : 'fail', readsUtf8
-      ? `paste agent script on disk is current (${modifiedAt})`
-      : `paste agent script on disk predates the UTF-8 fix (${modifiedAt}); restart the agent with "npm run agent -- --stop" then "--start"`);
+    finding(onDisk === expected ? 'pass' : 'fail', onDisk === expected
+      ? `paste agent script on disk is the one this build generates (${modifiedAt})`
+      : `paste agent script on disk differs from the one this build generates (${modifiedAt}); a running agent keeps the old one in memory, so restart it: "npm run agent -- --stop" then "--start"`);
   }
 
   if (agentStatus.running) {
