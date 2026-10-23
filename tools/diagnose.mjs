@@ -45,6 +45,7 @@ const report = {
 
 report.windows = runWindowsDiagnostic();
 report.pasteHelperTrace = collectRuntimeTrace();
+report.pasteAgent = collectAgentLog();
 
 fs.mkdirSync(REPORT_DIRECTORY, { recursive: true });
 fs.writeFileSync(REPORT_FILE, JSON.stringify(report, null, 2));
@@ -255,6 +256,35 @@ function collectRuntimeTrace () {
 /**
  * Path of the trace inside the plugin that Flow Launcher actually loads, if any.
  */
+/**
+ * Copies the paste agent's log into the repository.
+ *
+ * The agent is a separate, resident process, so its log lives with its own state in
+ * %LOCALAPPDATA% rather than in the plugin folder. It always logs - including "did a request
+ * ever arrive" - which is the only way to tell "the plugin never asked" apart from "the agent
+ * asked for the wrong window".
+ */
+function collectAgentLog () {
+  const source = path.join(process.env.LOCALAPPDATA ?? '', 'Flow.Launcher.Plugin.EmojiFinder', 'agent.log');
+  const destination = path.join(REPORT_DIRECTORY, 'agent.log');
+
+  if (process.env.LOCALAPPDATA === undefined || !fs.existsSync(source)) {
+    return { exists: false, note: 'no agent log: the paste agent has never run on this machine' };
+  }
+
+  fs.mkdirSync(REPORT_DIRECTORY, { recursive: true });
+  fs.copyFileSync(source, destination);
+
+  const lines = fs.readFileSync(destination, 'utf8').trim().split('\n').filter(Boolean);
+
+  return {
+    exists: true,
+    bytes: fs.statSync(destination).size,
+    totalLines: lines.length,
+    lastLines: lines.slice(-20)
+  };
+}
+
 function installedPluginTrace () {
   const appData = process.env.APPDATA;
 

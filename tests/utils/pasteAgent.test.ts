@@ -86,6 +86,12 @@ describe('buildAgentScript', () => {
     expect(script).toContain('odd');
     expect(script).not.toContain("''''");
   });
+
+  test('always writes a log, so "did the request arrive" can be answered afterwards', () => {
+    const paths = createPaths();
+
+    expect(buildAgentScript(paths)).toContain(`$logPath = '${paths.log}'`);
+  });
 });
 
 describe('requestPaste', () => {

@@ -40,7 +40,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { isTracingEnabled, TRACE_DIRECTORY } from './trace.js';
 
 /** Folder under the user's local app data; also the name of the Startup shortcut. */
 export const AGENT_DATA_FOLDER = 'Flow.Launcher.Plugin.EmojiFinder';
@@ -102,25 +101,33 @@ function toPowerShellLiteral (value: string): string {
  * That logic is unchanged and still tested; what is new is that the process doing it is
  * already running when the user presses Enter.
  *
- * @param paths Where the agent reads requests and writes its heartbeat.
- * @param logPath Trace file, or '' when tracing is off (a normal install logs nothing).
+ * It logs *always*, not only when tracing is on. A resident process that runs silently is
+ * undiagnosable: the one question that matters when paste does nothing - did the request
+ * ever arrive? - can only be answered by the agent itself, and by the time the user reports
+ * it, the moment is gone. The file is capped and lives with the agent's own state.
+ *
+ * @param paths Where the agent reads requests and writes its heartbeat and log.
  */
-export function buildAgentScript (paths: PasteAgentPaths, logPath: string = ''): string {
+export function buildAgentScript (paths: PasteAgentPaths): string {
   return `
 $ErrorActionPreference = 'SilentlyContinue'
 
 $requestPath = '${toPowerShellLiteral(paths.request)}'
 $heartbeatPath = '${toPowerShellLiteral(paths.heartbeat)}'
-$logPath = '${toPowerShellLiteral(logPath)}'
+$logPath = '${toPowerShellLiteral(paths.log)}'
 $pollMilliseconds = ${POLL_INTERVAL_MILLISECONDS}
 $pasteWindowMilliseconds = ${MAXIMUM_PASTE_WAIT_MILLISECONDS}
 
 $logDirectoryReady = $false
 function Write-Trace([string] $message) {
-  if ([string]::IsNullOrEmpty($logPath)) { return }
   if (-not $logDirectoryReady) {
     $null = New-Item -ItemType Directory -Force -Path (Split-Path -Parent $logPath) -ErrorAction SilentlyContinue
     $logDirectoryReady = $true
+  }
+  # Capped: a resident process must never be able to fill a disk.
+  $existing = Get-Item -LiteralPath $logPath -ErrorAction SilentlyContinue
+  if ($null -ne $existing -and $existing.Length -gt 262144) {
+    Set-Content -LiteralPath $logPath -Value ''
   }
   $line = '{0} | agent | {1}' -f (Get-Date).ToString('o'), $message
   Add-Content -LiteralPath $logPath -Value $line -ErrorAction SilentlyContinue
@@ -270,8 +277,7 @@ while ($true) {
  * the agent is running is harmless anyway - PowerShell has already read it.
  */
 export function ensureAgentScript (paths: PasteAgentPaths = resolveAgentPaths()): string {
-  const logPath = isTracingEnabled() ? path.join(TRACE_DIRECTORY, 'agent.log') : '';
-  const script = buildAgentScript(paths, logPath);
+  const script = buildAgentScript(paths);
 
   fs.mkdirSync(paths.directory, { recursive: true });
 

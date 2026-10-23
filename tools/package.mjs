@@ -307,7 +307,9 @@ function installPasteAgent () {
     return;
   }
 
-  for (const argument of ['--start', '--install-startup']) {
+  // Stop first: after an upgrade the running agent still has the previous script in memory,
+  // and an old agent is exactly the kind of thing that makes a fix look like it did nothing.
+  for (const argument of ['--stop', '--start', '--install-startup']) {
     try {
       const output = execFileSync(process.execPath, [path.join(PLUGIN_ROOT, 'tools', 'paste-agent.mjs'), argument], {
         cwd: PLUGIN_ROOT,
