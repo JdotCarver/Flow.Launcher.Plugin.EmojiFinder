@@ -36,5 +36,6 @@ if (method === 'copy') {
 if (method === 'paste') {
   const emoji = parameters[0] as string;
 
-  paste(emoji);
+  // Awaited so the helper is running before Flow releases this process.
+  await paste(emoji);
 }

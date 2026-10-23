@@ -9,6 +9,7 @@ import {
   buildPasteScript,
   buildPasteSpawnOptions,
   encodePowerShellCommand,
+  PASTE_HELPER_READY_LINE,
   spawnPasteHelper
 } from '../../src/utils/pasteHelper.js';
 
@@ -119,6 +120,19 @@ describe('encodePowerShellCommand', () => {
   });
 });
 
+describe('the ready handshake', () => {
+  test('the script announces itself as its first statement', () => {
+    const script = buildPasteScript('🙈');
+    const readyIndex = script.indexOf(`WriteLine('${PASTE_HELPER_READY_LINE}')`);
+    const workIndex = script.indexOf('Add-Type -AssemblyName System.Windows.Forms');
+
+    // Both must exist, and the announcement must come before the first expensive step:
+    // it is what tells the plugin process to stay alive until PowerShell is up.
+    expect(readyIndex).toBeGreaterThan(-1);
+    expect(workIndex).toBeGreaterThan(readyIndex);
+  });
+});
+
 describe('buildPasteSpawnOptions', () => {
   test('never asks for a detached process', () => {
     // Regression: `detached: true` becomes DETACHED_PROCESS on Windows, gives PowerShell
@@ -132,17 +146,17 @@ describe('buildPasteSpawnOptions', () => {
     expect(buildPasteSpawnOptions(null).windowsHide).toBe(true);
   });
 
-  test('discards output, and sends stderr to the log file when tracing is on', () => {
-    expect(buildPasteSpawnOptions(null).stdio).toEqual(['ignore', 'ignore', 'ignore']);
-    expect(buildPasteSpawnOptions(3).stdio).toEqual(['ignore', 'ignore', 3]);
+  test('pipes stdout for the ready handshake, and sends stderr to the log when tracing is on', () => {
+    expect(buildPasteSpawnOptions(null).stdio).toEqual(['ignore', 'pipe', 'ignore']);
+    expect(buildPasteSpawnOptions(3).stdio).toEqual(['ignore', 'pipe', 3]);
   });
 });
 
 describe('spawnPasteHelper', () => {
-  test('refuses to pretend on platforms without PowerShell', () => {
+  test('refuses to pretend on platforms without PowerShell', async () => {
     // The test suite runs on Linux, so this result is deterministic here and proves the
     // guard exists. On Windows the same call would start the helper instead.
-    const outcome = spawnPasteHelper('🙈');
+    const outcome = await spawnPasteHelper('🙈');
 
     if (process.platform === 'win32') {
       expect(outcome.started).toBe(true);

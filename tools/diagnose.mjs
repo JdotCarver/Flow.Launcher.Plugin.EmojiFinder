@@ -73,6 +73,12 @@ function describeInstalledPlugin () {
   const entryPoint = path.join(pluginsDirectory, 'dist', 'main.js');
   const traceFile = path.join(pluginsDirectory, 'dogfood', 'runtime.log');
 
+  // PowerShell's own words, when the helper dies before it can write anything. This file
+  // is the only place an error like a blocked command or a broken profile can appear.
+  const helperErrorFile = path.join(pluginsDirectory, 'dogfood', 'helper-stderr.log');
+  const helperErrorText = readIfPresent(helperErrorFile);
+  const helperErrorLines = helperErrorText.trim() === '' ? [] : helperErrorText.trim().split('\n');
+
   return {
     found: true,
     directory: pluginsDirectory,
@@ -82,8 +88,20 @@ function describeInstalledPlugin () {
     tracingEnabled: fs.existsSync(path.join(pluginsDirectory, 'trace.on')),
     traceFileExists: fs.existsSync(traceFile),
     traceFileBytes: existsOrNull(traceFile)?.size ?? 0,
-    traceFileModifiedAt: existsOrNull(traceFile)?.mtime.toISOString() ?? ''
+    traceFileModifiedAt: existsOrNull(traceFile)?.mtime.toISOString() ?? '',
+    helperErrorFileExists: fs.existsSync(helperErrorFile),
+    helperErrorBytes: existsOrNull(helperErrorFile)?.size ?? 0,
+    helperErrorTail: helperErrorLines.slice(-10)
   };
+}
+
+/** Reads a file as text, or '' when it is missing: "not there" is a normal answer here. */
+function readIfPresent (filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch {
+    return '';
+  }
 }
 
 function existsOrNull (filePath) {

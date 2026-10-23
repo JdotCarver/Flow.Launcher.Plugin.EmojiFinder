@@ -40,7 +40,7 @@
 // be faster; both are documented alternatives in docs/PASTE_AT_CURSOR.md. Everything is
 // behind `spawnPasteHelper`, so swapping the mechanism is one function.
 
-import { spawn, type SpawnOptions } from 'node:child_process';
+import { spawn, type ChildProcess, type SpawnOptions } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -54,6 +54,21 @@ const MAXIMUM_WAIT_MILLISECONDS = 2500;
 
 /** How often the helper re-checks its conditions. */
 const POLL_INTERVAL_MILLISECONDS = 20;
+
+/**
+ * The one line PowerShell prints on stdout the moment the script starts running.
+ *
+ * This is a handshake, not a log line. Flow Launcher asks the plugin for a result and then
+ * lets the whole process go: everything that is still starting dies with it. Measured on
+ * the real machine, that is exactly what happened - the plugin recorded the helper's pid
+ * and the helper then wrote nothing, because it was killed somewhere inside PowerShell's
+ * own start-up. Waiting for this line means the plugin process stays alive just long enough
+ * for the helper to be running, after which the helper is on its own.
+ */
+export const PASTE_HELPER_READY_LINE = 'paste-helper-ready';
+
+/** Long enough for a cold PowerShell, short enough not to stall the paste noticeably. */
+const MAXIMUM_READY_WAIT_MILLISECONDS = 1000;
 
 /** Escapes a value for a PowerShell single-quoted string (only the quote is special). */
 function toPowerShellLiteral (value: string): string {
@@ -83,6 +98,10 @@ export function buildPasteScript (emoji: string, logPath: string = ''): string {
 
   return `
 $ErrorActionPreference = 'SilentlyContinue'
+
+# First statement, before anything expensive: tell the plugin that PowerShell is alive.
+[Console]::Out.WriteLine('${PASTE_HELPER_READY_LINE}')
+[Console]::Out.Flush()
 
 $targetEmoji = '${escapedEmoji}'
 $logPath = '${escapedLogPath}'
@@ -213,7 +232,7 @@ export function encodePowerShellCommand (script: string): string {
 }
 
 export type PasteHelperStart =
-  | { started: true, pid: number | undefined }
+  | { started: true, pid: number | undefined, ready: boolean }
   | { started: false, reason: string };
 
 /**
@@ -232,16 +251,28 @@ export type PasteHelperStart =
  */
 export function buildPasteSpawnOptions (errorStream: number | null): SpawnOptions {
   return {
-    stdio: ['ignore', 'ignore', errorStream ?? 'ignore'],
+    // stdout stays a pipe: it carries PASTE_HELPER_READY_LINE, the handshake that tells us
+    // the helper is running (see spawnPasteHelper).
+    stdio: ['ignore', 'pipe', errorStream ?? 'ignore'],
     windowsHide: true
   };
 }
 
 /**
- * Starts the helper. Returns as soon as the process is spawned; we never wait for it, and
- * its exit code is nobody's business (it may outlive us by two seconds).
+ * Starts the helper and waits until it is actually running.
+ *
+ * Returns once the helper has printed PASTE_HELPER_READY_LINE, or after
+ * MAXIMUM_READY_WAIT_MILLISECONDS if it never does. Waiting is the point: Flow releases
+ * this process the moment the action returns, and anything still starting dies with it.
+ * A cold PowerShell needs a few hundred milliseconds to reach its first statement, so
+ * without the handshake the helper is killed every single time.
+ *
+ * The cost is honest and small: the paste arrives roughly as long as PowerShell takes to
+ * start (a few hundred milliseconds) later than it otherwise would.
+ *
+ * @param emoji What the helper will paste.
  */
-export function spawnPasteHelper (emoji: string): PasteHelperStart {
+export async function spawnPasteHelper (emoji: string): Promise<PasteHelperStart> {
   if (process.platform !== 'win32') {
     return { started: false, reason: `platform is ${process.platform}, paste injection is Windows-only` };
   }
@@ -281,14 +312,63 @@ export function spawnPasteHelper (emoji: string): PasteHelperStart {
       appendSpawnFailure(error);
     });
 
-    // Let our process exit while the child keeps running, so Flow can close its window
-    // immediately. This, not `detached`, is what keeps the helper alive.
-    child.unref();
+    const ready = await waitForReadyLine(child);
+    releaseChild(child, ready);
 
-    return { started: true, pid: child.pid };
+    return { started: true, pid: child.pid, ready };
   } catch (error) {
     return { started: false, reason: error instanceof Error ? error.message : String(error) };
   }
+}
+
+/**
+ * Resolves true when the helper prints its ready line, false when it exits first or the
+ * deadline passes. Never rejects: a helper that does not answer is a bug to trace, not a
+ * reason to break the user's copy.
+ */
+function waitForReadyLine (child: ChildProcess): Promise<boolean> {
+  return new Promise((resolve) => {
+    let output = '';
+    let settled = false;
+
+    const settle = (ready: boolean) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(deadline);
+      child.stdout?.removeAllListeners('data');
+      resolve(ready);
+    };
+
+    const deadline = setTimeout(() => settle(false), MAXIMUM_READY_WAIT_MILLISECONDS);
+
+    child.stdout?.on('data', (chunk: Buffer) => {
+      output += String(chunk);
+
+      if (output.includes(PASTE_HELPER_READY_LINE)) {
+        settle(true);
+      }
+    });
+
+    child.on('exit', () => settle(false));
+  });
+}
+
+/**
+ * Lets go of the child so this process can exit while it keeps running.
+ *
+ * The stdout pipe has to be released too: an open pipe keeps Node's event loop alive, and
+ * the plugin would then hang instead of returning to Flow.
+ */
+function releaseChild (child: ChildProcess, ready: boolean): void {
+  if (!ready) {
+    appendSpawnFailure(new Error('the helper did not report ready before the deadline'));
+  }
+
+  child.stdout?.destroy();
+  child.unref();
 }
 
 /**

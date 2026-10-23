@@ -12,7 +12,7 @@ import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
 import { spawnPasteHelper } from '../utils/pasteHelper.js';
 import { trace } from '../utils/trace.js';
 
-export function paste (text: string | undefined): void {
+export async function paste (text: string | undefined): Promise<void> {
   if (text === undefined || text === '') {
     trace('paste:skipped', { reason: 'no emoji in the action parameters' });
 
@@ -27,7 +27,9 @@ export function paste (text: string | undefined): void {
     parameters: [text, false, false]
   });
 
-  const outcome = spawnPasteHelper(text);
+  // Awaited: the helper must be running before this process disappears, otherwise Flow
+  // takes it down mid-start-up and nothing is ever pasted. See src/utils/pasteHelper.ts.
+  const outcome = await spawnPasteHelper(text);
 
   trace('paste:spawn', { emoji: text, ...outcome });
 }
