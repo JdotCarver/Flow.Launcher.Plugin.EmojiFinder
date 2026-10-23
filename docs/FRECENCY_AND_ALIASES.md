@@ -99,8 +99,9 @@ line - "Type the emoji first, then the name" - and never a list:
   same keystrokes could mean different things depending on what was already aliased. That is
   exactly what made the first version confusing.
 
-One word, one meaning. The cost is that the emoji has to be typed or pasted; the alternative (a
-search step) was rendered from the real database and is weighed below.
+One word, one meaning: Enter either saves the alias that is named on the row, or does nothing at
+all. The emoji is typed or pasted - search for it with `e`, Enter copies it, paste it after
+`e addalias`. The search step that would avoid that is rejected below, with the rule it breaks.
 
 Right arrow on an emoji gives: **Add an alias for this emoji** (explains the command; it cannot
 type for you, see below), **Copy only (no paste)** — the same emoji on the clipboard without the
@@ -120,32 +121,34 @@ keyword score and the alias score, so an alias can never make an emoji *harder* 
 result's subtitle shows the alias so a hit under a name that is not in its keywords does not look
 like a bug.
 
-### Considered: a search step for the emoji
+### Rejected: a search step, because Enter must commit
 
-The obvious repair for "you must know the emoji" is a search step, because a name you cannot spell
-is not a name: `e addalias muscle` would list `💪 Flexed Biceps`, Enter on it would pre-fill
-`e addalias 💪 `, and the name would be typed into a query that already contains the emoji. Nothing
-would be written until the last Enter.
+The obvious repair for "you must know the emoji" is a search step: `e addalias muscle` would list
+`💪 Flexed Biceps`, Enter on it would pre-fill `e addalias 💪 `, and the name would be typed into a
+query that already holds the emoji. Nothing is written until the last Enter, so no data can go
+wrong. It was still rejected, and the reason is the rule it breaks.
 
-Rendered from the real database, the two flows differ in exactly one screen:
+**In a launcher, Enter commits. Every row is a promise that Enter does the thing the row says.**
+A row whose Enter instead re-aims the query turns Enter into "next", which is navigation, and
+navigation is what Tab and the arrow keys are for. Once one row means "advance", the user can no
+longer tell a commitment from a step without reading each row's subtitle - the exact tax the
+strict grammar removes. It also has no end: if `addalias` may take two steps, why not three, and
+which Enter was the one that wrote the file?
+
+That made the two flows differ in exactly one screen, and that screen was the problem:
 
 ```
 e addalias muscle
-  EMOJI FIRST   Type the emoji first, then the name
-                e addalias 💪 swole - the emoji is never guessed from the name
+  SHIPPED   Type the emoji first, then the name
+            e addalias 💪 swole - the emoji is never guessed from the name
 
-  SEARCH STEP   [1f4aa.png] Flexed Biceps
-                Enter: name this emoji - Arm, Flex, Hand
+  REJECTED  [1f4aa.png] Flexed Biceps
+            Enter: name this emoji - Arm, Flex, Hand     <- Enter advances, it does not commit
 ```
 
-Everything else is identical: `e addalias` asks for the emoji, `e addalias 💪` asks for the name,
-`e addalias 💪 swole` saves. The search rows would only ever pre-fill, never save, so Enter still
-means one thing per screen.
-
-The trade-off is which mistake is worse: a dead end when the emoji's name is not known, or a list
-appearing under a command that also takes a name. The list is confined to queries with no emoji in
-them, and it previews rather than saves, so it is the smaller of the two - but it is still a list
-under `addalias`, which is what confused the first version.
+The dead end it was meant to fix has a shorter route that keeps Enter honest: **find the emoji the
+way you always do, press Enter (that is the copy), then `e addalias` and paste.** Two keystrokes,
+no new grammar, and the hint says so.
 
 ### Why the context menu cannot add an alias
 

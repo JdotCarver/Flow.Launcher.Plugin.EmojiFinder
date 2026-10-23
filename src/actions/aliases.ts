@@ -166,7 +166,7 @@ export function buildAliasCommandResults (
   if (command.kind === 'emoji-missing') {
     return [{
       Title: 'Type the emoji first, then the name',
-      Subtitle: 'e addalias 💪 swole - the emoji is never guessed from the name',
+      Subtitle: 'e addalias 💪 swole (search e, press Enter to copy an emoji, paste it here)',
       IcoPath: 'img\\app.png'
     }];
   }
