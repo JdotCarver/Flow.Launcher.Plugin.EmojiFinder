@@ -147,6 +147,46 @@ feature needs:
 5. Whatever alias UI we agree on.
 6. Measure again: `find()` cost per keystroke, and the cost of a pick.
 
+## The settings page cannot have the button (evidence)
+
+The maintainer asked for a settings button that opens the aliases file, and one for the database.
+`JsonRPCPluginSettings` (Flow Launcher's settings renderer for JS plugins) knows exactly these
+item types:
+
+```
+textBlock, input, inputWithFileBtn, inputWithFolderBtn, textarea, passwordBox,
+dropdown, checkbox, hyperlink, separator
+```
+
+There is no `button`. The two closest are:
+
+- `hyperlink`, which calls `API.OpenUrl(attributes.url)` - a **static** URL written in the YAML, so
+  it cannot contain a path that differs per machine (installed vs portable, different user name);
+- `inputWithFileBtn` / `inputWithFolderBtn`, a text field with a "Select" button that opens a
+  *file picker*, not an editor.
+
+So the clickable "open it" lives one keystroke into Flow instead, where the path is known:
+
+```
+e aliases      ->  "Open your aliases file"    (Flow.Launcher.ShellRun('', <path>))
+                   "Open the emoji database"   (same, the emojilib JSON)
+                   one row per alias, Enter removes it
+```
+
+and the same "Open your aliases file" item is in the right-arrow menu of every emoji.
+
+What the settings page *can* have is a `textBlock` that says where the files are and how to open
+them. The wording is the maintainer's to write; the shape is:
+
+```yaml
+  - type: textBlock
+    attributes:
+      name: aliasHelp
+      description: "<the maintainer's words: what aliases are, the command, where the file is>"
+```
+
+Note that `description` is the text a `textBlock` renders, and `name` is not shown.
+
 ## Measured cost (this is why there is no cache)
 
 `npm run check:ranking`, on the maintainer's machine:
