@@ -1,0 +1,142 @@
+{
+    "generatedAt":  "2026-10-23T19:32:00.5100007+02:00",
+    "computer":  "DESKTOP-SK3RC8N",
+    "user":  "IDLT",
+    "winForms":  {
+                     "ok":  true,
+                     "milliseconds":  7,
+                     "error":  ""
+                 },
+    "clipboard":  {
+                      "tests":  [
+                                    {
+                                        "written":  "hello",
+                                        "read":  "hello",
+                                        "matches":  true,
+                                        "writtenCodes":  "104,101,108,108,111",
+                                        "readCodes":  "104,101,108,108,111",
+                                        "error":  ""
+                                    },
+                                    {
+                                        "written":  "🙈",
+                                        "read":  "🙈",
+                                        "matches":  true,
+                                        "writtenCodes":  "55357,56904",
+                                        "readCodes":  "55357,56904",
+                                        "error":  ""
+                                    },
+                                    {
+                                        "written":  "❤️",
+                                        "read":  "❤️",
+                                        "matches":  true,
+                                        "writtenCodes":  "10084,65039",
+                                        "readCodes":  "10084,65039",
+                                        "error":  ""
+                                    }
+                                ],
+                      "error":  ""
+                  },
+    "sendKeys":  {
+                     "ok":  true,
+                     "typed":  "abc",
+                     "expected":  "abc",
+                     "error":  ""
+                 },
+    "uiAutomation":  {
+                         "ok":  true,
+                         "milliseconds":  56,
+                         "focusedProcessId":  6952,
+                         "focusedName":  "[windows] fix: opening the aliases file works, and only that file is offered Enter on \"Open my aliases file\" did nothing, for two reasons. ShellRun cannot open a data file: ShellRun(cmd, filename) starts `filename` as the program with `cmd` as its arguments, so `ShellRun(\u0027\u0027, aliases.json)` asked Windows to execute a JSON file. And on a fresh install there was no file to open - nothing has been saved yet. Opening is now our own action: it creates aliases.json with a guidance entry first, then asks Flow for OpenAppUri(path), which ends in Process.Start(UseShellExecute), i.e. the default program. OpenAppUri takes one string, which ExecuteFlowLauncherAPI\u0027s exact-type lookup needs (OpenUrl\u0027s optional bool? cannot be reached from JSON). The \"Open the emoji database\" entry is gone. That file is an upstream dependency inside the plugin folder and is replaced on every update, so hand-edits there disappear - recommending it was a way to manufacture issues. The aliases file says the same thing in its own _comment, and keys starting with _ are documentation: ignored by readers, preserved by writers. 191 tests; check:ranking 21/21. Co-authored-by: arena-agent \u003c297053741+arena-agent@users.noreply.github.com\u003e, JdotCarver",
+                         "error":  ""
+                     },
+    "win32":  {
+                  "ok":  true,
+                  "milliseconds":  72,
+                  "error":  ""
+              },
+    "flowProcesses":  [
+                          {
+                              "name":  "Flow.Launcher",
+                              "id":  12468,
+                              "mainWindowHandle":  0,
+                              "mainWindowTitle":  "",
+                              "responding":  true,
+                              "startTime":  "2026-10-23T19:08:22.5094506+02:00"
+                          }
+                      ],
+    "flowLikeProcesses":  [
+                              {
+                                  "name":  "Flow.Launcher",
+                                  "id":  12468,
+                                  "mainWindowHandle":  0,
+                                  "mainWindowTitle":  ""
+                              }
+                          ],
+    "foregroundWindow":  {
+                             "processId":  6952,
+                             "title":  "pluginData.ts (Working Tree) (pluginData.ts) - Emoji Picker Extension - Visual Studio Code",
+                             "className":  "Chrome_WidgetWin_1"
+                         },
+    "visibleWindows":  [
+                           {
+                               "processId":  6952,
+                               "title":  "pluginData.ts (Working Tree) (pluginData.ts) - Emoji Picker Extension - Visual Studio Code",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  28644,
+                               "title":  "Google Calendar - Friday, 23 October 2026, today - Brave",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  6952,
+                               "title":  "base.yml - Portable - Espanso (Workspace) - Visual Studio Code",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  28644,
+                               "title":  "Arena | Benchmark \u0026 Compare the Best AI Models - Brave",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  16976,
+                               "title":  "d50362aa29f04cd59032bb44a5d5f7e5",
+                               "className":  "CabinetWClass"
+                           },
+                           {
+                               "processId":  32468,
+                               "title":  "I have Improved the FlowLauncher Emoji Extension ",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  28644,
+                               "title":  "this open-source tool generates ui like magic - YouTube - Brave",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  36300,
+                               "title":  "Paramètres",
+                               "className":  "Windows.UI.Core.CoreWindow"
+                           },
+                           {
+                               "processId":  7608,
+                               "title":  "Paramètres",
+                               "className":  "ApplicationFrameWindow"
+                           },
+                           {
+                               "processId":  18540,
+                               "title":  "XonarSwitch",
+                               "className":  "ThunderRT6Main"
+                           },
+                           {
+                               "processId":  9784,
+                               "title":  "Microsoft Text Input Application",
+                               "className":  "Windows.UI.Core.CoreWindow"
+                           },
+                           {
+                               "processId":  16976,
+                               "title":  "Program Manager",
+                               "className":  "Progman"
+                           }
+                       ]
+}

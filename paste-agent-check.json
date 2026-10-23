@@ -1,0 +1,164 @@
+{
+  "generatedAt": "2026-10-23T17:32:24.196Z",
+  "platform": "win32",
+  "emoji": "🧪",
+  "hosts": [
+    "powershell.exe",
+    "pwsh.exe"
+  ],
+  "dataFolder": "C:\\Users\\IDLT\\AppData\\Local\\Temp\\paste-agent-check-yIofa1",
+  "results": [
+    {
+      "host": "powershell.exe",
+      "startLine": "2026-10-23T19:32:03.1926114+02:00 | agent | start pid=10112 host=powershell ps=5.1.19041.6456 edition=Desktop",
+      "findings": [
+        {
+          "label": "no agent is running before this host starts",
+          "ok": true
+        },
+        {
+          "label": "agent starts and publishes a heartbeat",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the plugin can see a running agent before it asks",
+          "ok": true
+        },
+        {
+          "label": "the agent writes its own log",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the start line names this host (powershell) and its version",
+          "ok": true,
+          "detail": "2026-10-23T19:32:03.1926114+02:00 | agent | start pid=10112 host=powershell ps=5.1.19041.6456 edition=Desktop"
+        },
+        {
+          "label": "agent logs the request with its sequence number",
+          "ok": true
+        },
+        {
+          "label": "emoji survives the request file intact (expected code points 55358,56810)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "agent refuses to paste while the clipboard holds something else",
+          "ok": true
+        },
+        {
+          "label": "agent is still alive after handling a request",
+          "ok": true
+        },
+        {
+          "label": "agent stops when its process is ended",
+          "ok": true
+        }
+      ],
+      "startupLog": null,
+      "logTail": [
+        "2026-10-23T19:32:03.1926114+02:00 | agent | start pid=10112 host=powershell ps=5.1.19041.6456 edition=Desktop\r",
+        "2026-10-23T19:32:03.2006007+02:00 | agent | winforms loaded\r",
+        "2026-10-23T19:32:03.2066003+02:00 | agent | uiautomation loaded\r",
+        "2026-10-23T19:32:03.2096004+02:00 | agent | waiting for requests\r",
+        "2026-10-23T19:32:03.4917183+02:00 | agent | request sequence=1792776723422 emoji=[🧪] targetCodes=[55358,56810]\r",
+        "2026-10-23T19:32:03.5587254+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
+        "2026-10-23T19:32:03.5597157+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2\r",
+        "2026-10-23T19:32:06.0084890+02:00 | agent | decision paste=False elapsedMs=2509"
+      ]
+    },
+    {
+      "host": "pwsh.exe",
+      "startLine": "2026-10-23T19:32:13.6546197+02:00 | agent | start pid=28480 host=pwsh ps=7.6.7 edition=Core",
+      "findings": [
+        {
+          "label": "no agent is running before this host starts",
+          "ok": true
+        },
+        {
+          "label": "agent starts and publishes a heartbeat",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the plugin can see a running agent before it asks",
+          "ok": true
+        },
+        {
+          "label": "the agent writes its own log",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the start line names this host (pwsh) and its version",
+          "ok": true,
+          "detail": "2026-10-23T19:32:13.6546197+02:00 | agent | start pid=28480 host=pwsh ps=7.6.7 edition=Core"
+        },
+        {
+          "label": "agent logs the request with its sequence number",
+          "ok": true
+        },
+        {
+          "label": "emoji survives the request file intact (expected code points 55358,56810)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "agent refuses to paste while the clipboard holds something else",
+          "ok": true
+        },
+        {
+          "label": "agent is still alive after handling a request",
+          "ok": true
+        },
+        {
+          "label": "agent stops when its process is ended",
+          "ok": true
+        }
+      ],
+      "startupLog": null,
+      "logTail": [
+        "2026-10-23T19:32:13.6635299+02:00 | agent | uiautomation loaded\r",
+        "2026-10-23T19:32:13.6705687+02:00 | agent | adopting recent request sequence=1792776723422 ageMs=10245\r",
+        "2026-10-23T19:32:13.6720595+02:00 | agent | waiting for requests\r",
+        "2026-10-23T19:32:13.6806372+02:00 | agent | request sequence=1792776723422 emoji=[🧪] targetCodes=[55358,56810]\r",
+        "2026-10-23T19:32:13.7297601+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
+        "2026-10-23T19:32:13.7318524+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2\r",
+        "2026-10-23T19:32:16.2427698+02:00 | agent | decision paste=False elapsedMs=2557\r",
+        "2026-10-23T19:32:16.3111133+02:00 | agent | request sequence=1792776733684 emoji=[🧪] targetCodes=[55358,56810]\r",
+        "2026-10-23T19:32:16.3170170+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
+        "2026-10-23T19:32:16.3181939+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2"
+      ]
+    },
+    {
+      "host": "wscript launcher (paste-agent-launcher.vbs)",
+      "findings": [
+        {
+          "label": "no agent is running before the launcher is used",
+          "ok": true
+        },
+        {
+          "label": "the launcher exists beside the agent script",
+          "ok": true
+        },
+        {
+          "label": "the launcher starts without a PowerShell of its own",
+          "ok": true
+        },
+        {
+          "label": "the launcher started an agent (host C:\\Program Files\\PowerShell\\7\\pwsh.exe)",
+          "ok": true
+        },
+        {
+          "label": "the agent it started is the one this build generates",
+          "ok": true
+        }
+      ],
+      "startLine": null,
+      "startupLog": null,
+      "logTail": []
+    }
+  ]
+}

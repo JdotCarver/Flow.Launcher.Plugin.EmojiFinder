@@ -1,0 +1,231 @@
+{
+  "generatedAt": "2026-10-23T17:32:00.254Z",
+  "plugin": {
+    "nodeVersion": "v24.13.0",
+    "platform": "win32",
+    "processArchitecture": "x64",
+    "workingDirectory": "C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder",
+    "pluginRoot": "C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder",
+    "builtEntryPointExists": true,
+    "iconCount": 3778,
+    "emojiDataExists": true,
+    "tracingEnabled": false,
+    "traceFileExists": true,
+    "packageVersion": "1.2.0",
+    "pluginVersion": "1.2.0"
+  },
+  "installedPlugin": {
+    "found": true,
+    "directory": "C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher\\Plugins\\Flow.Launcher.Plugin.EmojiFinder",
+    "builtEntryPointExists": true,
+    "builtAt": "2026-10-23T17:06:41.131Z",
+    "repositoryBuildAt": "2026-10-23T17:31:59.688Z",
+    "tracingEnabled": true,
+    "traceFileExists": true,
+    "traceFileBytes": 320,
+    "traceFileModifiedAt": "2026-10-23T17:08:28.438Z",
+    "helperErrorFileExists": false,
+    "helperErrorBytes": 0,
+    "helperErrorTail": []
+  },
+  "powershellStartup": {
+    "milliseconds": 107,
+    "exitCode": 0,
+    "version": "5.1.19041.6456",
+    "error": "",
+    "standardError": ""
+  },
+  "windows": {
+    "milliseconds": 1153,
+    "exitCode": 0,
+    "standardOutput": "diagnostic-written: C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder\\dogfood\\windows-probe.json",
+    "standardError": "Get-ExecutionPolicy : La commande �Get-ExecutionPolicy� a �t� trouv�e dans le module �Microsoft.PowerShell.Security�, \r\nmais ce dernier n'a pas pu �tre charg�. Pour plus d'informations, ex�cutez la commande �Import-Module \r\nMicrosoft.PowerShell.Security�.\r\nAu caract�re C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder\\tools\\windows-di\r\nagnostic.ps1:36 : 24\r\n+     executionPolicy = (Get-ExecutionPolicy).ToString()\r\n+                        ~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (Get-ExecutionPolicy:String) [], CommandNotFoundException\r\n    + FullyQualifiedErrorId : CouldNotAutoloadMatchingModule\r\n \r\nImpossible de convertir la valeur �128105� en type �System.Char�. Erreur: �La valeur �tait trop grande ou trop petite \r\npour un caract�re.�\r\nAu caract�re C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder\\tools\\windows-di\r\nagnostic.ps1:68 : 9\r\n+         ([string][char]0x1F469) + ([string][char]0x200D) + ([string][ ...\r\n+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : InvalidArgument : (:) [], RuntimeException\r\n    + FullyQualifiedErrorId : InvalidCastIConvertible",
+    "result": {
+      "generatedAt": "2026-10-23T19:32:00.5100007+02:00",
+      "computer": "DESKTOP-SK3RC8N",
+      "user": "IDLT",
+      "winForms": {
+        "ok": true,
+        "milliseconds": 7,
+        "error": ""
+      },
+      "clipboard": {
+        "tests": [
+          {
+            "written": "hello",
+            "read": "hello",
+            "matches": true,
+            "writtenCodes": "104,101,108,108,111",
+            "readCodes": "104,101,108,108,111",
+            "error": ""
+          },
+          {
+            "written": "🙈",
+            "read": "🙈",
+            "matches": true,
+            "writtenCodes": "55357,56904",
+            "readCodes": "55357,56904",
+            "error": ""
+          },
+          {
+            "written": "❤️",
+            "read": "❤️",
+            "matches": true,
+            "writtenCodes": "10084,65039",
+            "readCodes": "10084,65039",
+            "error": ""
+          }
+        ],
+        "error": ""
+      },
+      "sendKeys": {
+        "ok": true,
+        "typed": "abc",
+        "expected": "abc",
+        "error": ""
+      },
+      "uiAutomation": {
+        "ok": true,
+        "milliseconds": 56,
+        "focusedProcessId": 6952,
+        "focusedName": "[windows] fix: opening the aliases file works, and only that file is offered Enter on \"Open my aliases file\" did nothing, for two reasons. ShellRun cannot open a data file: ShellRun(cmd, filename) starts `filename` as the program with `cmd` as its arguments, so `ShellRun('', aliases.json)` asked Windows to execute a JSON file. And on a fresh install there was no file to open - nothing has been saved yet. Opening is now our own action: it creates aliases.json with a guidance entry first, then asks Flow for OpenAppUri(path), which ends in Process.Start(UseShellExecute), i.e. the default program. OpenAppUri takes one string, which ExecuteFlowLauncherAPI's exact-type lookup needs (OpenUrl's optional bool? cannot be reached from JSON). The \"Open the emoji database\" entry is gone. That file is an upstream dependency inside the plugin folder and is replaced on every update, so hand-edits there disappear - recommending it was a way to manufacture issues. The aliases file says the same thing in its own _comment, and keys starting with _ are documentation: ignored by readers, preserved by writers. 191 tests; check:ranking 21/21. Co-authored-by: arena-agent <297053741+arena-agent@users.noreply.github.com>, JdotCarver",
+        "error": ""
+      },
+      "win32": {
+        "ok": true,
+        "milliseconds": 72,
+        "error": ""
+      },
+      "flowProcesses": [
+        {
+          "name": "Flow.Launcher",
+          "id": 12468,
+          "mainWindowHandle": 0,
+          "mainWindowTitle": "",
+          "responding": true,
+          "startTime": "2026-10-23T19:08:22.5094506+02:00"
+        }
+      ],
+      "flowLikeProcesses": [
+        {
+          "name": "Flow.Launcher",
+          "id": 12468,
+          "mainWindowHandle": 0,
+          "mainWindowTitle": ""
+        }
+      ],
+      "foregroundWindow": {
+        "processId": 6952,
+        "title": "pluginData.ts (Working Tree) (pluginData.ts) - Emoji Picker Extension - Visual Studio Code",
+        "className": "Chrome_WidgetWin_1"
+      },
+      "visibleWindows": [
+        {
+          "processId": 6952,
+          "title": "pluginData.ts (Working Tree) (pluginData.ts) - Emoji Picker Extension - Visual Studio Code",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 28644,
+          "title": "Google Calendar - Friday, 23 October 2026, today - Brave",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 6952,
+          "title": "base.yml - Portable - Espanso (Workspace) - Visual Studio Code",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 28644,
+          "title": "Arena | Benchmark & Compare the Best AI Models - Brave",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 16976,
+          "title": "d50362aa29f04cd59032bb44a5d5f7e5",
+          "className": "CabinetWClass"
+        },
+        {
+          "processId": 32468,
+          "title": "I have Improved the FlowLauncher Emoji Extension ",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 28644,
+          "title": "this open-source tool generates ui like magic - YouTube - Brave",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 36300,
+          "title": "Paramètres",
+          "className": "Windows.UI.Core.CoreWindow"
+        },
+        {
+          "processId": 7608,
+          "title": "Paramètres",
+          "className": "ApplicationFrameWindow"
+        },
+        {
+          "processId": 18540,
+          "title": "XonarSwitch",
+          "className": "ThunderRT6Main"
+        },
+        {
+          "processId": 9784,
+          "title": "Microsoft Text Input Application",
+          "className": "Windows.UI.Core.CoreWindow"
+        },
+        {
+          "processId": 16976,
+          "title": "Program Manager",
+          "className": "Progman"
+        }
+      ]
+    }
+  },
+  "pluginTrace": {
+    "exists": true,
+    "source": "C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher\\Plugins\\Flow.Launcher.Plugin.EmojiFinder\\dogfood\\runtime.log",
+    "copiedIntoRepository": true,
+    "totalLines": 4,
+    "lastLines": [
+      "{\"at\":\"2026-10-23T17:07:00.968Z\",\"event\":\"method\",\"method\":\"openaliases\",\"parameters\":[]}",
+      "{\"at\":\"2026-10-23T17:07:00.969Z\",\"event\":\"aliases:open\",\"found\":true}",
+      "{\"at\":\"2026-10-23T17:08:28.436Z\",\"event\":\"method\",\"method\":\"openaliases\",\"parameters\":[]}",
+      "{\"at\":\"2026-10-23T17:08:28.437Z\",\"event\":\"aliases:open\",\"found\":true}"
+    ]
+  },
+  "pasteAgent": {
+    "exists": true,
+    "bytes": 65101,
+    "totalLines": 672,
+    "lastLines": [
+      "2026-10-23T18:49:46.3138498+02:00 | agent | start pid=21484 host=pwsh ps=7.6.7 edition=Core\r",
+      "2026-10-23T18:49:46.3249531+02:00 | agent | winforms loaded\r",
+      "2026-10-23T18:49:46.3273493+02:00 | agent | uiautomation loaded\r",
+      "2026-10-23T18:49:46.3368659+02:00 | agent | waiting for requests\r",
+      "2026-10-23T18:50:14.7470881+02:00 | agent | start pid=19764 host=pwsh ps=7.6.7 edition=Core\r",
+      "2026-10-23T18:50:14.7587376+02:00 | agent | winforms loaded\r",
+      "2026-10-23T18:50:14.7613729+02:00 | agent | uiautomation loaded\r",
+      "2026-10-23T18:50:14.7711453+02:00 | agent | waiting for requests\r",
+      "2026-10-23T18:59:49.2068937+02:00 | agent | start pid=17624 host=pwsh ps=7.6.7 edition=Core\r",
+      "2026-10-23T18:59:49.2176846+02:00 | agent | winforms loaded\r",
+      "2026-10-23T18:59:49.2198882+02:00 | agent | uiautomation loaded\r",
+      "2026-10-23T18:59:49.2299681+02:00 | agent | waiting for requests\r",
+      "2026-10-23T19:02:31.1459475+02:00 | agent | request sequence=1792774951083 emoji=[💪] targetCodes=[55357,56490]\r",
+      "2026-10-23T19:02:31.2130808+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-23T19:02:31.2140205+02:00 | agent | decision paste=True elapsedMs=57\r",
+      "2026-10-23T19:02:31.2678690+02:00 | agent | sendkeys sent\r",
+      "2026-10-23T19:06:46.8803403+02:00 | agent | start pid=2512 host=pwsh ps=7.6.7 edition=Core\r",
+      "2026-10-23T19:06:46.8917351+02:00 | agent | winforms loaded\r",
+      "2026-10-23T19:06:46.8939388+02:00 | agent | uiautomation loaded\r",
+      "2026-10-23T19:06:46.9027333+02:00 | agent | waiting for requests"
+    ]
+  },
+  "pasteAgentStatus": {
+    "running": true,
+    "dataDirectory": "C:\\Users\\IDLT\\AppData\\Local\\Flow.Launcher.Plugin.EmojiFinder",
+    "scriptOnDisk": true,
+    "scriptIsCurrent": true
+  }
+}

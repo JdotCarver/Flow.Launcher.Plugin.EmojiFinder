@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-10-23T17:32:25.264Z",
+  "platform": "win32",
+  "node": "v24.13.0",
+  "findings": [
+    {
+      "kind": "pass",
+      "label": "search with aliases and history stays under 5 ms (worst: 0.862 ms)",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "an alias finds its emoji",
+      "detail": "first result: 💪"
+    },
+    {
+      "kind": "pass",
+      "label": "having aliases does not change an ordinary search",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "an empty query shows the most used emoji first",
+      "detail": "first: 🚀"
+    },
+    {
+      "kind": "pass",
+      "label": "then the next one, by recency",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "and nothing else is mixed in",
+      "detail": "2 results"
+    },
+    {
+      "kind": "pass",
+      "label": "a query returns results through the real entry point",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "results carry a Score",
+      "detail": "14"
+    },
+    {
+      "kind": "pass",
+      "label": "results carry a RecordKey",
+      "detail": "😼"
+    },
+    {
+      "kind": "pass",
+      "label": "results carry the ContextData the context menu needs",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "the context menu answers",
+      "detail": "2 item(s)"
+    },
+    {
+      "kind": "pass",
+      "label": "the menu leads with copy-only and add alias, and puts the file last",
+      "detail": "Copy only | Add an alias for this emoji"
+    },
+    {
+      "kind": "pass",
+      "label": "the add entry copies the finished command",
+      "detail": "{\"method\":\"Flow.Launcher.CopyToClipboard\",\"parameters\":[\"e addalias 💪 \",false,true]}"
+    },
+    {
+      "kind": "pass",
+      "label": "the menu offers a copy-only action for paste-mode users",
+      "detail": "{\"method\":\"copy\",\"parameters\":[\"💪\",true]}"
+    },
+    {
+      "kind": "pass",
+      "label": "nothing but ASCII is written to stdout (Flow reads it with the console code page)",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "addalias reads emoji first, then the name",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "the emoji comes first, and a bare word is never also a search",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "saving an alias writes it where the query will read it",
+      "detail": ""
+    },
+    {
+      "kind": "pass",
+      "label": "a fresh aliases file explains itself, warns off the database, and shows an example",
+      "detail": "_HowToUse | _Note | _examplealias"
+    },
+    {
+      "kind": "pass",
+      "label": "opening the aliases file asks Flow for something it can do",
+      "detail": "Flow.Launcher.ShowMsg"
+    },
+    {
+      "kind": "pass",
+      "label": "a keystroke is still answered in well under half a second",
+      "detail": ""
+    }
+  ],
+  "measurements": {
+    "aliasesLoaded": 40,
+    "usageLoaded": 2,
+    "milliseconds": {
+      "(empty query)": {
+        "withoutAliases": 0.157,
+        "withAliases": 0.057,
+        "difference": -0.1
+      },
+      "a": {
+        "withoutAliases": 0.955,
+        "withAliases": 0.862,
+        "difference": -0.093
+      },
+      "smile": {
+        "withoutAliases": 0.336,
+        "withAliases": 0.382,
+        "difference": 0.046
+      },
+      "red heart": {
+        "withoutAliases": 0.285,
+        "withAliases": 0.32,
+        "difference": 0.035
+      },
+      "thumbs up": {
+        "withoutAliases": 0.211,
+        "withAliases": 0.235,
+        "difference": 0.024
+      },
+      "woman technologist": {
+        "withoutAliases": 0.216,
+        "withAliases": 0.243,
+        "difference": 0.027
+      },
+      "read aliases file (40 entries)": 0.343,
+      "read usage file (2 entries)": 0.266,
+      "whole process, query \"smile\"": 47.4
+    }
+  }
+}

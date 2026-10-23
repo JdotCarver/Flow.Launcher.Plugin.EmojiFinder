@@ -1,0 +1,144 @@
+{
+  "generatedAt": "2026-10-23T17:32:35.959Z",
+  "platform": "win32",
+  "pluginRoot": "C:\\actions-runner\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder",
+  "dataDirectory": "C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher",
+  "findings": [
+    {
+      "kind": "info",
+      "message": "Flow data folder: C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher"
+    },
+    {
+      "kind": "pass",
+      "message": "paste agent script on disk is the one this build generates (2026-10-23T12:10:09.644Z)"
+    },
+    {
+      "kind": "pass",
+      "message": "paste agent is running (heartbeat 349.386474609375 ms old)"
+    },
+    {
+      "kind": "info",
+      "message": "10 plugin folder(s) found"
+    },
+    {
+      "kind": "pass",
+      "message": "Flow.Launcher.Plugin.EmojiFinder: manifest OK, entry point present (dist\\main.js)"
+    },
+    {
+      "kind": "info",
+      "message": "Flow.Launcher.Plugin.EmojiFinder: tracing ON, trace file missing"
+    },
+    {
+      "kind": "pass",
+      "message": "installed copy matches the build (2026-10-23T17:32:27.388Z)"
+    },
+    {
+      "kind": "pass",
+      "message": "Node runtime for plugins exists: C:\\Program Files\\nodejs\\node.exe"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 12:34:14.8047+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <41ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 13:06:15.5077+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <43ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 13:11:33.0207+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <40ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 13:15:38.6797+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <42ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 13:20:02.9117+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <33ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 13:25:53.5548+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <33ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 13:33:29.3498+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <37ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 13:57:51.7213+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <43ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 14:05:52.7710+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <41ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 15:18:34.4803+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <36ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 15:19:09.0249+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <41ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 15:35:03.3191+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <35ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 15:53:08.9599+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <35ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 17:02:33.1668+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <39ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 18:03:10.2442+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <44ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 18:20:00.6189+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <45ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 19:08:23.9751+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <34ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-22.log: 09:21:19.6988+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <95ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-22.log: 13:22:12.2107+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <73ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-21.log: 08:37:45.1171+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <88ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-21.log: 10:34:40.4138+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <80ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-21.log: 12:47:23.5687+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <41ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-20.log: 13:56:46.9259+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <42ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-20.log: 15:48:12.1204+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <35ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-20.log: 22:08:44.6836+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <74ms>"
+    },
+    {
+      "kind": "info",
+      "message": "plugin settings folder present: Emoji Finder"
+    }
+  ]
+}
