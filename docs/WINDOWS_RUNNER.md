@@ -112,6 +112,13 @@ step**, and the agent reads its result through `gh`.
   `::error title=…::…` printed by a tool shows up in
   `gh api repos/{owner}/{repo}/check-runs/<job-id>/annotations`. That is how the spawn
   probe reports each variant's exit code, and how the publisher explains its own failure.
-- **Shell gotcha**: a `shell: bash` step that fails with no output at all usually means the
-  shell could not start. This runner has Git Bash and PowerShell, but `pwsh` (7) is not
-  guaranteed - `shell: powershell` (5.1) always is.
+- **Shell gotcha 1**: `shell: bash` on Windows resolves `bash` from `PATH`, and the first
+  thing on `PATH` is `C:\Windows\system32\bash.exe` - the **WSL** launcher, which fails
+  instantly with no output when no distribution is installed. Git Bash (which
+  `actions/checkout` uses) lives elsewhere. A step that fails with zero output is usually
+  this: the shell never started.
+- **Shell gotcha 2**: `shell: powershell` steps run with `$ErrorActionPreference = 'stop'`.
+  Any native command that writes to *stderr* - `git push` progress included - then becomes
+  a terminating error even though the command succeeded. Set it to `Continue` explicitly.
+- **PowerShell 7 (`pwsh`) is not guaranteed** on a self-hosted Windows runner.
+  `shell: powershell` (5.1) always is, and everything here works in it.

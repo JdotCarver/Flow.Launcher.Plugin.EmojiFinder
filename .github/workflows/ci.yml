@@ -125,6 +125,12 @@ jobs:
           # would wait for a user who is not there.
           GIT_TERMINAL_PROMPT: 0
         run: |
+          # The runner's PowerShell wrapper sets $ErrorActionPreference = 'stop', which makes
+          # any native command that writes to stderr a terminating error. `git push` writes
+          # its progress to stderr and succeeds, so with the default the script died silently
+          # right after committing - no checkpoint, no annotation.
+          $ErrorActionPreference = 'Continue'
+
           function Write-Checkpoint([string] $stage) {
             Write-Host "::notice title=publish::stage=$stage"
           }
@@ -170,6 +176,7 @@ jobs:
             git commit -q -m "dogfood: reports from $($env:GITHUB_SHA.Substring(0, 7))"
             Write-Checkpoint 'committed'
 
+            Write-Checkpoint 'pushing'
             $url = "https://x-access-token:$($env:GITHUB_TOKEN)@github.com/$($env:GITHUB_REPOSITORY).git"
             $pushOutput = git -c credential.helper= push -f $url dogfood-reports 2>&1 | Out-String
             # Never let a failure message echo the token back out.
