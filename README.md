@@ -45,7 +45,9 @@ npm run package -- --install
 
 If something misbehaves on Windows (paste at cursor is the one that needs real hardware),
 see [docs/DOGFOODING.md](docs/DOGFOODING.md): `npm run diagnose` and a traced install
-produce a report that can be committed.
+produce a report that can be committed. If the plugin does not appear in Flow Launcher at
+all, `npm run doctor` inspects the installation and Flow's own log. To run these checks on
+your machine from a GitHub agent, see [docs/WINDOWS_RUNNER.md](docs/WINDOWS_RUNNER.md).
 
 This compiles the plugin and copies a ready-to-run folder into your Flow Launcher
 plugins folder. Note that Flow Launcher runs `dist/main.js`, which does not exist in a

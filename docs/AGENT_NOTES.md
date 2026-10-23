@@ -51,6 +51,18 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
   more than the feature saves. Windows PowerShell 5.1 (what `powershell.exe` is) runs STA,
   which `Clipboard::GetText()` requires.
 - Dependency policy and audit reasoning: `docs/DEPENDENCIES.md`.
+- "Plugin not in the list" = Flow skipped the folder at registration. The silent causes,
+  in order: nested folder (Flow scans one level), unparsable plugin.json, ExecuteFileName
+  missing, duplicate plugin ID (only the first loads, log says "already loaded"), or the
+  Node runtime path Flow points at being gone (then ALL JS plugins vanish). `npm run
+  doctor` checks all five and reads Flow's logs.
+- A `trace.on` install writes into the *installed* folder, not the repo; `npm run diagnose`
+  copies it back into dogfood/.
+- Self-hosted Windows runner: `docs/WINDOWS_RUNNER.md`. Drive it with `gh workflow run`,
+  `gh run view --log`, `gh run download`. Runner must run interactively (`run.cmd`), never
+  as a service: session 0 has no desktop and the GUI probes fail there.
+- Never accept, echo or store a runner registration token. If one appears in chat, tell
+  the maintainer to delete the runner and re-add it.
 - Paste injection cannot be tested here (no Windows/PowerShell). Do not claim it works:
   ask for a dogfood run (`docs/DOGFOODING.md`) and read `npm run dogfood:check`.
   `dogfood/diagnose.json` + `dogfood/runtime.log` are the maintainer's committed evidence.

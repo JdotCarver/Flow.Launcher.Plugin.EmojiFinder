@@ -9,3 +9,4 @@ artifacts
 trace.on
 dogfood/diagnose-linux.json
 dogfood/windows-probe.json
+dogfood/doctor-linux.json

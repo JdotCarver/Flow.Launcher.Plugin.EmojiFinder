@@ -7,13 +7,11 @@ name: windows-dogfood
 # a Windows machine closes that gap: the agent pushes, the workflow runs here, the agent
 # reads the log and downloads the artifacts (both plain `gh` commands).
 #
-# Setup (one time)
-#   1. GitHub > repository Settings > Actions > Runners > New self-hosted runner > Windows
-#   2. Register it with an extra label, e.g.:
-#        ./config.cmd --url https://github.com/<owner>/<repo> --token <token> --labels flowlauncher
-#   3. Start it **interactively** (`./run.cmd` from a logged-in desktop session), not as a
-#      service: the GUI probes need a real desktop. A service runs in session 0, where
-#      clipboard and SendKeys behave differently or fail.
+# Setup: see docs/WINDOWS_RUNNER.md. Three rules:
+#   1. register with the extra label `flowlauncher` (config.cmd --labels flowlauncher);
+#   2. start it with `run.cmd` from a logged-in desktop session, NOT as a Windows service:
+#      a service runs in session 0, where the clipboard and SendKeys behave differently;
+#   3. never paste the registration token anywhere but config.cmd.
 #
 # Safety: only `workflow_dispatch` is offered. Self-hosted runners on a public repository
 # execute whatever a pull request contains, so never add `pull_request` here without a
@@ -46,6 +44,10 @@ jobs:
 
       # The environment probe does not need Flow Launcher to be running, but it does need
       # an interactive desktop for the SendKeys self-test.
+      - name: Installation doctor (is the plugin loadable at all?)
+        run: npm run doctor
+        continue-on-error: true
+
       - name: Windows environment probe
         run: npm run diagnose
         continue-on-error: true
