@@ -189,7 +189,8 @@ setting "What pressing Enter does": copy (default) | paste
 `paste` prints a `Flow.Launcher.CopyToClipboard` request first, so Flow fills the clipboard
 in-process, then starts the helper and exits immediately (which is what lets Flow hide).
 
-The helper (`src/utils/pasteHelper.ts`) is a PowerShell script run through
+The helper (originally `src/utils/pasteHelper.ts`, now the resident agent in
+`src/utils/pasteAgent.ts`) is a PowerShell script run through
 `-EncodedCommand` (base64 UTF-16LE), which sidesteps every quoting and code-page problem
 that `-Command` has with emoji and apostrophes. It waits for both conditions below, then
 sends Ctrl+V. If they never hold within 2 s it does **nothing** — pressing Ctrl+V into

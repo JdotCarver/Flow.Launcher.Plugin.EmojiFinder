@@ -52,9 +52,8 @@ Commit `dogfood/`. The next session reads it and stops guessing.
 
 The maintainer's Windows machine is also a self-hosted GitHub Actions runner
 (`docs/WINDOWS_RUNNER.md`). Put `[windows]` anywhere in the commit message and that commit
-runs the same checks on real Windows: lint, tests, build, `check:paste-helper` (runs the
-helper for real), `doctor`, `diagnose`, and `check:paste-spawn` (runs the plugin's own
-spawn function and compares it against one changed option at a time).
+runs the same checks on real Windows: lint, tests, build, `check:paste-agent` (starts
+the agent and exercises the request protocol), `doctor` and `diagnose`.
 
 Reading the results back is the awkward part. Actions logs and artifacts are served from
 `results-receiver.actions.githubusercontent.com` and Azure blob storage, which an agent

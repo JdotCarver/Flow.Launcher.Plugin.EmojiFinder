@@ -1,7 +1,18 @@
 # Paste at the cursor, with a resident helper
 
-Status: design agreed, not yet implemented.
+Status: implemented and working on the maintainer's machine (2026-10-23).
 Supersedes the spawn-per-paste design in `docs/PASTE_AT_CURSOR.md` §1–§7.
+
+Two things cost the most time in getting here, and both are recorded below because they will
+look like "the fix did nothing" to the next person who hits them:
+
+- **Windows PowerShell 5.1 reads files as ANSI unless told otherwise.** The request file is
+  UTF-8, so every emoji arrived as its own four bytes (measured: `240,376,167,170` for 🧪) and
+  could never match the clipboard. Every paste ended in `decision paste=False` while the
+  clipboard held exactly the right emoji.
+- **A resident process keeps its script in memory.** Rebuilding the plugin does not change
+  what the running agent executes, so the installer stops and restarts it, and `doctor`
+  reports whether the script on disk is the current one.
 
 ## What we learned, in one paragraph
 
@@ -70,6 +81,16 @@ firewall exception, and is readable in a trace when something goes wrong. The se
 number makes it idempotent: the agent remembers the last number it handled, so a restart
 never replays an old paste.
 
+## How it is started
+
+A process started from the installer's shell is a child of that shell, and in a CI job (or
+any launcher that owns a job object) it is killed when the job ends - which is exactly what
+happened: the installer started the agent, the run finished, and every later paste found
+`agentRunning: false`. The agent is therefore started by a **one-shot scheduled task** for the
+current user (no password, no elevation, interactive session), and the task is deleted
+immediately afterwards. Launching the Startup shortcut through Explorer was tried first and
+worked intermittently, so it is only a fallback now.
+
 ## Installing, starting, stopping
 
 - `npm run package -- --install` creates the Startup shortcut and starts the agent
@@ -97,18 +118,17 @@ paste.
 
 ## What this changes in the code
 
-- `src/utils/pasteHelper.ts` becomes `src/utils/pasteAgent.ts`: builds the agent script,
-  writes the script to `%LOCALAPPDATA%`, owns the request/heartbeat paths. The PowerShell
-  decision logic (two focus signals, clipboard comparison, timeouts) moves across almost
-  unchanged - it is already tested and already correct.
+- `src/utils/pasteAgent.ts` builds the agent script, writes it to `%LOCALAPPDATA%`, and owns
+  the request/heartbeat paths. The PowerShell decision logic (two focus signals, clipboard
+  comparison, timeouts) came across almost unchanged from the old per-paste helper.
 - `src/actions/paste.ts` writes the request. No process is started, so the action returns in
   about the time it takes to write a small file.
 - `tools/package.mjs` gains the Startup shortcut and starts the agent; `tools/agent.mjs`
   provides `--status` / `--stop` / `--start` for humans and for CI.
-- `tools/check-paste-agent.mjs` replaces `check-paste-helper.mjs`: start the agent, write a
-  request, and check that the agent (a) sees it, (b) refuses to paste while the clipboard
-  does not match, (c) is still alive afterwards. That much is testable on the Windows runner
-  without a human in front of the screen.
+- `tools/check-paste-agent.mjs` starts (or reuses) the agent, writes a request, and checks
+  that it (a) publishes a heartbeat, (b) sees the request, (c) refuses to paste while the
+  clipboard does not match, (d) survives the request, (e) can be stopped. That much is
+  testable on the Windows runner without a human in front of the screen.
 - Tests: script generation, request file format, sequence handling, heartbeat freshness, and
   the "agent missing" path - all pure functions, runnable on Linux.
 
