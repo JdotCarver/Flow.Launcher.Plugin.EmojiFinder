@@ -29,6 +29,9 @@ import { createStyle } from './report-style.mjs';
 
 const style = createStyle();
 
+/** Name of the one-shot task used to start the agent outside our own process tree. */
+const START_TASK_NAME = 'Flow Launcher Emoji Finder paste agent';
+
 /** The name of the shortcut in the user's Startup folder. */
 const STARTUP_SHORTCUT_NAME = 'Flow Launcher Emoji Finder paste agent.lnk';
 
@@ -108,7 +111,8 @@ async function startAgent () {
   const scriptPath = ensureAgentScript(paths);
   const startupLog = path.join(paths.directory, STARTUP_LOG_NAME);
 
-  const launchedThroughExplorer = launchThroughStartupShortcut();
+  const launchedThroughTask = launchThroughTaskScheduler(scriptPath);
+  const launchedThroughExplorer = launchedThroughTask || launchThroughStartupShortcut();
   const launchedDirectly = launchedThroughExplorer || launchDirectly(scriptPath, startupLog);
 
   if (!launchedDirectly) {
@@ -163,6 +167,42 @@ function launchThroughStartupShortcut () {
     // Explorer returns a non-zero status for a *successful* launch often enough that this
     // is not worth reporting: the heartbeat is the real answer.
     return true;
+  }
+}
+
+/**
+ * Starts the agent through Task Scheduler.
+ *
+ * This is the reliable way to start a process that must outlive us: the task is created for
+ * the current user ("run only when the user is logged on", no password, no elevation) and
+ * Task Scheduler creates the process, so it belongs to no job object of ours. Launching the
+ * Startup shortcut through Explorer was the previous attempt and it worked intermittently -
+ * sometimes Explorer opened the folder instead of running the shortcut.
+ */
+function launchThroughTaskScheduler (scriptPath) {
+  const command = `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "${scriptPath}"`;
+
+  try {
+    execFileSync('schtasks.exe', [
+      '/create',
+      '/tn', START_TASK_NAME,
+      '/tr', command,
+      '/sc', 'once',
+      '/st', '23:59',
+      '/f'
+    ], { encoding: 'utf8', timeout: 20000 });
+
+    execFileSync('schtasks.exe', ['/run', '/tn', START_TASK_NAME], { encoding: 'utf8', timeout: 20000 });
+
+    // The task exists only to hand the process to Task Scheduler once. Removing it keeps the
+    // machine free of a scheduled task nobody asked for.
+    execFileSync('schtasks.exe', ['/delete', '/tn', START_TASK_NAME, '/f'], { encoding: 'utf8', timeout: 20000 });
+
+    return true;
+  } catch (error) {
+    console.log(style.finding('warn', `Task Scheduler could not start the agent (${String(error.message).split('\n')[0]})`));
+
+    return false;
   }
 }
 
