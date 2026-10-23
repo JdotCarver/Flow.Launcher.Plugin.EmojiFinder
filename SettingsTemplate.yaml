@@ -8,17 +8,17 @@ body:
   - type: dropdown
     attributes:
       name: defaultAction
-      label: What pressing Enter does
-      description: "Copy puts the emoji on your clipboard. Paste at cursor also types Ctrl+V, so the emoji lands where you are typing. Paste does nothing in windows running as administrator, because Windows blocks input from non-elevated apps."
-      defaultValue: copy
+      label: Enter Mode
+      description: "Copy Mode only puts the emoji in your clipboard. Paste Mode also makes it's best effort to paste it at your cursor location."
+      defaultValue: Copy Mode
       options:
-        - copy
-        - paste
+        - Copy Mode
+        - Paste Mode
   - type: dropdown
     attributes:
       name: maxResults
       label: Maximum number of emoji to show
-      description: "Due to the amount of emojis, a broad query can match thousands of results. So a lower value is recommended for snappier results. Defaults to 25, which is about two screens."
+      description: "Due to the amount of emojis, a broad query can match thousands of results. So a lower value is recommended for snappier results. This defaults to 25, which is about two screens."
       defaultValue: "25"
       options:
         - "10"
