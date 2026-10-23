@@ -18,6 +18,7 @@
 
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 import {
   ensureAgentScript,
@@ -33,6 +34,16 @@ const STARTUP_SHORTCUT_NAME = 'Flow Launcher Emoji Finder paste agent.lnk';
 
 /** How long to wait for the agent's first heartbeat after starting it. */
 const START_WAIT_MILLISECONDS = 8000;
+
+/**
+ * Where the agent's own start-up errors go.
+ *
+ * `-File` is subject to the machine's execution policy, so a freshly generated script in
+ * %LOCALAPPDATA% can be refused before it runs a single line, and with no console and
+ * stdio ignored that refusal is invisible. Hence -ExecutionPolicy Bypass (it affects this
+ * process only) and this file.
+ */
+const STARTUP_LOG_NAME = 'agent-startup.log';
 
 const paths = resolveAgentPaths();
 
@@ -82,13 +93,18 @@ async function startAgent () {
   }
 
   const scriptPath = ensureAgentScript(paths);
+  const startupLog = path.join(paths.directory, STARTUP_LOG_NAME);
+
+  fs.rmSync(startupLog, { force: true });
+  const errorStream = fs.openSync(startupLog, 'a');
 
   const child = spawn(
     'powershell.exe',
-    ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-File', scriptPath],
-    { detached: true, stdio: 'ignore', windowsHide: true }
+    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', scriptPath],
+    { detached: true, stdio: ['ignore', 'ignore', errorStream], windowsHide: true }
   );
   child.unref();
+  child.on('spawn', () => fs.closeSync(errorStream));
 
   const deadline = Date.now() + START_WAIT_MILLISECONDS;
 
@@ -103,6 +119,14 @@ async function startAgent () {
   }
 
   console.log(style.finding('fail', 'the paste agent did not produce a heartbeat within 8 s'));
+
+  const startupErrors = fs.existsSync(startupLog) ? fs.readFileSync(startupLog, 'utf8').trim() : '';
+
+  if (startupErrors !== '') {
+    console.log(style.finding('warn', `the agent said: ${startupErrors.split('\n').slice(-3).join(' | ')}`));
+  } else {
+    console.log(style.finding('warn', `no start-up error was written to ${startupLog}`));
+  }
 
   return false;
 }
@@ -142,7 +166,7 @@ function configureStartup (shouldInstall) {
         '$shell = New-Object -ComObject WScript.Shell;' +
         '$shortcut = $shell.CreateShortcut($shortcutPath);' +
         '$shortcut.TargetPath = (Get-Command powershell.exe).Source;' +
-        `$shortcut.Arguments = '-NoProfile -WindowStyle Hidden -File "${scriptPath}"';` +
+        `$shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "${scriptPath}"';` +
         '$shortcut.WindowStyle = 7;' +
         '$shortcut.Description = \'Keeps paste-at-cursor available for the Flow Launcher emoji plugin\';' +
         '$shortcut.Save();' +
