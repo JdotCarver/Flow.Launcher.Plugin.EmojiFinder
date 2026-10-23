@@ -127,10 +127,11 @@ function Write-Trace([string] $message) {
   # Capped: a resident process must never be able to fill a disk.
   $existing = Get-Item -LiteralPath $logPath -ErrorAction SilentlyContinue
   if ($null -ne $existing -and $existing.Length -gt 262144) {
-    Set-Content -LiteralPath $logPath -Value ''
+    Set-Content -LiteralPath $logPath -Value '' -Encoding UTF8
   }
   $line = '{0} | agent | {1}' -f (Get-Date).ToString('o'), $message
-  Add-Content -LiteralPath $logPath -Value $line -ErrorAction SilentlyContinue
+  # UTF8 as well, so the log the emoji it claims to have seen is the emoji it actually saw.
+  Add-Content -LiteralPath $logPath -Value $line -Encoding UTF8 -ErrorAction SilentlyContinue
 }
 
 # Variation selectors and zero-width joiners are invisible and are dropped by some
@@ -173,7 +174,7 @@ try {
 # Requests seen before this process started are not pasted: after a restart the agent picks
 # up from wherever the sequence number is now.
 $lastSequence = 0
-$x = Get-Content -LiteralPath $requestPath -Raw -ErrorAction SilentlyContinue
+$x = Get-Content -LiteralPath $requestPath -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
 if ($x) {
   try { $lastSequence = [double](ConvertFrom-Json $x).sequence } catch { }
 }
@@ -258,11 +259,15 @@ Write-Trace 'waiting for requests'
 
 while ($true) {
   if (((Get-Date) - $lastHeartbeat).TotalMilliseconds -gt 500) {
-    (Get-Date).ToString('o') | Set-Content -LiteralPath $heartbeatPath -ErrorAction SilentlyContinue
+    (Get-Date).ToString('o') | Set-Content -LiteralPath $heartbeatPath -Encoding UTF8 -ErrorAction SilentlyContinue
     $lastHeartbeat = Get-Date
   }
 
-  $content = Get-Content -LiteralPath $requestPath -Raw -ErrorAction SilentlyContinue
+  # -Encoding UTF8 is not optional. Windows PowerShell 5.1 reads files with the ANSI code
+  # page by default, which turns an emoji written as UTF-8 into four meaningless characters
+  # (measured: 🧪 arrived as code points 240,376,167,170 - its UTF-8 bytes). The clipboard can
+  # then never match, and the agent silently refuses to paste. This cost a full afternoon.
+  $content = Get-Content -LiteralPath $requestPath -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
   if ($content) {
     $request = $null
     try { $request = ConvertFrom-Json $content } catch { }

@@ -87,6 +87,14 @@ describe('buildAgentScript', () => {
     expect(script).not.toContain("''''");
   });
 
+  test('reads the request file as UTF-8, or every emoji becomes its own bytes', () => {
+    // Windows PowerShell 5.1 defaults to the ANSI code page. Without this, an emoji arrives
+    // as four characters, the clipboard never matches, and the agent silently does nothing.
+    const script = buildAgentScript(createPaths());
+
+    expect(script).toContain('Get-Content -LiteralPath $requestPath -Raw -Encoding UTF8');
+  });
+
   test('always writes a log, so "did the request arrive" can be answered afterwards', () => {
     const paths = createPaths();
 
