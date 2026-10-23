@@ -27,7 +27,17 @@ export type Result = {
   Subtitle: string
   JsonRPCAction?: JsonRpcAction
   IcoPath?: string
-  score?: number
+  /**
+   * The match score. Flow Launcher sorts by it, and adds the user's own selection count on top
+   * (`Result.AddSelectedCount`), which is where "the more I use an emoji, the higher it goes"
+   * comes from - no state of our own required.
+   */
+  Score?: number
+  /**
+   * What Flow counts selections against. Without it, Flow hashes Title+SubTitle, so an emoji
+   * whose subtitle changed would lose its history; the emoji itself is the stable identity.
+   */
+  RecordKey?: string
 };
 
 export type JsonRpcRequest = {

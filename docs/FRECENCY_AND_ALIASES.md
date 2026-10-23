@@ -1,12 +1,40 @@
 # Frecency and aliases: proposed shape
 
-Status: **draft for discussion.** Nothing here is implemented. Two features the maintainer asked
-for after paste-at-cursor shipped: ranking that learns from what is actually picked, and
-user-defined aliases that feed the same ranking.
+Status: **decided, being implemented.** Two features the maintainer asked for after
+paste-at-cursor shipped: ranking that learns from what is actually picked, and user-defined
+aliases that feed the same ranking.
+
+Done so far: the score and record key every result now carries (see below), the settings-folder
+resolution, and the two data files with their rules (`src/utils/pluginData.ts`, 15 tests).
+Next: alias matching in `find()`, the empty-query list, and the alias command + context menu.
 
 Both touch `find()`, the hot path that runs once per keystroke, and both need state that
 survives a restart. That is the whole reason this document exists: where the state lives is an
 architecture decision, not a detail.
+
+## What Flow Launcher already does (read from its source, not assumed)
+
+Three facts changed this design after the first draft:
+
+1. **Flow counts selections for us.** `Result.AddSelectedCount` defaults to true, and
+   `MainViewModel` adds `_userSelectedRecord.GetSelectedCount(result)` to every result's
+   `Score` before sorting. That store is persisted (`FlowLauncherJsonStorage<UserSelectedRecord>`),
+   so it survives restarts. This is the "the more I use it, the higher it goes" behaviour that
+   already existed - it is Flow's, not ours, and it needs nothing from the plugin except:
+2. **A score and a record key.** We were sending neither. Every result had `Score: 0`, so our own
+   relevance order was invisible to Flow, and Flow keyed the counts on a hash of Title+SubTitle.
+   Results now carry `Score` (our match score) and `RecordKey` (the emoji itself), so the counts
+   attach to something stable and our ordering survives the round trip.
+3. **JS plugins can add context menu items.** `JsonRPCPluginBase` implements `IContextMenu` by
+   calling our script with method `context_menu` and `parameters: [selectedResult.ContextData]`.
+   So the right-arrow menu the maintainer described is available to us: each result can carry its
+   emoji as `ContextData`, and we answer with menu entries such as "Add an alias".
+
+What Flow does **not** have is a text-input dialog: `IPublicAPI` offers `ShowMsg`,
+`ShowMsgWithButton`, `ChangeQuery` and `FocusQueryTextBox`, and nothing that prompts for a string.
+So the alias flow cannot be "right arrow, type a name in a popup". It can be: right arrow, choose
+"Add an alias", and we pre-fill the query box (`e addalias <emoji> `) with the caret where the
+name goes; or type `e addalias swole 💪` outright. Both end in the same save call.
 
 ## What already exists
 
@@ -97,9 +125,19 @@ feature needs:
 5. Whatever alias UI we agree on.
 6. Measure again: `find()` cost per keystroke, and the cost of a pick.
 
-## Open questions
+## Decisions
 
-1. **Alias creation**: file only, two-step command, or both?
-2. **Frecency default**: on (better ranking, one process per pick) or off (fastest copy, opt-in)?
-3. **Should picking a *direct* Flow copy still count?** It cannot, without the process. So either
-   frecency implies our action, or counts only paste/notification picks and is inconsistent.
+1. **Alias creation**: the context menu is the intended path, the command is the power path, and
+   the JSON file stays the storage format. Maintainer's words: avoid making the user learn a
+   command, but let the people who want one have it.
+2. **Frecency**: on by default, and it is Flow's counting that does the ranking work - we only add
+   the empty-query list, which Flow cannot give us.
+3. **Copy vs count**: Flow records a selection whatever action runs, so a direct in-process copy is
+   still counted. That is the whole reason to prefer Flow's counter over our own: no extra
+   process on the pick path, and the fastest copy stays the fastest copy.
+
+The remaining cost is only for the empty-query list: to show "the emoji you actually use" for an
+empty query we must know the order, and Flow's store is an internal hash-keyed file we are not
+going to parse. So our own small `usage.json` is written by our actions, which costs one plugin
+process per pick (paste already pays it; copy with notifications off would start paying it only
+if the list proves worth it - measure before deciding).

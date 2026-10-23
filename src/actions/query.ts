@@ -58,7 +58,11 @@ export function query (input: string | undefined, settings: Settings): void {
     Title: finding.title,
     Subtitle: finding.subtitle,
     JsonRPCAction: buildResultAction(finding.emoji, resolvedSettings),
-    IcoPath: getIconFileName(finding.emoji) ?? 'img\\app.png'
+    IcoPath: getIconFileName(finding.emoji) ?? 'img\\app.png',
+    // Our own relevance order, which Flow cannot reconstruct. Flow adds the user's selection
+    // count to this, which is the "used emoji float up" behaviour, for free.
+    Score: finding.score,
+    RecordKey: finding.emoji
   }));
 
   sendJsonRpcRequest({ result: request });

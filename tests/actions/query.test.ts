@@ -61,8 +61,20 @@ describe('query', () => {
         method: 'copy',
         parameters: [expect.any(String), true]
       },
-      IcoPath: expect.stringMatching(/^icons\\[0-9a-f-]+\.png$/)
+      IcoPath: expect.stringMatching(/^icons\\[0-9a-f-]+\.png$/),
+      Score: expect.any(Number),
+      RecordKey: expect.any(String)
     });
+  });
+
+  test('sends the score and the record key Flow needs to rank by use', () => {
+    const { result } = queryAndReadPayload('smile', { enableNotification: true, maxResults: '2' });
+
+    // Score is our relevance order; Flow adds the user's selection count to it.
+    expect(result[0]?.Score).toBeGreaterThan(0);
+    expect(result[0]?.Score).toBeGreaterThanOrEqual(result[1]?.Score ?? 0);
+    // The emoji is the stable identity, so a changed subtitle cannot lose a history entry.
+    expect(result[0]?.RecordKey).toMatch(/\p{Extended_Pictographic}/u);
   });
 
   describe('choosing the copy action', () => {
