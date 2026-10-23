@@ -1,8 +1,8 @@
 // src/utils/pasteAgent.ts
 //
-// The resident helper that puts the chosen emoji at the user's cursor.
+// The resident agent that puts the chosen emoji at the user's cursor.
 //
-// Why this replaces "start a helper process on every paste"
+// Why this replaces "start a process on every paste"
 // --------------------------------------------------------
 // A Flow Launcher plugin is a one-shot process: it is started, returns a result, and is
 // destroyed. Measured on the real machine, everything it spawns is destroyed with it - the

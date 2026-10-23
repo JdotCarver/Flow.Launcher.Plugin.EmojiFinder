@@ -31,6 +31,10 @@ npm run agent -- --install-startup # come back at login
 npm run check:paste-agent          # per PowerShell host: request an emoji, verify it survives
 ```
 
+`npm run diagnose` is also the environment probe: it writes `dogfood/windows-probe.json` with
+what this machine can actually do - WinForms and UI Automation loads, a clipboard round-trip of
+🙈 and ❤️, `SendKeys` into a focused window, Flow Launcher's processes and window handles.
+
 When paste at cursor is the suspect, there is a cheaper experiment first that has nothing
 to do with Flow Launcher:
 
@@ -88,8 +92,8 @@ self-test typing `abc` into it, which needs a real window to type into.
 | File | Written by | Committed? |
 |---|---|---|
 | `dogfood/diagnose.json` | `npm run diagnose` (on your machine) | yes |
+| `dogfood/agent.log` | the agent, every time it runs (copied back by `npm run diagnose`) | yes |
 | `dogfood/runtime.log` | the plugin, only when `trace.on` exists next to `plugin.json` | yes |
-| `dogfood/agent.log` | the paste agent, *always* (copied back by `npm run diagnose`) | yes |
 | `dogfood/selftest.json` | `npm run paste:selftest` | yes |
 | `dogfood/diagnose-linux.json` | `npm run diagnose` in the sandbox | no (gitignored) |
 | `dogfood/paste-agent-check.json` | `npm run check:paste-agent` | no (gitignored) |

@@ -1,8 +1,4 @@
-{"at":"2026-10-23T09:47:18.307Z","event":"method","method":"paste","parameters":["👍"]}
-{"at":"2026-10-23T09:47:18.865Z","event":"paste:spawn","emoji":"👍","started":true,"pid":3772}
-2026-10-23T12:13:01.8117632+02:00 | helper | winforms loaded
-2026-10-23T12:13:01.8178254+02:00 | helper | uiautomation loaded
-2026-10-23T12:13:01.8771091+02:00 | helper | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36092 clipboardMatches=False clipboardEmpty=False clipboardError=[]
-2026-10-23T12:13:01.8840378+02:00 | helper | mismatch clipboardCodes=[10084,65039] targetCodes=[55358,56810]
-2026-10-23T12:13:04.3390195+02:00 | helper | decision paste=False elapsedMs=2513
-2026-10-23T12:13:04.3420194+02:00 | helper | exit
+{"at":"2026-10-23T11:37:29.150Z","event":"method","method":"paste","parameters":["👏"]}
+{"at":"2026-10-23T11:37:29.153Z","event":"paste:request","emoji":"👏","sequence":1792755449152,"agentRunning":true}
+{"at":"2026-10-23T11:37:40.199Z","event":"method","method":"paste","parameters":["🙏"]}
+{"at":"2026-10-23T11:37:40.201Z","event":"paste:request","emoji":"🙏","sequence":1792755460200,"agentRunning":true}

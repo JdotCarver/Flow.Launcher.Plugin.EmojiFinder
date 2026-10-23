@@ -17,8 +17,8 @@ import { getIconFileName } from '../utils/utils.js';
 /**
  * Builds the action Flow runs when the user picks a result.
  *
- * Paste mode is the only case that needs our own process (to start the paste helper),
- * and it gets its clipboard content from Flow in the same breath.
+ * Paste mode is the only case that needs our own process (to see whether the paste agent is
+ * running), and it gets its clipboard content from Flow in the same breath.
  *
  * Copy mode:
  *   - notifications off -> Flow copies in-process; picking a result starts no process

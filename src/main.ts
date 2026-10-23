@@ -20,7 +20,7 @@ if (method === 'query') {
 }
 
 // Actions are traced, queries are not: there is one of these per Enter and one of those
-// per keystroke, and the paste helper is what needs the paper trail.
+// per keystroke, and the paste agent is what needs the paper trail.
 if (method !== 'query') {
   trace('method', { method, parameters });
 }

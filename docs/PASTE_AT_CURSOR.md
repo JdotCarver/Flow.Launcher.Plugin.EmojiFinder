@@ -38,7 +38,7 @@ Three facts, each verified in Flow's source or on the machine:
 |---|---|---|
 | 1 | Start a PowerShell helper per paste, `detached: true` | plugin logged `paste:spawn started=true pid=…`, then the helper wrote **nothing** - not even its first line |
 | 2 | Same, but capture the helper's stderr | proved the failure was silent: an empty `helper-stderr.log`, no PowerShell error |
-| 3 | Same, `detached: false` (a probe compared one flag at a time) | the helper ran when its parent stayed alive: **6 trace lines vs 0** |
+| 3 | Same, `detached: false`, compared with `true` one flag at a time | `traceLines=6` versus `traceLines=0`, printed in the plugin's own log. **The one-line change that identified the flag** |
 | 4 | Add a readiness handshake: the helper prints one line, the plugin waits for it | plugin logged `ready=true` - PowerShell really did start - and the helper was still killed with our process microseconds later |
 | 5 | `cmd /c start`, Explorer-launched shortcut, direct spawn | all die with the job that started them |
 | 6 | **Resident agent** (what shipped) | `decision paste=True elapsedMs=25`, `sendkeys sent` |
@@ -48,17 +48,24 @@ The two lessons worth keeping:
 - **`detached: true` is not "survives the parent" on Windows.** libuv turns it into
   `DETACHED_PROCESS`; PowerShell gets no console, starts, exits with code 0 and executes none of
   the script. It is worse than useless for this purpose.
+- **A process that has a *console attached* runs its script; a detached one only appears to.**
+  That is why nothing helped: the child was not blocked, slow, or misconfigured - it was a
+  console-less `powershell.exe` that exited 0 before parsing the file.
 - **A launcher that owns a job object takes its children down.** A CI job, an installer, a
-  terminal - anything that starts a process and exits can take the helper with it. The only
+  terminal - anything that starts a process and exits can take a child with it. The only
   process that reliably outlives that is one that is already running (a resident agent), or one
   started by something that never exits (Task Scheduler, Explorer, the Startup folder).
 
 ## 4. Why a PowerShell agent, and what it costs
 
 A compiled helper or a `cscript` shim would start faster, but neither removes the fundamental
-problem: the injector must be *resident*, and a resident process is a resident process whatever
-language it is written in. PowerShell costs one hidden process of roughly 40-60 MB and no build
-step, no installer, and no unsigned binary for antivirus to flag.
+problem: a per-paste process dies with the plugin, and spawning is not where the cost is.
+PowerShell costs one hidden process of roughly 40-60 MB and no build step, no installer, and no
+unsigned binary for antivirus to flag.
+
+Measured on the maintainer's machine, with the agent already running: **25-85 ms** from request
+to `sendkeys sent`. That is the whole cost of the design - the PowerShell cold start (99 ms
+measured) happens once, at login, instead of on every paste.
 
 The injector's limits are unchanged and worth stating plainly:
 
@@ -69,7 +76,23 @@ The injector's limits are unchanged and worth stating plainly:
   Ctrl+V means for them, not necessarily what the user expected.
 - **Remote sessions** may or may not forward synthetic input, depending on the client.
 
-## 5. The encoding trap (the last bug, and the sneakiest)
+## 5. The evidence on the machine
+
+`npm run diagnose` probes the parts this design depends on, on real Windows. Latest run:
+
+| measurement | result |
+|---|---|
+| `System.Windows.Forms` assembly load | 6 ms |
+| UI Automation focus probe | 46 ms, focused process identified |
+| `Add-Type` P/Invoke compilation (rejected for that reason) | 66 ms |
+| clipboard round-trip of 🙈 and ❤️ | exact, code points identical |
+| `SendKeys` typing into a focused window | ok |
+| Flow Launcher's own `MainWindowHandle` while running | **0** - hence the UIA fallback |
+
+That last row is the reason the agent does not rely on the Flow window handle alone: a hidden
+or minimised Flow has a zero handle, and a check that waits for a non-zero one waits forever.
+
+## 6. The encoding trap (the last bug, and the sneakiest)
 
 With the agent running, every request arrived, was logged, and ended in `decision paste=False`
 while the clipboard held exactly the right emoji. The agent logged the code points it had read:
@@ -88,7 +111,7 @@ Two tests now hold that line: one asserts the script uses explicit encodings, an
 `npm run check:paste-agent` round-trips a real emoji through the request file under **both**
 PowerShell hosts and compares code points.
 
-## 6. Where the code is
+## 7. Where the code is
 
 - `src/utils/pasteAgent.ts` - the agent script, the request/heartbeat protocol, liveness.
 - `src/actions/paste.ts` - asks Flow to copy, then publishes a request. Starts nothing.

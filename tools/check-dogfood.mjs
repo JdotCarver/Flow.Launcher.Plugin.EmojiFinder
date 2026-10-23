@@ -90,7 +90,7 @@ function checkEnvironment (report) {
 
   for (const test of result.clipboard?.tests ?? []) {
     if (test.matches === false) {
-      finding('warn', `clipboard round-trip differs: wrote [${test.writtenCodes}] read [${test.readCodes}]. The helper ignores variation selectors, so a difference of only 65038/8205 is harmless; anything else means the wait loop never matches.`);
+      finding('warn', `clipboard round-trip differs: wrote [${test.writtenCodes}] read [${test.readCodes}]. The agent ignores variation selectors, so a difference of only 65038/8205 is harmless; anything else means the wait loop never matches.`);
     }
   }
 
@@ -99,15 +99,15 @@ function checkEnvironment (report) {
   }
 
   if ((result.flowProcesses ?? []).length === 0) {
-    finding('fail', 'no process named Flow.Launcher* found. The helper waits for Get-Process -Name "Flow.Launcher*"; if Flow is named differently, that check must change. Names seen: ' + ((result.flowLikeProcesses ?? []).map(entry => entry.name).join(', ') || 'none'));
+    finding('fail', 'no process named Flow.Launcher* found. The agent waits for Get-Process -Name "Flow.Launcher*"; if Flow is named differently, that check must change. Names seen: ' + ((result.flowLikeProcesses ?? []).map(entry => entry.name).join(', ') || 'none'));
   }
 
   if (result.uiAutomation !== undefined) {
     finding(
       'info',
       result.uiAutomation.ok === true
-        ? `UI Automation focus probe works (${result.uiAutomation.milliseconds} ms): the helper can tell when focus left Flow`
-        : `UI Automation is unavailable (${result.uiAutomation.error}); the helper falls back to the MainWindowHandle check alone`
+        ? `UI Automation focus probe works (${result.uiAutomation.milliseconds} ms): the agent can tell when focus left Flow`
+        : `UI Automation is unavailable (${result.uiAutomation.error}); the agent falls back to the MainWindowHandle check alone`
     );
   }
 
@@ -120,7 +120,7 @@ function checkEnvironment (report) {
 
   const addTypeMilliseconds = result.win32?.milliseconds ?? 0;
   if (addTypeMilliseconds > 0) {
-    finding('info', `compiling P/Invoke with Add-Type took ${addTypeMilliseconds} ms, which is why the helper uses Get-Process instead`);
+    finding('info', `compiling P/Invoke with Add-Type took ${addTypeMilliseconds} ms, which is why the agent uses Get-Process instead`);
   }
 }
 

@@ -74,7 +74,7 @@ function describeInstalledPlugin () {
   const entryPoint = path.join(pluginsDirectory, 'dist', 'main.js');
   const traceFile = path.join(pluginsDirectory, 'dogfood', 'runtime.log');
 
-  // PowerShell's own words, when the helper dies before it can write anything. This file
+  // PowerShell's own words, when the agent dies before it can write anything. This file
   // is the only place an error like a blocked command or a broken profile can appear.
   const helperErrorFile = path.join(pluginsDirectory, 'dogfood', 'helper-stderr.log');
   const helperErrorText = readIfPresent(helperErrorFile);

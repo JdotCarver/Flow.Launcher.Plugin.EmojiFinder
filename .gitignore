@@ -16,5 +16,4 @@ dogfood/probe-*.log
 dogfood/paste-spawn-probe.json
 dogfood/paste-spawn-probe.ps1
 dogfood/helper-stderr.log
-dogfood/agent.log
 dogfood/paste-agent-check.json
