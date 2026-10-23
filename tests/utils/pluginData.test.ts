@@ -16,6 +16,7 @@ import {
   ALIASES_FILE_NAME,
   FLOW_SETTINGS_FILE_NAME,
   migrateEnterModeSetting,
+  readActionKeyword,
   readAliases,
   readUsage,
   recordUsage,
@@ -38,6 +39,33 @@ afterEach(() => {
   for (const directory of temporaryDirectories.splice(0)) {
     fs.rmSync(directory, { recursive: true, force: true });
   }
+});
+
+describe('readActionKeyword', () => {
+  test('reads the keyword from the plugin manifest', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'manifest-'));
+    fs.writeFileSync(path.join(directory, 'plugin.json'), JSON.stringify({ ActionKeyword: 'emoji' }));
+
+    expect(readActionKeyword(directory)).toBe('emoji');
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  test('falls back to e when the manifest is missing or says nothing', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'manifest-'));
+
+    // A missing manifest must not make the context menu throw; e is what plugin.json ships.
+    expect(readActionKeyword(directory)).toBe('e');
+
+    fs.writeFileSync(path.join(directory, 'plugin.json'), JSON.stringify({ ActionKeyword: '  ' }));
+    expect(readActionKeyword(directory)).toBe('e');
+
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  test('this plugin\'s own manifest declares e', () => {
+    // The subtitle shows the command, so the constant and the file have to agree.
+    expect(readActionKeyword()).toBe('e');
+  });
 });
 
 describe('resolvePluginSettingsDirectory', () => {

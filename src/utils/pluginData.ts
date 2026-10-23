@@ -55,6 +55,31 @@ export type AliasRecord = Record<string, string>;
  */
 export const PLUGIN_DIRECTORY = path.resolve(import.meta.dirname, '..', '..');
 
+/** What the plugin answers to when Flow has not been told otherwise; also plugin.json's value. */
+export const DEFAULT_ACTION_KEYWORD = 'e';
+
+/**
+ * The keyword this plugin is invoked with, as declared in its own plugin.json.
+ *
+ * Needed to write a complete query into Flow's box (`e addalias 💪 `), because Flow strips the
+ * keyword before it hands us the search text: a plugin can type the rest of the command, but it
+ * has to supply the word that routes it back to us.
+ *
+ * plugin.json is the default; a user who rebinds the keyword in Flow's settings keeps the old
+ * value here, and the generated command would then be routed elsewhere. That is why the command
+ * is also always shown in the subtitle, and why the typed form works without any of this.
+ */
+export function readActionKeyword (pluginDirectory: string = PLUGIN_DIRECTORY): string {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(path.join(pluginDirectory, 'plugin.json'), 'utf8')) as { ActionKeyword?: unknown };
+    const keyword = typeof manifest.ActionKeyword === 'string' ? manifest.ActionKeyword.trim() : '';
+
+    return keyword === '' ? DEFAULT_ACTION_KEYWORD : keyword;
+  } catch {
+    return DEFAULT_ACTION_KEYWORD;
+  }
+}
+
 /**
  * Flow's settings folder for this plugin, or null when this plugin is not inside a Flow
  * Launcher layout at all (a test run, or somebody running dist/main.js by hand).

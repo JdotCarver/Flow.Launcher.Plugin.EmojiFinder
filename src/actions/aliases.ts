@@ -24,9 +24,11 @@
 // aliased. A word now means exactly one thing: it is a name, and a name without an emoji in front
 // of it gets one line explaining the order instead of a list to choose from.
 //
-// Why the right-arrow menu only explains the command: Flow Launcher keeps the context menu open
-// while the query box filters the menu's own entries, so a pre-filled query is filtered away as
-// soon as the user types the name. See docs/FRECENCY_AND_ALIASES.md for the evidence.
+// The right-arrow menu writes the command for the user. Flow Launcher cannot hand a plugin a text
+// box, but it does let one result call one `Flow.Launcher.*` method, and `ChangeQuery` puts a
+// complete query in the box with the caret at the end. So the menu entry types
+// `e addalias 💪 ` and the user is where they would have been had they typed it themselves -
+// one Enter, no second flow. See docs/FRECENCY_AND_ALIASES.md for what that depends on.
 
 import { ALIASES_FILE_NAME, readAliases } from '../utils/pluginData.js';
 import { getIconFileName } from '../utils/utils.js';
@@ -109,17 +111,23 @@ function openFileAction (filePath: string): JsonRpcAction {
 }
 
 /**
- * The menu entry that explains how to add an alias.
+ * The menu entry that starts the add-an-alias command.
  *
- * It cannot do the adding itself: Flow Launcher keeps the context menu open while the query box
- * filters the menu's own entries, so a pre-filled query disappears the moment the user types the
- * name. An entry that only needs typing is the honest version.
+ * It cannot save on its own - the name does not exist yet - so it does the next best thing and
+ * puts the command in the query box: `e addalias 💪 `, caret at the end, ready for the name.
+ * That is the command the user could have typed, so the menu keeps teaching rather than hiding.
+ *
+ * @param emoji The emoji the selected result stands for.
+ * @param actionKeyword The word that routes the query back to this plugin.
  */
-export function buildAddAliasHintResult (emoji: string): Result {
+export function buildAddAliasResult (emoji: string, actionKeyword: string): Result {
+  const command = `${actionKeyword} addalias ${emoji} `;
+
   return {
-    Title: 'Add an alias for this emoji',
-    Subtitle: `Type: e addalias ${emoji} <name> - the emoji first, then the name`,
-    IcoPath: 'img\\app.png'
+    Title: 'Add alias',
+    Subtitle: `Types “${command.trim()}” in the query box, then type the name`,
+    IcoPath: emojiIcon(emoji),
+    JsonRPCAction: { method: 'Flow.Launcher.ChangeQuery', parameters: [command, true] }
   };
 }
 
@@ -241,16 +249,25 @@ function listingResults (paths: { settingsDirectory: string | null, emojiDatabas
 /**
  * The right-arrow menu for one emoji.
  *
+ * Order is deliberate: the two things a person reaches for most (copy this emoji, name it) come
+ * first, then the removal entries for this emoji, then the file.
+ *
+ * Flow Launcher appends two entries of its own after ours - "Set as topmost in this query" and
+ * "<plugin name>" - for every plugin result. They are added by Flow after its plugins have
+ * answered (`MainViewModel.QueryContextMenu`), so no plugin can remove them.
+ *
  * @param emoji The emoji the selected result stands for.
  * @param paths Where the files are.
+ * @param actionKeyword The word that routes a query back to this plugin.
  */
 export function buildContextMenu (
   emoji: string | undefined,
-  paths: { settingsDirectory: string | null, emojiDatabase: string }
+  paths: { settingsDirectory: string | null, emojiDatabase: string },
+  actionKeyword: string
 ): Result[] {
   // Flow hands back whatever ContextData the result carried. Results from an older build (or
-  // any result without it) arrive as undefined, and a menu that says "Add an alias for
-  // undefined" is worse than one that explains itself.
+  // any result without it) arrive as undefined, and a menu that says "Add alias for undefined"
+  // is worse than one that explains itself.
   if (typeof emoji !== 'string' || emoji === '') {
     return [{
       Title: 'No emoji attached to this result',
@@ -262,23 +279,20 @@ export function buildContextMenu (
   const aliases = paths.settingsDirectory === null ? {} : readAliases(paths.settingsDirectory);
   const own = Object.entries(aliases).filter(([, value]) => value === emoji);
 
-  // The first entry explains how to add one instead of trying to do it: adding needs a name
-  // typed, and Flow Launcher keeps this menu open while the query box filters the menu's own
-  // entries, so a pre-filled query is filtered away as soon as the user types.
-  const menu: Result[] = [buildAddAliasHintResult(emoji)];
-
   // Copy-only, for anyone whose Enter mode is Paste Mode: the same emoji, without the Ctrl+V.
   // It runs our own copy action, which is what records the pick and shows the confirmation.
-  menu.push({
+  const menu: Result[] = [{
     Title: 'Copy only',
     Subtitle: 'Copy this emoji to the clipboard',
     IcoPath: emojiIcon(emoji),
     JsonRPCAction: { method: 'copy', parameters: [emoji, true] }
-  });
+  }];
+
+  menu.push(buildAddAliasResult(emoji, actionKeyword));
 
   for (const [alias] of own) {
     menu.push({
-      Title: `Remove the alias “${alias}”`,
+      Title: `Remove alias “${alias}”`,
       Subtitle: 'This emoji would stop answering to it',
       IcoPath: emojiIcon(emoji),
       JsonRPCAction: { method: 'removealias', parameters: [alias] }

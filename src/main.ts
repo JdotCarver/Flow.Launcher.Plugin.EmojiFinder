@@ -11,7 +11,7 @@ import { paste } from './actions/paste.js';
 import { query } from './actions/query.js';
 import { emojiDatabasePath } from './utils/find.js';
 import { sendJsonRpcRequest } from './utils/flowLauncher.js';
-import { removeAlias, resolvePluginSettingsDirectory, saveAlias } from './utils/pluginData.js';
+import { readActionKeyword, removeAlias, resolvePluginSettingsDirectory, saveAlias } from './utils/pluginData.js';
 import { trace } from './utils/trace.js';
 
 const args: Arguments = JSON.parse(process.argv[2] ?? '{}');
@@ -26,12 +26,19 @@ if (method === 'query') {
 // Flow Launcher implements its right-arrow menu for JS plugins by asking the plugin for it:
 // the selected result's ContextData arrives as the only parameter, and the list of results we
 // print becomes the menu.
+//
+// The action keyword comes from our own manifest: Flow strips it before handing us a search
+// term, and the add-an-alias entry needs it to write a complete query back into the box.
 if (method === 'context_menu') {
   const emoji = parameters[0] as string;
   const settingsDirectory = resolvePluginSettingsDirectory();
 
   sendJsonRpcRequest({
-    result: buildContextMenu(emoji, { settingsDirectory, emojiDatabase: emojiDatabasePath() })
+    result: buildContextMenu(
+      emoji,
+      { settingsDirectory, emojiDatabase: emojiDatabasePath() },
+      readActionKeyword()
+    )
   });
 }
 

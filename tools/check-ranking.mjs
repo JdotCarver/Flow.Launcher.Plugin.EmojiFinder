@@ -241,14 +241,29 @@ function checkResultsCarryWhatFlowNeeds () {
 function checkContextMenu () {
   const { payload, stdout } = runPlugin({ method: 'context_menu', parameters: ['💪'], settings: {} });
   const menu = payload?.result ?? [];
-  const hint = menu.find((item) => item.Title?.includes('Add an alias'));
+  const order = menu.map((item) => item.Title);
 
   finding(menu.length > 0 ? 'pass' : 'fail', 'the context menu answers', `${menu.length} item(s)`);
+  // The file entry needs a Flow settings folder, which a bare check run does not have; when it
+  // is there it has to be last, after the removals.
+  const fileEntryIsLast = !order.includes('Open my aliases file') || order.at(-1) === 'Open my aliases file';
+
   finding(
-    hint !== undefined && hint.JsonRPCAction === undefined && String(hint.Subtitle).includes('addalias'),
-    'the add-an-alias entry explains the command instead of typing for the user',
-    String(hint?.Subtitle ?? '')
+    order[0] === 'Copy only' && order[1] === 'Add alias' && fileEntryIsLast,
+    'the menu leads with copy-only and add alias, and puts the file last',
+    order.join(' | ')
   );
+
+  const add = menu.find((item) => item.Title === 'Add alias');
+
+  finding(
+    add?.JsonRPCAction?.method === 'Flow.Launcher.ChangeQuery' &&
+      add?.JsonRPCAction?.parameters?.[0] === 'e addalias 💪 ' &&
+      add?.JsonRPCAction?.parameters?.[1] === true,
+    'the add entry types the command into the query box, caret at the end',
+    JSON.stringify(add?.JsonRPCAction ?? null)
+  );
+
   const copyOnly = menu.find((item) => item.Title === 'Copy only');
 
   finding(

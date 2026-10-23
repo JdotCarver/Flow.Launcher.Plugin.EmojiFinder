@@ -103,10 +103,10 @@ One word, one meaning: Enter either saves the alias that is named on the row, or
 all. The emoji is typed or pasted - search for it with `e`, Enter copies it, paste it after
 `e addalias`. The search step that would avoid that is rejected below, with the rule it breaks.
 
-Right arrow on an emoji gives: **Add an alias for this emoji** (explains the command; it cannot
-type for you, see below), **Copy only (no paste)** — the same emoji on the clipboard without the
-Ctrl+V, which is what paste-mode users need when they want just a copy — the remove entries for
-that emoji's aliases, and **Open my aliases file**.
+Right arrow on an emoji gives, in order: **Copy only** — the same emoji on the clipboard without
+the Ctrl+V, for paste-mode users who want just a copy — **Add alias** (types
+`e addalias 💪 ` into the query box), the **Remove alias “…”** entries for that emoji, and
+**Open my aliases file**. Flow appends two entries of its own after those; see below.
 
 **Icons, not glyphs.** An emoji written into a Title renders as a monochrome outline glyph in
 Flow's list, and showing it in the title *and* the subtitle looks like a rendering bug. Every
@@ -150,15 +150,42 @@ The dead end it was meant to fix has a shorter route that keeps Enter honest: **
 way you always do, press Enter (that is the copy), then `e addalias` and paste.** Two keystrokes,
 no new grammar, and the hint says so.
 
-### Why the context menu cannot add an alias
+### What the context menu can do
 
-Flow Launcher implements the right-arrow menu for JS plugins by calling our script with method
-`context_menu`. While that menu is open, `SelectedResults` is the menu's own result list, and the
-query box keeps filtering **the menu** - so a `Flow.Launcher.ChangeQuery` that pre-fills
-`addalias 💪 ` is filtered away as soon as the user types the name. Only Escape returns to the
-results (`EscAsync` → `ReturnFromContextMenuAsync`), and `IPublicAPI` has no "close the menu" call.
-A JSON plugin's action can reach exactly one `Flow.Launcher.*` method, so "close the menu and set
-the query" cannot be chained either.
+It cannot take a name - no Flow Launcher text box exists for plugins - but it can type the
+command. The entry **Add alias** calls `Flow.Launcher.ChangeQuery('e addalias 💪 ', true)`, which
+fills the query box with the command the user could have typed and leaves the caret at the end.
+That is the whole flow: right arrow, Enter, type the name, Enter. No wizard, no second grammar,
+and the menu keeps teaching rather than hiding how the feature works.
+
+Two things worth knowing about it:
+
+- **One API call per action.** `JsonRPCPlugin.ExecuteResultAsync` executes exactly one
+  `Flow.Launcher.*` method, whether it came from the result or from our answer to an action. Flow's
+  own code needs two (`BackToQueryResults()` then `ChangeQuery(...)`, see
+  `MainViewModel.GetHistoryItems`), which is why the entry depends on `ChangeQuery` itself
+  returning to the results. `IPublicAPI.ChangeQuery` documents exactly that ("When current results
+  are from context menu or history, it will go back to query results before changing query",
+  added by Flow PR #3240) - but the v2.1.4 source of `MainViewModel.ChangeQueryText` does not
+  contain the `BackToQueryResults()` call, so this is checked on the machine rather than assumed.
+- **The keyword comes from plugin.json.** Flow strips the action keyword before handing us the
+  search text, so the plugin cannot see the word the user typed; `readActionKeyword` reads its own
+  manifest (`e`). A user who rebinds the keyword in Flow's settings keeps the old value here, and
+  the generated query would miss. The typed form always works, and the subtitle shows the command.
+
+**Two entries after ours are Flow's.** "Set as topmost in this query" and the "Emoji Finder" plugin
+link are appended by Flow in `MainViewModel.QueryContextMenu` after every plugin has answered:
+
+```csharp
+results = PluginManager.GetContextMenusForPlugin(selected);
+results.Add(ContextMenuTopMost(selected));
+results.Add(ContextMenuPluginInfo(selected));
+```
+
+No plugin can remove them; a plugin only sees the list it returns. "Topmost" is also Flow's own
+per-query pinning, which competes with aliases: it lifts one result above everything for the
+current query, where an alias gives an emoji a permanent second name that any query reaches. Use
+whichever suits; nothing here depends on the other.
 
 ## Frecency## Frecency
 
