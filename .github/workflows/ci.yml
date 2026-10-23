@@ -102,24 +102,26 @@ jobs:
       - name: Does the installed copy need this commit?
         id: changes
         shell: powershell
-        env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
+          # Never let this step be the reason nothing was installed: it is a decision, and a
+          # decision that cannot be made falls back to installing (see the step condition).
           $ErrorActionPreference = 'Continue'
-          $files = @()
-          if (Test-Path '.git') {
-            $files = @(git diff --name-only 'HEAD~1' 'HEAD' 2>$null)
-          }
+
+          $message = (git log -1 --format=%B 2>$null) -join "`n"
+          $files = @(git diff --name-only 'HEAD~1' 'HEAD' 2>$null)
           $pluginFiles = @($files | Where-Object { $_ -match '^(src/|plugin\.json$|SettingsTemplate\.yaml$|package\.json$)' })
-          $forced = $env:COMMIT_MESSAGE -match '\[install\]'
+          $forced = $message.Contains('[install]')
           $needs = $forced -or ($pluginFiles.Count -gt 0)
-          Write-Host "::notice title=install::changed files that affect the installed copy: $($pluginFiles.Count); forced: $forced"
-          "needs_install=$($needs.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+
+          Write-Host "::notice title=install::changed files that affect the installed copy: $($pluginFiles.Count); forced: $forced; needs install: $needs"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value ("needs_install=" + $needs.ToString().ToLower()) -Encoding utf8
+          exit 0
 
       # Installs the freshly built plugin into this machine's Flow Launcher, with tracing
       # on, so a fix can be tried by hand straight away.
       - name: Install into Flow Launcher
-        if: steps.changes.outputs.needs_install == 'true'
+        # Fail-open: only an explicit "false" skips the install.
+        if: steps.changes.outputs.needs_install != 'false'
         run: npm run package -- --install --trace
         continue-on-error: true
 
@@ -127,7 +129,7 @@ jobs:
       # This one is what proves a fresh install is complete: manifest, dist, and the
       # production dependencies the plugin cannot run without.
       - name: Installation doctor (after install)
-        if: steps.changes.outputs.needs_install == 'true'
+        if: steps.changes.outputs.needs_install != 'false'
         run: npm run doctor
         continue-on-error: true
 
