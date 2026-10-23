@@ -92,7 +92,7 @@ function openFileAction (filePath: string): JsonRpcAction {
 /** The "add an alias for this emoji" menu item: pre-fills the query box and stops there. */
 export function buildAddAliasMenuResult (emoji: string): Result {
   return {
-    Title: `Add an alias for ${emoji}`,
+    Title: `Add an alias for this emoji`,
     Subtitle: 'Type the name, then press Enter',
     IcoPath: 'img\\app.png',
     // ChangeQuery(string, bool): the query box is replaced and the caret moves to the end.
@@ -174,7 +174,7 @@ function listingResults (paths: { settingsDirectory: string | null, emojiDatabas
   const aliases = paths.settingsDirectory === null ? {} : readAliases(paths.settingsDirectory);
   const results: Result[] = [
     {
-      Title: 'Open your aliases file',
+      Title: 'Open my aliases file',
       Subtitle: paths.settingsDirectory === null ? 'Could not find the settings folder' : `${paths.settingsDirectory}\\${ALIASES_FILE_NAME}`,
       IcoPath: 'img\\app.png',
       ...(paths.settingsDirectory === null ? {} : { JsonRPCAction: openFileAction(`${paths.settingsDirectory}\\${ALIASES_FILE_NAME}`) })
@@ -247,8 +247,8 @@ export function buildContextMenu (
 
   if (paths.settingsDirectory !== null) {
     menu.push({
-      Title: 'Open your aliases file',
-      Subtitle: `${ALIASES_FILE_NAME} in this plugin's settings folder`,
+      Title: 'Open my aliases file',
+      Subtitle: `Opens your ${ALIASES_FILE_NAME} located in the plugin's settings folder`,
       IcoPath: 'img\\app.png',
       JsonRPCAction: openFileAction(`${paths.settingsDirectory}\\${ALIASES_FILE_NAME}`)
     });
