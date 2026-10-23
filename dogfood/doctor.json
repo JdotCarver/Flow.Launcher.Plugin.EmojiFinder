@@ -1,0 +1,136 @@
+{
+  "generatedAt": "2026-10-23T09:50:36.036Z",
+  "platform": "win32",
+  "pluginRoot": "C:\\Users\\IDLT\\Documents\\Documents Perso\\CODE PROJECTS\\Flow Launcher Devving\\Emoji Picker Extension",
+  "dataDirectory": "C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher",
+  "findings": [
+    {
+      "kind": "info",
+      "message": "Flow data folder: C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher"
+    },
+    {
+      "kind": "info",
+      "message": "10 plugin folder(s) found"
+    },
+    {
+      "kind": "pass",
+      "message": "Flow.Launcher.Plugin.EmojiFinder: manifest OK, entry point present (dist\\main.js)"
+    },
+    {
+      "kind": "info",
+      "message": "Flow.Launcher.Plugin.EmojiFinder: tracing ON, trace file 187 bytes, modified 2026-10-23T09:47:18.866Z"
+    },
+    {
+      "kind": "pass",
+      "message": "installed copy matches the build (2026-10-23T09:45:07.441Z)"
+    },
+    {
+      "kind": "pass",
+      "message": "Node runtime for plugins exists: C:\\Program Files\\nodejs\\node.exe"
+    },
+    {
+      "kind": "fail",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 08:07:42.6486+02:00 - ERROR - PluginConfig.GetPluginMetadata - Execute file path didn't exist <C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher\\Plugins\\Emoji Finder-1.2.0\\dist\\main.js> for conifg <C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher\\Plugins\\Emoji Finder-1.2.0\\plugin.json"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 08:21:25.1513+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <41ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 08:46:59.1031+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <45ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 08:53:39.8031+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <33ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 09:53:03.7892+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <33ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 10:56:10.7082+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <37ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 10:57:25.0696+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <37ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:20:36.4669+02:00 - WARN  - PluginConfig.GetUniqueLatestPluginMetadata - Duplicate plugin name: Emoji Finder, id: d50362aa29f04cd59032bb44a5d5f7e5, version: 1.2.0 not loaded due to version not the highest of the duplicates"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:20:36.4669+02:00 - WARN  - PluginConfig.GetUniqueLatestPluginMetadata - Duplicate plugin name: Emoji Finder, id: d50362aa29f04cd59032bb44a5d5f7e5, version: 1.2.0 not loaded due to version not the highest of the duplicates"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:21:41.9917+02:00 - WARN  - PluginConfig.GetUniqueLatestPluginMetadata - Duplicate plugin name: Emoji Finder, id: d50362aa29f04cd59032bb44a5d5f7e5, version: 1.2.0 not loaded due to version not the highest of the duplicates"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:21:41.9917+02:00 - WARN  - PluginConfig.GetUniqueLatestPluginMetadata - Duplicate plugin name: Emoji Finder, id: d50362aa29f04cd59032bb44a5d5f7e5, version: 1.2.0 not loaded due to version not the highest of the duplicates"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:24:03.8050+02:00 - WARN  - PluginConfig.GetUniqueLatestPluginMetadata - Duplicate plugin name: Emoji Finder, id: d50362aa29f04cd59032bb44a5d5f7e5, version: 1.2.0 not loaded due to version not the highest of the duplicates"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:24:03.8050+02:00 - WARN  - PluginConfig.GetUniqueLatestPluginMetadata - Duplicate plugin name: Emoji Finder, id: d50362aa29f04cd59032bb44a5d5f7e5, version: 1.2.0 not loaded due to version not the highest of the duplicates"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:26:00.8837+02:00 - WARN  - PluginConfig.GetUniqueLatestPluginMetadata - Duplicate plugin name: Emoji Finder, id: d50362aa29f04cd59032bb44a5d5f7e5, version: 1.2.0 not loaded due to version not the highest of the duplicates"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:26:00.8837+02:00 - WARN  - PluginConfig.GetUniqueLatestPluginMetadata - Duplicate plugin name: Emoji Finder, id: d50362aa29f04cd59032bb44a5d5f7e5, version: 1.2.0 not loaded due to version not the highest of the duplicates"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:43:26.0076+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <34ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-23.log: 11:46:56.9786+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <38ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-22.log: 09:21:19.6988+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <95ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-22.log: 13:22:12.2107+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <73ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-21.log: 08:37:45.1171+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <88ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-21.log: 10:34:40.4138+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <80ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-21.log: 12:47:23.5687+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <41ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-20.log: 13:56:46.9259+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <42ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-20.log: 15:48:12.1204+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <35ms>"
+    },
+    {
+      "kind": "info",
+      "message": "2.1.4\\Flow.Launcher.2026-10-20.log: 22:08:44.6836+02:00 - INFO  - PluginManager.InitializePluginsAsync - Total init cost for <Emoji Finder> is <74ms>"
+    },
+    {
+      "kind": "info",
+      "message": "plugin settings folder present: Emoji Finder"
+    }
+  ]
+}
