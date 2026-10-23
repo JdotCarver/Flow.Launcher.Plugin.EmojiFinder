@@ -29,6 +29,20 @@ many emoji a query returns. Matching is fuzzy, so a broad query ("e *a*") can ma
 almost the whole emoji table; every extra result is work for Flow Launcher before the
 list can appear. The default, 25, is about two screens and keeps the list instant.
 
+## Building from source
+
+```bash
+npm ci
+npm run package -- --install
+```
+
+This compiles the plugin and copies a ready-to-run folder into your Flow Launcher
+plugins folder. Note that Flow Launcher runs `dist/main.js`, which does not exist in a
+fresh checkout: copying the repository into the plugins folder is not enough, and a
+plugin whose manifest points at a missing file is silently ignored. See
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for paths, portable installs, and how to
+read the launcher's log.
+
 ## Resources
 
 Emoji icons are taken from https://github.com/iamcal/emoji-data

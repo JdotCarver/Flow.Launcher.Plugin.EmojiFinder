@@ -3,3 +3,5 @@ dist
 src/debug.js
 *.zip
 *.xcf
+
+artifacts

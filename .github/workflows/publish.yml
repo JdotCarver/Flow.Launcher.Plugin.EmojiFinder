@@ -35,7 +35,11 @@ jobs:
           npm run build
           npm prune --omit=dev
       - name: Package
-        run: zip -r Flow.Launcher.Plugin.EmojiFinder.zip . -x '*.git*' -x 'src/*' -x 'README.md' -x 'tsconfig.json'
+        run: |
+          zip -r Flow.Launcher.Plugin.EmojiFinder.zip . \
+            -x '*.git*' -x 'src/*' -x 'tests/*' -x 'tools/*' -x 'docs/*' \
+            -x '.github/*' -x 'artifacts/*' -x 'node_modules/.bin/*' \
+            -x 'README.md' -x 'tsconfig.json' -x 'eslint.config.js' -x 'package-lock.json'
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:

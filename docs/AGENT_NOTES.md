@@ -27,6 +27,16 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
   both resolve. This is the cheap path for actions; spawning a second node process is not.
 - Data source: `node_modules/emojilib/dist/emoji-en-US.json` (1 906 emoji, ~8 keywords
   each, 257 KB).
+- Flow **skips any plugin folder whose `ExecuteFileName` does not exist**
+  (`PluginConfig.GetPluginMetadata` returns null, only a log line). That is why an
+  unbuilt checkout "disappears" from the launcher. `npm run package` produces a folder
+  Flow will accept; see docs/DEVELOPMENT.md.
+- Flow runs JavaScript plugins with **its own Node 16.18.0**, not the system Node
+  (`%APPDATA%\FlowLauncher\Environments\Node.js`). `npx -y node@16 dist/main.js '<json>'`
+  is the compatibility check.
+- Plugins folder: `%APPDATA%\FlowLauncher\Plugins\` (or `<Flow>\UserData\Plugins\` when
+  portable). Scanned one level deep only. The store copy shares this plugin's ID, so
+  only one of the two may exist.
 - Benchmarks live in `tools/bench.mjs`; methodology and results in `docs/PERF_ANALYSIS.md`.
 
 ## Java/TS conventions in this repo
