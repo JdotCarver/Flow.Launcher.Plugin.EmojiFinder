@@ -108,3 +108,20 @@ npm run package -- --install
 `npm test` does not need a build. `npm run package` compiles first, and the packaging
 script itself refuses to package a `dist/` older than `src/`, so a stale build cannot
 reach Flow Launcher by accident.
+
+## Packaging pitfalls that cost a real install
+
+Both of these produce the same symptom - the plugin loads, then every query throws, or it
+vanishes from Flow Launcher entirely - and neither is visible from a Linux sandbox:
+
+- **`execFileSync('npm.cmd', ...)` fails on Windows.** Since Node 18.20/20.12 it refuses to
+  execute `.cmd` files without `shell: true` (a command-injection fix). A swallowed error
+  there means `npm ls` returns nothing, so *no* dependencies are copied.
+- **`npm ls --parseable` mixes `\` and `/`.** Filtering with `path.sep` matches nothing on
+  Windows. The parsing now lives in `tools/package-paths.mjs`, which is pure and tested for
+  both styles.
+
+`tools/package.mjs` therefore verifies its own output: `dist/main.js` and
+`node_modules/emojilib/dist/emoji-en-US.json` must exist both in `artifacts/` and in the
+installed folder, or it exits non-zero and names the missing file. Treat packaging as
+unproven until `npm run doctor` says otherwise.
