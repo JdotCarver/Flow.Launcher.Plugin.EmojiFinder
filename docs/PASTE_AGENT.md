@@ -33,7 +33,8 @@ So the helper stops being a child and becomes a resident agent.
 
 | | |
 |---|---|
-| Process | `powershell.exe` (or `pwsh.exe`) `-NoProfile -WindowStyle Hidden -File paste-agent.ps1` |
+| Process | `powershell.exe` (or `pwsh.exe`) `-NoProfile -File paste-agent.ps1`, started through `paste-agent-launcher.vbs` |
+| Window | none: `wscript.exe` starts the host with window style 0, so nothing is ever drawn |
 | Owner | the logged-in user, same desktop session as Flow Launcher |
 | When | from login until logout, started by a shortcut in the user's Startup folder |
 | Memory | roughly 40–60 MB (that is the PowerShell host's floor, not our code) |
@@ -81,15 +82,35 @@ firewall exception, and is readable in a trace when something goes wrong. The se
 number makes it idempotent: the agent remembers the last number it handled, so a restart
 never replays an old paste.
 
-## How it is started
+## How it is started (and what the user sees)
+
+The agent is started by a two-line VBScript launcher (`paste-agent-launcher.vbs`, written next
+to the agent script). `wscript.exe` has no console of its own, and `WshShell.Run(..., 0, False)`
+asks Windows for no window at all, so **no window is ever shown** - not at login, not on the
+first paste, not on a manual start. Starting PowerShell directly instead allocates a console and
+hides it a moment later, which is visible as a black flash; that is why every start path goes
+through the launcher.
+
+Three things start the agent, all through that launcher:
+
+1. **The installer** (`npm run package -- --install`), so paste works immediately.
+2. **The Startup shortcut**, at login.
+3. **The plugin itself**, when it notices no agent is running. It publishes the request first -
+   it is destroyed the moment it returns - and the agent adopts a request younger than 15
+   seconds when it starts, so the first paste after a reboot lands about a second later instead
+   of silently doing nothing.
+
+Starting it counts as one process and a file check every 50 ms; there is no window to notice.
+
+## Why Task Scheduler starts it
 
 A process started from the installer's shell is a child of that shell, and in a CI job (or
 any launcher that owns a job object) it is killed when the job ends - which is exactly what
 happened: the installer started the agent, the run finished, and every later paste found
-`agentRunning: false`. The agent is therefore started by a **one-shot scheduled task** for the
-current user (no password, no elevation, interactive session), and the task is deleted
-immediately afterwards. Launching the Startup shortcut through Explorer was tried first and
-worked intermittently, so it is only a fallback now.
+`agentRunning: false`. `npm run agent -- --start` and the installer therefore ask **Task
+Scheduler** to run the launcher for the current user (no password, no elevation, interactive
+session), and delete the one-shot task immediately afterwards. Launching the Startup shortcut
+through Explorer was tried first and worked intermittently, so it is gone.
 
 ## Which PowerShell it runs on
 
@@ -117,8 +138,9 @@ not care which one hosts it.
   immediately, so paste works without waiting for a logout.
 - `npm run agent -- --stop` (and `--status`) stop or inspect it; the agent also exits on
   logout, like any normal process.
-- Uninstalling the plugin means deleting the plugin folder, the Startup shortcut (named
-  `Flow Launcher Emoji Finder paste agent.lnk`) and the two files above. This is listed in
+- Uninstalling the plugin means deleting the plugin folder and the agent's data folder
+  (`%LOCALAPPDATA%\Flow.Launcher.Plugin.EmojiFinder`, which holds the script, the launcher and
+  the logs) and the Startup shortcut (named `Flow Launcher Emoji Finder paste agent.lnk`). This is listed in
   the plugin's settings page and in the PR description, because a leftover Startup entry
   would be a real annoyance.
 - The agent refuses to run twice: it takes a lock file with its own pid and exits if another

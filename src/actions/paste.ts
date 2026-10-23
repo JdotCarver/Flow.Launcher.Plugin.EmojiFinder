@@ -5,11 +5,14 @@
 //
 // The copy itself is delegated to Flow Launcher (`Flow.Launcher.CopyToClipboard`), which runs
 // in-process: unicode-safe, no extra node process, and it settles the clipboard before the
-// agent types. Nothing is started here - this process is destroyed by Flow the moment it
-// returns, and anything it starts dies with it (see src/utils/pasteAgent.ts).
+// agent types.
+//
+// This process is destroyed by Flow the moment it returns, so the agent cannot be its child.
+// If no agent is alive, one is started through a window-less launcher that belongs to neither
+// of us (see src/utils/pasteAgent.ts), and the request already on disk is picked up by it.
 
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
-import { ensureAgentScript, requestPaste } from '../utils/pasteAgent.js';
+import { ensureAgentScript, requestPaste, startPasteAgent } from '../utils/pasteAgent.js';
 import { trace } from '../utils/trace.js';
 
 export function paste (text: string | undefined): void {
@@ -34,4 +37,11 @@ export function paste (text: string | undefined): void {
   const outcome = requestPaste(text);
 
   trace('paste:request', { emoji: text, ...outcome });
+
+  // Better a paste that arrives a second late than one that silently does nothing: after a
+  // reboot, or after anything stopped the agent, the user would otherwise get no paste and no
+  // explanation. The agent adopts a request this recent when it starts.
+  if (!outcome.agentRunning) {
+    trace('paste:agent-started', { started: startPasteAgent() });
+  }
 }

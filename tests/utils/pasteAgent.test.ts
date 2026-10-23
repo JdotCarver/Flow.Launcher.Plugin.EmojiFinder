@@ -14,8 +14,13 @@ import {
   buildAgentScript,
   ensureAgentScript,
   HEARTBEAT_STALE_AFTER_MILLISECONDS,
+  AGENT_LAUNCHER_FILE_NAME,
   AGENT_PID_FILE_NAME,
+  STARTUP_GRACE_MILLISECONDS,
+  buildAgentLauncherScript,
+  ensureAgentLauncher,
   readAgentStatus,
+  resolvePowerShellHost,
   requestPaste,
   resolveAgentPaths,
   type PasteAgentPaths
@@ -74,6 +79,16 @@ describe('buildAgentScript', () => {
     expect(script).toContain('MainWindowHandle');
     expect(script).toContain('[\\uFE0E\\uFE0F\\u200D]');
     expect(script).toContain('SendWait(\'^v\')');
+  });
+
+  test('adopts a request made moments before it started, and ignores older ones', () => {
+    const script = buildAgentScript(createPaths());
+
+    // The plugin publishes the request and then starts the agent, because it is destroyed the
+    // moment it returns. Without this the first paste after a reboot would be swallowed.
+    expect(script).toContain('adopting recent request');
+    expect(script).toContain(`$startupGraceMilliseconds = ${STARTUP_GRACE_MILLISECONDS}`);
+    expect(script).toContain('$lastSequence = $pendingSequence');
   });
 
   test('refuses to start a second copy, which would paste everything twice', () => {
@@ -210,6 +225,61 @@ describe('readAgentStatus', () => {
 
   test('no heartbeat at all means it has never run', () => {
     expect(readAgentStatus(createPaths())).toEqual({ running: false, heartbeatAgeMilliseconds: null });
+  });
+});
+
+describe('the agent launcher', () => {
+  test('runs the agent under the chosen host, with every path quoted', () => {
+    const paths = createPaths();
+    const script = buildAgentLauncherScript(paths, 'C:\\Program Files\\PowerShell\\7\\pwsh.exe');
+
+    expect(script).toContain('paste-agent-launcher.vbs');
+    expect(script).toContain('""C:\\Program Files\\PowerShell\\7\\pwsh.exe"" -NoProfile');
+    // The agent's own path is quoted twice: once for PowerShell, once for VBScript's escaping.
+    expect(script).toContain(`-File ""${paths.script}""`);
+  });
+
+  test('asks for no window and does not wait for the agent', () => {
+    const script = buildAgentLauncherScript(createPaths(), 'powershell.exe');
+
+    // 0 = hidden, False = do not wait. Anything else shows the console window the user sees
+    // as a black flash every time the agent starts.
+    expect(script).toContain('shell.Run');
+    expect(script).toMatch(/, 0, False$/m);
+  });
+
+  test('is written beside the agent script, and only rewritten when it changes', () => {
+    const paths = createPaths();
+
+    const launcher = ensureAgentLauncher(paths, 'powershell.exe');
+    const writtenAt = fs.statSync(launcher).mtimeMs;
+
+    expect(launcher).toBe(path.join(paths.directory, AGENT_LAUNCHER_FILE_NAME));
+    expect(ensureAgentLauncher(paths, 'powershell.exe')).toBe(launcher);
+    expect(fs.statSync(launcher).mtimeMs).toBe(writtenAt);
+
+    // A different host is a different launcher.
+    ensureAgentLauncher(paths, 'pwsh.exe');
+    expect(fs.readFileSync(launcher, 'utf8')).toContain('pwsh.exe');
+  });
+});
+
+describe('resolvePowerShellHost', () => {
+  test('honours the environment override', () => {
+    expect(resolvePowerShellHost({ EMOJI_PASTE_AGENT_HOST: 'pwsh.exe', PATH: '' })).toBe('pwsh.exe');
+  });
+
+  test('prefers PowerShell 7 when it is on PATH', () => {
+    const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'paste-host-'));
+    temporaryDirectories.push(folder);
+    fs.writeFileSync(path.join(folder, 'pwsh.exe'), '');
+
+    expect(resolvePowerShellHost({ PATH: folder })).toBe(path.join(folder, 'pwsh.exe'));
+  });
+
+  test('falls back to the Windows PowerShell every machine has', () => {
+    expect(resolvePowerShellHost({ PATH: os.tmpdir() })).toBe('powershell.exe');
+    expect(resolvePowerShellHost({})).toBe('powershell.exe');
   });
 });
 

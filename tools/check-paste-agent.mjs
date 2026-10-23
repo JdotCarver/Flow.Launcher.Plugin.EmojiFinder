@@ -33,11 +33,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
+  AGENT_LAUNCHER_FILE_NAME,
+  ensureAgentLauncher,
   ensureAgentScript,
   HEARTBEAT_STALE_AFTER_MILLISECONDS,
   readAgentStatus,
   requestPaste,
-  resolveAgentPaths
+  resolveAgentPaths,
+  resolvePowerShellHost
 } from '../dist/utils/pasteAgent.js';
 import { createStyle } from './report-style.mjs';
 
@@ -261,6 +264,43 @@ async function checkHost (host, emoji) {
   };
 }
 
+/**
+ * Starts the agent the way the plugin does when it finds none: through the window-less
+ * launcher.
+ *
+ * This is the path a user takes after a reboot, so it is the path that has to work. What it
+ * cannot prove here is the part that matters most to them - that no window appears - because
+ * that needs eyes on the screen; `docs/PASTE_AGENT.md` says how it is done.
+ */
+async function checkLauncher () {
+  const paths = resolveAgentPaths();
+  const findings = [];
+
+  ensureAgentScript(paths);
+  const host = resolvePowerShellHost();
+  const launcher = ensureAgentLauncher(paths, host);
+
+  stopAnyAgent();
+  const stopped = await waitUntilStopped(paths);
+  findings.push({ label: 'no agent is running before the launcher is used', ok: stopped });
+  findings.push({ label: 'the launcher exists beside the agent script', ok: fs.existsSync(launcher) });
+
+  try {
+    const child = spawn('wscript.exe', [launcher], { stdio: 'ignore', windowsHide: true });
+    child.on('error', () => { });
+    child.unref();
+    findings.push({ label: 'the launcher starts without a PowerShell of its own', ok: true });
+  } catch (error) {
+    findings.push({ label: 'the launcher starts', ok: false, detail: error.message });
+  }
+
+  const alive = await waitForHeartbeat(paths);
+  findings.push({ label: `the launcher started an agent (host ${host})`, ok: alive });
+  findings.push({ label: 'the agent it started is the one this build generates', ok: fs.existsSync(paths.script) });
+
+  return { host: `wscript launcher (${path.basename(AGENT_LAUNCHER_FILE_NAME)})`, findings, startLine: null, startupLog: null, logTail: [] };
+}
+
 async function checkOnWindows () {
   fs.mkdirSync(DOGFOOD_DIRECTORY, { recursive: true });
 
@@ -272,6 +312,8 @@ async function checkOnWindows () {
     for (const host of hosts) {
       results.push(await checkHost(host, emoji));
     }
+
+    results.push(await checkLauncher());
   } finally {
     // Leave the machine able to paste, even if a host's run threw: the last thing the loop
     // does is kill its agent, and a user's paste setting must not stay broken after a check.

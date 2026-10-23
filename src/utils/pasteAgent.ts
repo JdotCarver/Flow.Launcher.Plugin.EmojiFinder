@@ -36,6 +36,7 @@
 // See docs/PASTE_AGENT.md for what running this means for the user (one hidden background
 // process, ~40-60 MB, one file check every 50 ms).
 
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -50,11 +51,30 @@ const MAXIMUM_PASTE_WAIT_MILLISECONDS = 2500;
 /** How often the agent looks for a new request. Cheap: it stats one small file. */
 const POLL_INTERVAL_MILLISECONDS = 50;
 
+/**
+ * How old a request may be and still be pasted when the agent starts.
+ *
+ * The plugin starts the agent when it notices none is running, and it publishes the request
+ * first - the only order that works, because the plugin is destroyed the moment it returns.
+ * A request younger than this is therefore the one the user just made, not history.
+ */
+export const STARTUP_GRACE_MILLISECONDS = 15000;
+
 /** A heartbeat older than this means the agent is not running any more. */
 export const HEARTBEAT_STALE_AFTER_MILLISECONDS = 5000;
 
 /** The agent writes its own process id here, beside the heartbeat. */
 export const AGENT_PID_FILE_NAME = 'agent.pid';
+
+/**
+ * A tiny VBScript launcher, used everywhere the agent is started.
+ *
+ * PowerShell is a console program: started directly (Startup shortcut, Task Scheduler) it
+ * allocates a console window and hides it a moment later, which the user sees as a black
+ * flash. `wscript.exe` has no console at all, and `WshShell.Run` with window style 0 asks
+ * for no window in the first place, so nothing ever appears.
+ */
+export const AGENT_LAUNCHER_FILE_NAME = 'paste-agent-launcher.vbs';
 
 export interface PasteAgentPaths {
   directory: string;
@@ -120,6 +140,7 @@ $heartbeatPath = '${toPowerShellLiteral(paths.heartbeat)}'
 $logPath = '${toPowerShellLiteral(paths.log)}'
 $pollMilliseconds = ${POLL_INTERVAL_MILLISECONDS}
 $pasteWindowMilliseconds = ${MAXIMUM_PASTE_WAIT_MILLISECONDS}
+$startupGraceMilliseconds = ${STARTUP_GRACE_MILLISECONDS}
 
 # Every file read and write below goes through .NET with an explicit UTF-8 encoding.
 # Get-Content/Add-Content/Set-Content take their encoding from the host's defaults, and those
@@ -187,8 +208,10 @@ try {
   Write-Trace ('uiautomation-error: ' + $_.Exception.Message)
 }
 
-# Requests seen before this process started are not pasted: after a restart the agent picks
-# up from wherever the sequence number is now.
+# Requests older than the startup grace are not pasted: after a restart the agent picks up
+# from wherever the sequence number is now, so yesterday's request cannot fire twice. A
+# request younger than that is the reason this process was started at all - the plugin
+# publishes and then starts the agent, in that order, because it is destroyed on return.
 $lastSequence = 0
 function Read-Request {
   # File.ReadAllText with an explicit encoding also strips a byte-order mark, which
@@ -202,7 +225,15 @@ function Read-Request {
 
 $x = Read-Request
 if ($x) {
-  try { $lastSequence = [double](ConvertFrom-Json $x).sequence } catch { }
+  try {
+    $pendingSequence = [double](ConvertFrom-Json $x).sequence
+    $pendingAge = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - $pendingSequence
+    if ($pendingAge -le $startupGraceMilliseconds) {
+      Write-Trace ('adopting recent request sequence={0} ageMs={1}' -f $pendingSequence, $pendingAge)
+    } else {
+      $lastSequence = $pendingSequence
+    }
+  } catch { }
 }
 
 $lastHeartbeat = [DateTime]::MinValue
@@ -334,6 +365,162 @@ export function ensureAgentScript (paths: PasteAgentPaths = resolveAgentPaths())
   }
 
   return paths.script;
+}
+
+/** Where the launcher lives: beside the agent script, in the per-user data folder. */
+export function agentLauncherPath (paths: PasteAgentPaths = resolveAgentPaths()): string {
+  return path.join(paths.directory, AGENT_LAUNCHER_FILE_NAME);
+}
+
+/**
+ * Which PowerShell should host the agent.
+ *
+ * PowerShell 7 is preferred when it is on `PATH`, because it starts faster; Windows
+ * PowerShell 5.1 is the fallback, and it is on every Windows machine, so this never returns
+ * something that is not installed. `EMOJI_PASTE_AGENT_HOST` overrides both, which is how the
+ * checks run the agent under each host in turn.
+ *
+ * `PATH` is searched by looking at the folders rather than by asking `where.exe`, because a
+ * Flow Launcher action that spawns a process just to answer a question is the kind of cost
+ * this feature exists to avoid.
+ */
+export function resolvePowerShellHost (environment: NodeJS.ProcessEnv = process.env): string {
+  const overridden = environment.EMOJI_PASTE_AGENT_HOST?.trim();
+
+  if (overridden !== undefined && overridden !== '') {
+    return overridden;
+  }
+
+  const folders = (environment.PATH ?? '').split(path.delimiter).filter((folder) => folder !== '');
+
+  for (const folder of folders) {
+    const candidate = path.join(folder, 'pwsh.exe');
+
+    try {
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+    } catch {
+      // An unreadable PATH entry is not an answer; keep looking.
+    }
+  }
+
+  return 'powershell.exe';
+}
+
+/**
+ * The VBScript launcher, as text.
+ *
+ * Kept tiny on purpose: it starts one process, with no window, and exits immediately. The
+ * agent is therefore not a child of the plugin (which Flow destroys) nor of this script.
+ *
+ * @param paths Where the agent script lives.
+ * @param host The PowerShell executable to run it with.
+ */
+export function buildAgentLauncherScript (paths: PasteAgentPaths, host: string): string {
+  const commandLine = `"${host}" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${paths.script}"`;
+  // In VBScript a double quote inside a string literal is written twice, so the argument
+  // quoting above has to be escaped again.
+  const commandLiteral = commandLine.replaceAll('"', '""');
+
+  return [
+    "' paste-agent-launcher.vbs",
+    "'",
+    "' Starts the Emoji Finder paste agent with no window at all.",
+    "'",
+    "' PowerShell is a console program: started directly it allocates a console window and hides",
+    "' it a moment later, which the user sees as a black flash every time the agent starts.",
+    "' wscript.exe has no console, and window style 0 asks for no window in the first place.",
+    "'",
+    "' Written by the plugin; safe to delete while the agent is not running.",
+    '',
+    'Dim shell',
+    'Set shell = CreateObject("WScript.Shell")',
+    "' 0 = no window at all, False = do not wait for it to finish.",
+    `shell.Run "${commandLiteral}", 0, False`,
+    ''
+  ].join('\r\n');
+}
+
+/**
+ * Writes the launcher if it differs from what this build generates.
+ *
+ * @returns The launcher's path.
+ */
+export function ensureAgentLauncher (
+  paths: PasteAgentPaths = resolveAgentPaths(),
+  host: string = resolvePowerShellHost()
+): string {
+  const launcher = agentLauncherPath(paths);
+  const script = buildAgentLauncherScript(paths, host);
+
+  fs.mkdirSync(paths.directory, { recursive: true });
+
+  let existing = '';
+  try {
+    existing = fs.readFileSync(launcher, 'utf8');
+  } catch {
+    // Missing file is the normal case on first run.
+  }
+
+  if (existing !== script) {
+    fs.writeFileSync(launcher, script);
+  }
+
+  return launcher;
+}
+
+/**
+ * Starts the agent when it is not already running.
+ *
+ * Used by the paste action, so that a machine that has just booted - or whose agent was
+ * stopped for any reason - still pastes instead of silently doing nothing. The request is
+ * already on disk by the time this runs, and the agent adopts requests younger than
+ * `STARTUP_GRACE_MILLISECONDS`, so the first paste works; it just arrives a moment later.
+ *
+ * Nothing here waits: this process is destroyed as soon as the action returns.
+ *
+ * @returns Whether a launcher was started. Whether an agent came up is in the log.
+ */
+export function startPasteAgent (
+  paths: PasteAgentPaths = resolveAgentPaths(),
+  host: string = resolvePowerShellHost()
+): boolean {
+  if (process.platform !== 'win32') {
+    return false;
+  }
+
+  const launcher = ensureAgentLauncher(paths, host);
+
+  // wscript.exe shows nothing and exits at once; the agent outlives both it and us.
+  try {
+    const child = spawn('wscript.exe', [launcher], { stdio: 'ignore', windowsHide: true });
+    // A missing wscript.exe or a policy that blocks it arrives as an 'error' event, and an
+    // unhandled one would take the plugin down with it.
+    child.on('error', () => startAgentDirectly(paths, host));
+    child.unref();
+
+    return true;
+  } catch {
+    return startAgentDirectly(paths, host);
+  }
+}
+
+/** The fallback when wscript is unavailable: a hidden PowerShell, console and all. */
+function startAgentDirectly (paths: PasteAgentPaths, host: string): boolean {
+  try {
+    const child = spawn(
+      host,
+      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', paths.script],
+      { stdio: 'ignore', windowsHide: true }
+    );
+    child.on('error', () => { });
+    child.unref();
+
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**

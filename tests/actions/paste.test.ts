@@ -1,18 +1,20 @@
 // tests/actions/paste.test.ts
 //
-// paste() does two things: it asks Flow Launcher to fill the clipboard (by printing a
-// Flow.Launcher request) and it publishes a paste request for the resident agent. Both are
-// mocked, so the test suite never writes outside the repository or starts anything.
+// paste() does three things: it asks Flow Launcher to fill the clipboard (by printing a
+// Flow.Launcher request), it publishes a paste request for the resident agent, and - when no
+// agent is running - it starts one. All three are mocked, so the test suite never writes
+// outside the repository or starts anything.
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-const { ensureAgentScript, requestPaste, sendJsonRpcRequest } = vi.hoisted(() => ({
+const { ensureAgentScript, requestPaste, sendJsonRpcRequest, startPasteAgent } = vi.hoisted(() => ({
   ensureAgentScript: vi.fn(),
   requestPaste: vi.fn(),
-  sendJsonRpcRequest: vi.fn()
+  sendJsonRpcRequest: vi.fn(),
+  startPasteAgent: vi.fn()
 }));
 
-vi.mock('../../src/utils/pasteAgent.js', () => ({ ensureAgentScript, requestPaste }));
+vi.mock('../../src/utils/pasteAgent.js', () => ({ ensureAgentScript, requestPaste, startPasteAgent }));
 vi.mock('../../src/utils/flowLauncher.js', () => ({ sendJsonRpcRequest }));
 
 const { paste } = await import('../../src/actions/paste.js');
@@ -22,6 +24,8 @@ beforeEach(() => {
   requestPaste.mockReset();
   requestPaste.mockReturnValue({ sequence: 1, agentRunning: true });
   sendJsonRpcRequest.mockReset();
+  startPasteAgent.mockReset();
+  startPasteAgent.mockReturnValue(true);
 });
 
 afterEach(() => {
@@ -60,12 +64,34 @@ describe('paste', () => {
     expect(order).toEqual(['copy', 'request']);
   });
 
-  test('starts nothing: the agent is already running, or it is not, and this process dies either way', () => {
+  test('leaves a running agent alone', () => {
     paste('🙈');
 
-    // Regression guard for the design we abandoned. A process started here is killed with
-    // this one when Flow releases it, which is exactly why paste never worked.
-    expect(ensureAgentScript).toHaveBeenCalledTimes(1);
+    expect(startPasteAgent).not.toHaveBeenCalled();
+  });
+
+  test('starts an agent when the request found none', () => {
+    requestPaste.mockReturnValue({ sequence: 1, agentRunning: false });
+
+    paste('🙈');
+
+    // The request is already on disk, and the agent adopts requests younger than its startup
+    // grace, so this is what turns "nothing happened" into a paste a moment later.
+    expect(startPasteAgent).toHaveBeenCalledTimes(1);
+  });
+
+  test('publishes the request before it starts an agent', () => {
+    const order: string[] = [];
+    requestPaste.mockImplementation(() => {
+      order.push('request');
+
+      return { sequence: 1, agentRunning: false };
+    });
+    startPasteAgent.mockImplementation(() => order.push('start'));
+
+    paste('🙈');
+
+    expect(order).toEqual(['request', 'start']);
   });
 
   test('does nothing without an emoji', () => {

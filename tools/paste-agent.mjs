@@ -3,8 +3,8 @@
 // Human (and CI) controls for the resident paste agent.
 //
 // The agent is the process that presses Ctrl+V. It has to outlive the Flow Launcher plugin
-// process, so it is never started from inside the plugin - it is started here, by the
-// installer, and at login from the Startup folder.
+// process, so it is started by the installer, at login from the Startup folder, and by the
+// plugin itself when it finds no agent (through the same window-less launcher).
 //
 // Usage
 //   npm run agent -- --status            # is it running, and how old is its heartbeat?
@@ -22,9 +22,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
+  ensureAgentLauncher,
   ensureAgentScript,
   readAgentStatus,
-  resolveAgentPaths
+  resolveAgentPaths,
+  resolvePowerShellHost
 } from '../dist/utils/pasteAgent.js';
 import { createStyle } from './report-style.mjs';
 
@@ -54,22 +56,29 @@ const paths = resolveAgentPaths();
 /**
  * Which PowerShell runs the agent.
  *
- * `powershell.exe` is Windows PowerShell 5.1 and is on every Windows machine; `pwsh` is
- * PowerShell 7 and only exists if the user installed it. Windows 10 and 11 both ship 5.1, so
- * the choice is about what someone installed, not about the OS. Both hosts are supported and
- * `check:paste-agent` exercises both - their text-encoding defaults differ, and that
- * difference is what silently broke paste once already.
+ * `--host pwsh|powershell` wins, then `EMOJI_PASTE_AGENT_HOST`, then the shared resolver in
+ * src/utils/pasteAgent.ts, which prefers PowerShell 7 when it is installed and falls back to
+ * the 5.1 that every Windows machine has. Both hosts are supported and `check:paste-agent`
+ * exercises both - their text-encoding defaults differ, and that difference is what silently
+ * broke paste once already.
  */
 function resolveHost () {
-  const fromArgument = process.argv.indexOf('--host') === -1
-    ? null
-    : process.argv[process.argv.indexOf('--host') + 1];
-  const requested = fromArgument ?? process.env.EMOJI_PASTE_AGENT_HOST ?? 'powershell';
+  const index = process.argv.indexOf('--host');
+  const requested = index === -1 ? null : process.argv[index + 1];
 
-  return requested === 'pwsh' ? 'pwsh.exe' : 'powershell.exe';
+  if (requested === 'pwsh' || requested === 'powershell') {
+    return requested === 'pwsh' ? 'pwsh.exe' : 'powershell.exe';
+  }
+
+  return resolvePowerShellHost();
 }
 
 const POWERSHELL = resolveHost();
+
+/** The launcher: wscript starts the agent with no window at all, then exits. */
+function launcherPath () {
+  return ensureAgentLauncher(paths, POWERSHELL);
+}
 
 function agentPid () {
   try {
@@ -131,13 +140,13 @@ async function startAgent () {
   }
 
   const scriptPath = ensureAgentScript(paths);
+  const launcher = launcherPath();
   const startupLog = path.join(paths.directory, STARTUP_LOG_NAME);
 
-  const launchedThroughTask = launchThroughTaskScheduler(scriptPath);
-  const launchedThroughExplorer = launchedThroughTask || launchThroughStartupShortcut();
-  const launchedDirectly = launchedThroughExplorer || launchDirectly(scriptPath, startupLog);
+  const launchedThroughTask = launchThroughTaskScheduler(launcher);
+  const launched = launchedThroughTask || launchDirectly(launcher, scriptPath, startupLog);
 
-  if (!launchedDirectly) {
+  if (!launched) {
     console.log(style.finding('fail', 'could not start the paste agent at all'));
 
     return false;
@@ -149,7 +158,7 @@ async function startAgent () {
     await new Promise((resolve) => setTimeout(resolve, 250));
 
     if (readAgentStatus(paths).running) {
-      console.log(style.finding('ok', `paste agent started (pid ${agentPid() ?? 'unknown'}, ${launchedThroughExplorer ? 'via Explorer' : 'directly'})`));
+      console.log(style.finding('ok', `paste agent started (pid ${agentPid() ?? 'unknown'}, ${launchedThroughTask ? 'via Task Scheduler' : 'directly'}, host ${POWERSHELL})`));
 
       return true;
     }
@@ -169,30 +178,6 @@ async function startAgent () {
 }
 
 /**
- * Runs the Startup shortcut through Explorer.
- *
- * Returns false when the shortcut could not be created or Explorer refused it; the caller
- * then starts the agent directly, which at least works for as long as the caller lives.
- */
-function launchThroughStartupShortcut () {
-  const shortcutPath = configureStartup(true);
-
-  if (shortcutPath === null) {
-    return false;
-  }
-
-  try {
-    execFileSync('explorer.exe', [shortcutPath], { timeout: 15000 });
-
-    return true;
-  } catch {
-    // Explorer returns a non-zero status for a *successful* launch often enough that this
-    // is not worth reporting: the heartbeat is the real answer.
-    return true;
-  }
-}
-
-/**
  * Starts the agent through Task Scheduler.
  *
  * This is the reliable way to start a process that must outlive us: the task is created for
@@ -201,8 +186,10 @@ function launchThroughStartupShortcut () {
  * Startup shortcut through Explorer was the previous attempt and it worked intermittently -
  * sometimes Explorer opened the folder instead of running the shortcut.
  */
-function launchThroughTaskScheduler (scriptPath) {
-  const command = `${POWERSHELL} -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "${scriptPath}"`;
+function launchThroughTaskScheduler (launcher) {
+  // The task runs the launcher, not PowerShell: Task Scheduler creates a console window for a
+  // console program, and that window is the flash the user sees. wscript has no console.
+  const command = `wscript.exe "${launcher}"`;
 
   try {
     execFileSync('schtasks.exe', [
@@ -228,8 +215,22 @@ function launchThroughTaskScheduler (scriptPath) {
   }
 }
 
-/** Starts the agent as a child of this process. Used only as the fallback. */
-function launchDirectly (scriptPath, startupLog) {
+/**
+ * Starts the agent from this process: the launcher first, then PowerShell directly.
+ *
+ * Neither survives this terminal closing on every machine, which is why Task Scheduler is
+ * tried first; both are here so that a machine with Task Scheduler locked down still pastes.
+ */
+function launchDirectly (launcher, scriptPath, startupLog) {
+  try {
+    const cooked = spawn('wscript.exe', [launcher], { stdio: 'ignore', windowsHide: true });
+    cooked.unref();
+
+    return true;
+  } catch {
+    // Fall through to PowerShell itself.
+  }
+
   fs.rmSync(startupLog, { force: true });
   const errorStream = fs.openSync(startupLog, 'a');
 
@@ -273,13 +274,14 @@ function stopAgent () {
  * Adds or removes the Startup shortcut.
  *
  * A shortcut rather than a service or a scheduled task: no elevation, no password, and the
- * user can delete it from Explorer like any other. It points at the *generated* script in
+ * user can delete it from Explorer like any other. It points at the *generated* launcher in
  * %LOCALAPPDATA%, not at the plugin folder, so reinstalling or moving the plugin (portable
- * users included) does not break it.
+ * users included) does not break it. It runs wscript, so logging in shows no console flash.
  */
 function configureStartup (shouldInstall) {
   // Returns the shortcut path when it was created, so the caller can launch it.
-  const scriptPath = ensureAgentScript(paths);
+  ensureAgentScript(paths);
+  const launcher = launcherPath();
   const command = [
     '$startup = [Environment]::GetFolderPath(\'Startup\');',
     `$shortcutPath = Join-Path $startup '${STARTUP_SHORTCUT_NAME}';`,
@@ -287,9 +289,9 @@ function configureStartup (shouldInstall) {
       ? 'if (Test-Path $shortcutPath) { Remove-Item $shortcutPath -Force };' +
         '$shell = New-Object -ComObject WScript.Shell;' +
         '$shortcut = $shell.CreateShortcut($shortcutPath);' +
-        `$shortcut.TargetPath = (Get-Command ${POWERSHELL}).Source;` +
-        `$shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "${scriptPath}"';` +
-        '$shortcut.WindowStyle = 7;' +
+        '$shortcut.TargetPath = (Get-Command wscript.exe).Source;' +
+        `$shortcut.Arguments = '"${launcher}"';` +
+        '$shortcut.WindowStyle = 1;' +
         '$shortcut.Description = \'Keeps paste-at-cursor available for the Flow Launcher emoji plugin\';' +
         '$shortcut.Save();' +
         'Write-Output $shortcutPath'

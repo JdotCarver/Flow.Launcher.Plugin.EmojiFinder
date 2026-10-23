@@ -27,12 +27,14 @@ By default an emoji is copied to your clipboard. Set **What pressing Enter does*
 `paste` and pressing <kbd>Enter</kbd> also types <kbd>Ctrl</kbd>+<kbd>V</kbd>, so the
 emoji lands where you are typing.
 
-Paste needs a small background helper: one hidden PowerShell process (roughly 40-60 MB) that
-starts at login and waits for requests. Flow Launcher destroys a plugin process the instant it
-answers, so anything the plugin starts itself dies with it - a helper that is already running
-is the only design that works. `npm run package -- --install` starts it and adds the Startup
-shortcut; copy mode starts nothing at all. [docs/PASTE_AGENT.md](docs/PASTE_AGENT.md) says what
-it does, what it writes, and how to remove it.
+Paste needs a small background process: one PowerShell agent (roughly 40-60 MB) that waits for
+requests and presses <kbd>Ctrl</kbd>+<kbd>V</kbd>. It has no window at all - it is started
+through a tiny `wscript` launcher, so nothing flashes on screen. Flow Launcher destroys a
+plugin process the instant it answers, so anything the plugin starts itself dies with it; an
+agent that is already running is the only design that works. It starts at login, at install,
+and by itself if you paste while it is not running (that first paste then arrives a second
+late). Copy mode starts nothing at all. [docs/PASTE_AGENT.md](docs/PASTE_AGENT.md) says what it
+does, what it writes, and how to remove it.
 
 It cannot work in windows running as administrator, because Windows blocks input from
 non-elevated applications.
