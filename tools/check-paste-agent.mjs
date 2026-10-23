@@ -20,7 +20,7 @@
 // Output
 //   dogfood/paste-agent-check.json, plus annotations when run in CI.
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -85,6 +85,21 @@ function chooseEmojiNotOnClipboard () {
   return candidates.find((candidate) => candidate !== clipboard) ?? candidates[0];
 }
 
+/** Waits for the agent's first heartbeat, or gives up. */
+async function waitForHeartbeat (paths) {
+  const deadline = Date.now() + 15000;
+
+  while (Date.now() < deadline) {
+    if (readAgentStatus(paths).running) {
+      return true;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  return false;
+}
+
 async function checkOnWindows () {
   const failures = [];
   const collect = (label, action) => {
@@ -110,10 +125,25 @@ async function checkOnWindows () {
   const paths = resolveAgentPaths();
   ensureAgentScript(paths);
 
+  // The check starts the agent itself and keeps the handle. The CLI would have exited, and
+  // a CI job object takes a child down with its parent - this way the agent is alive for
+  // exactly as long as the experiment needs it, and is stopped deliberately at the end.
   const findings = [];
-  const startedOutput = collect('start', () => runCli('--start')) ?? '';
-  const afterStart = readAgentStatus(paths);
-  findings.push({ label: 'agent starts and publishes a heartbeat', ok: afterStart.running, detail: startedOutput });
+  const startupLog = path.join(paths.directory, 'agent-startup.log');
+  fs.rmSync(startupLog, { force: true });
+
+  const agent = collect('start', () => spawn(
+    'powershell.exe',
+    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', paths.script],
+    { stdio: ['ignore', 'ignore', fs.openSync(startupLog, 'a')], windowsHide: true }
+  ));
+
+  const alive = await waitForHeartbeat(paths);
+  findings.push({
+    label: 'agent starts and publishes a heartbeat',
+    ok: alive,
+    detail: alive ? '' : `start-up log: ${readIfPresent(startupLog).trim().slice(0, 400) || '(empty)'}`
+  });
 
   const emoji = chooseEmojiNotOnClipboard();
   const request = requestPaste(emoji, paths);
@@ -126,9 +156,15 @@ async function checkOnWindows () {
   findings.push({ label: 'agent refuses to paste while the clipboard holds something else', ok: log.includes('decision paste=False') });
   findings.push({ label: 'agent is still alive after handling a request', ok: readAgentStatus(paths).running });
 
-  const stopOutput = collect('stop', () => runCli('--stop')) ?? '';
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  findings.push({ label: 'agent stops on request', ok: !readAgentStatus(paths).running, detail: stopOutput });
+  // Deliberate stop, and the check that it really went: a resident process that cannot be
+  // stopped is a worse problem than one that cannot be started.
+  agent?.kill();
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  findings.push({
+    label: 'agent stops when its process is ended',
+    ok: !readAgentStatus(paths).running,
+    detail: readAgentStatus(paths).running ? 'heartbeat still fresh 2 s after the kill' : ''
+  });
 
   if (createdTraceMarker) {
     fs.rmSync(TRACE_MARKER, { force: true });

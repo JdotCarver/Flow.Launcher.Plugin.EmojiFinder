@@ -101,7 +101,10 @@ async function startAgent () {
   const child = spawn(
     'powershell.exe',
     ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', scriptPath],
-    { detached: true, stdio: ['ignore', 'ignore', errorStream], windowsHide: true }
+    // NOT detached: on Windows libuv turns that into DETACHED_PROCESS, PowerShell gets no
+    // console, and it starts, exits 0 and runs none of the script. That exact mistake cost
+    // this feature a day. `unref()` is what lets this CLI exit while the agent keeps going.
+    { stdio: ['ignore', 'ignore', errorStream], windowsHide: true }
   );
   child.unref();
   child.on('spawn', () => fs.closeSync(errorStream));
