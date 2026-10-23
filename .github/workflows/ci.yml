@@ -94,6 +94,14 @@ jobs:
         run: npm run package -- --install --trace
         continue-on-error: true
 
+      # The doctor above runs before the install, so it can only describe the old folder.
+      # This one is what proves a fresh install is complete: manifest, dist, and the
+      # production dependencies the plugin cannot run without.
+      - name: Installation doctor (after install)
+        if: contains(github.event.head_commit.message, '[install]')
+        run: npm run doctor
+        continue-on-error: true
+
       # Which shells this machine actually has. The publish step originally failed with no
       # output whatsoever, which is what "the shell itself could not be started" looks like:
       # worth one line of evidence rather than another guess.
