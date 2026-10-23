@@ -38,6 +38,11 @@ export type Result = {
    * whose subtitle changed would lose its history; the emoji itself is the stable identity.
    */
   RecordKey?: string
+  /**
+   * Handed back to us when the user opens the right-arrow context menu on this result. The
+   * emoji itself, so the menu knows what it is acting on without re-deriving it from the title.
+   */
+  ContextData?: unknown
 };
 
 export type JsonRpcRequest = {

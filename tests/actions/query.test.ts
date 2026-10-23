@@ -63,7 +63,8 @@ describe('query', () => {
       },
       IcoPath: expect.stringMatching(/^icons\\[0-9a-f-]+\.png$/),
       Score: expect.any(Number),
-      RecordKey: expect.any(String)
+      RecordKey: expect.any(String),
+      ContextData: expect.any(String)
     });
   });
 
@@ -90,29 +91,26 @@ describe('query', () => {
       });
     });
 
-    test('with notifications off, Flow copies the emoji itself and no process starts', () => {
+    test('with notifications off, our action still runs, carrying the setting', () => {
       const { result } = queryAndReadPayload('smile', {
         enableNotification: false,
         maxResults: '1'
       });
 
+      // Every pick has to reach us, or an empty query can never learn what the user picks:
+      // Flow Launcher only ever sees the results we return. Inside that process, the copy is
+      // still handed to Flow, which does it in-process without PowerShell.
       expect(result[0]?.JsonRPCAction).toEqual({
-        method: 'Flow.Launcher.CopyToClipboard',
-        parameters: [expect.any(String), false, false]
+        method: 'copy',
+        parameters: [expect.any(String), false]
       });
     });
 
-    test('the native action always carries all three arguments', () => {
-      // Flow resolves Flow.Launcher.* by exact parameter types via reflection, and C#
-      // defaults do not take part in that lookup: a two-argument call is silently
-      // dropped. This test exists so nobody "simplifies" the call.
-      const { result } = queryAndReadPayload('smile', { enableNotification: false });
-      const parameters = result[0]?.JsonRPCAction?.parameters ?? [];
+    test('gives the context menu the emoji it is acting on', () => {
+      const { result } = queryAndReadPayload('smile', { maxResults: '1' });
 
-      expect(parameters).toHaveLength(3);
-      expect(parameters[0]).toEqual(expect.any(String));
-      expect(parameters[1]).toBe(false);
-      expect(parameters[2]).toBe(false);
+      // Flow passes ContextData straight back to us when the user opens the right-arrow menu.
+      expect(result[0]?.ContextData).toBe(result[0]?.RecordKey);
     });
 
     test('treats a missing notification setting as enabled, like Flow does', () => {
@@ -154,7 +152,7 @@ describe('query', () => {
         enableNotification: false
       });
 
-      expect(result[0]?.JsonRPCAction?.method).toBe('Flow.Launcher.CopyToClipboard');
+      expect(result[0]?.JsonRPCAction?.method).toBe('copy');
     });
   });
 

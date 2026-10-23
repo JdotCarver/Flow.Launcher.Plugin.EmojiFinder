@@ -9,16 +9,25 @@
 // the handful of entries that are actually returned.
 
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import type { AliasRecord, UsageRecord } from './pluginData.js';
 
 export type FindResult = {
   title: string
   subtitle: string
   emoji: string
   score: number
+  /** The user's own name for this emoji, when they gave it one. */
+  alias?: string
 };
 
 /** `emojilib`'s data file, resolved next to the module so the cwd does not matter. */
 const EMOJI_DATA_URL = new URL('../../node_modules/emojilib/dist/emoji-en-US.json', import.meta.url);
+
+/** Where that data file is, as a path: the settings page and the alias list point at it. */
+export function emojiDatabasePath (): string {
+  return fileURLToPath(EMOJI_DATA_URL);
+}
 
 type EmojiEntry = [emoji: string, keywords: string[]];
 
@@ -27,6 +36,25 @@ type EmojiMatch = {
   keywords: string[]
   score: number
 };
+
+/**
+ * What the user has taught the plugin: their own aliases, and what they actually pick.
+ *
+ * Both are optional. A query with neither behaves exactly like it always did, which is what
+ * makes this safe to add to the hot path.
+ */
+export type FindOptions = {
+  aliases?: AliasRecord
+  usage?: UsageRecord
+};
+
+/**
+ * How much a used emoji is worth for an empty query.
+ *
+ * An empty query has no relevance to speak of, so it is ranked by the user's own history
+ * instead: every entry gets a score that only has to be higher than the untouched ones.
+ */
+const RECENT_EMOJI_SCORE = 1000;
 
 let emojiEntries: EmojiEntry[] | undefined;
 
@@ -58,7 +86,7 @@ function splitInput (input: string): string[] {
  * The matching rule: an emoji matches when every word the user typed appears somewhere
  * in at least one of its keywords. Partial words count ("fac" matches "face").
  */
-function matchesEveryInput (keywords: string[], inputs: string[]): boolean {
+function matchesEveryInput (keywords: readonly string[], inputs: string[]): boolean {
   for (const input of inputs) {
     let found = false;
 
@@ -92,7 +120,7 @@ function matchesEveryInput (keywords: string[], inputs: string[]): boolean {
  * @param keywords List of keywords to compare to user input.
  * @returns A score based on how likely the user expect to see the entry described by passed keywords.
  */
-export function computeMatchingScore (inputs: string[], keywords: string[]): number {
+export function computeMatchingScore (inputs: string[], keywords: readonly string[]): number {
   let score = 0;
 
   for (let keywordIndex = 0; keywordIndex < keywords.length; keywordIndex++) {
@@ -149,15 +177,83 @@ function humaniseKeyword (keyword: string): string {
     .join(' ');
 }
 
-function toFindResult ({ emoji, keywords, score }: EmojiMatch): FindResult {
+function toFindResult ({ emoji, keywords, score }: EmojiMatch, aliases: readonly string[] = []): FindResult {
   const [name = '', ...otherKeywords] = keywords;
+  const subtitleParts = otherKeywords.map(humaniseKeyword);
+
+  // Shown, because a result found under a name that is not in its keywords would otherwise
+  // look like a mistake.
+  if (aliases.length > 0) {
+    subtitleParts.unshift(`Your alias: ${aliases.join(', ')}`);
+  }
 
   return {
     emoji,
     title: humaniseKeyword(name),
-    subtitle: otherKeywords.map(humaniseKeyword).join(', '),
-    score
+    subtitle: subtitleParts.join(', '),
+    score,
+    ...(aliases.length > 0 ? { alias: aliases[0] } : {})
   };
+}
+
+/**
+ * Groups the user's aliases by the emoji they point at.
+ *
+ * Built per call rather than kept in a module-level cache: Flow Launcher starts a new process
+ * for every keystroke, so there is nothing to keep anything between, and the maps are tiny.
+ */
+function groupAliasesByEmoji (aliases: AliasRecord | undefined): Map<string, string[]> {
+  const grouped = new Map<string, string[]>();
+
+  for (const [alias, emoji] of Object.entries(aliases ?? {})) {
+    const existing = grouped.get(emoji);
+
+    if (existing === undefined) {
+      grouped.set(emoji, [alias]);
+    } else {
+      existing.push(alias);
+    }
+  }
+
+  return grouped;
+}
+
+/**
+ * Ranks one emoji against what the user typed, taking the user's aliases into account.
+ *
+ * An alias is an extra name for the emoji, so it is scored as if it were the emoji's own name:
+ * the best of the two scores wins, and the ordinary keyword match is never made worse by
+ * having an alias. That is what makes `swole` find 💪 without touching how `muscle` does.
+ *
+ * @returns The score, or 0 when the emoji matches neither its keywords nor its aliases.
+ */
+function scoreEmoji (inputs: string[], keywords: string[], aliases: readonly string[]): number {
+  const keywordScore = matchesEveryInput(keywords, inputs) ? computeMatchingScore(inputs, keywords) : 0;
+
+  if (aliases.length === 0) {
+    return keywordScore;
+  }
+
+  const aliasScore = matchesEveryInput(aliases, inputs) ? computeMatchingScore(inputs, aliases) : 0;
+
+  return Math.max(keywordScore, aliasScore);
+}
+
+/**
+ * The order an empty query shows: what the user actually picks, most used first.
+ *
+ * Flow Launcher only ever sees the results we return, so its own selection counts - which do
+ * reorder results - can never bring an emoji we did not send into the list. The empty query
+ * therefore has to be answered from our own history, or a used emoji that is not among the
+ * first handful of the data file can never appear.
+ */
+function orderByUsage (usage: UsageRecord): string[] {
+  return Object.entries(usage)
+    .sort((first, second) =>
+      second[1].count - first[1].count ||
+      second[1].lastUsedAt - first[1].lastUsedAt
+    )
+    .map(([emoji]) => emoji);
 }
 
 /**
@@ -167,14 +263,28 @@ function toFindResult ({ emoji, keywords, score }: EmojiMatch): FindResult {
  * @param limit Maximum number of results to build. Flow Launcher renders every result
  *              it receives, so this is the difference between a snappy list and a
  *              visible pause. Defaults to no limit for tests and tooling.
+ * @param options The user's aliases and history, or neither.
  */
-export function find (input: string, limit: number = Number.POSITIVE_INFINITY): FindResult[] {
+export function find (
+  input: string,
+  limit: number = Number.POSITIVE_INFINITY,
+  options: FindOptions = {}
+): FindResult[] {
   const inputs = splitInput(input);
+  const aliasesByEmoji = groupAliasesByEmoji(options.aliases);
+  const entries = loadEmojiEntries();
+
+  if (inputs.length === 0) {
+    return findMostUsed(entries, limit, options.usage ?? {}, aliasesByEmoji);
+  }
+
   const matches: EmojiMatch[] = [];
 
-  for (const [emoji, keywords] of loadEmojiEntries()) {
-    if (matchesEveryInput(keywords, inputs)) {
-      matches.push({ emoji, keywords, score: computeMatchingScore(inputs, keywords) });
+  for (const [emoji, keywords] of entries) {
+    const score = scoreEmoji(inputs, keywords, aliasesByEmoji.get(emoji) ?? []);
+
+    if (score > 0) {
+      matches.push({ emoji, keywords, score });
     }
   }
 
@@ -182,5 +292,56 @@ export function find (input: string, limit: number = Number.POSITIVE_INFINITY): 
   // of shuffling between keystrokes.
   matches.sort((first, second) => second.score - first.score);
 
-  return matches.slice(0, limit).map(toFindResult);
+  return matches
+    .slice(0, limit)
+    .map(match => toFindResult(match, aliasesByEmoji.get(match.emoji) ?? []));
+}
+
+/**
+ * The empty-query answer: the user's own emoji first, then the data file's order.
+ *
+ * Used emoji are sorted by count and then by how recently they were used, which is the part
+ * Flow Launcher cannot do for us (its counts are numbers, not timestamps).
+ */
+function findMostUsed (
+  entries: EmojiEntry[],
+  limit: number,
+  usage: UsageRecord,
+  aliasesByEmoji: Map<string, string[]>
+): FindResult[] {
+  const keywordsByEmoji = new Map(entries);
+  const used = orderByUsage(usage);
+  const results: FindResult[] = [];
+  const included = new Set<string>();
+
+  for (const emoji of used) {
+    const keywords = keywordsByEmoji.get(emoji);
+
+    // A history entry for an emoji this version of the data file no longer has is skipped,
+    // not an error: the emoji table comes from a dependency and can change under us.
+    if (keywords === undefined) {
+      continue;
+    }
+
+    results.push(toFindResult({ emoji, keywords, score: RECENT_EMOJI_SCORE }, aliasesByEmoji.get(emoji) ?? []));
+    included.add(emoji);
+
+    if (results.length >= limit) {
+      return results;
+    }
+  }
+
+  for (const [emoji, keywords] of entries) {
+    if (included.has(emoji)) {
+      continue;
+    }
+
+    results.push(toFindResult({ emoji, keywords, score: 0 }, aliasesByEmoji.get(emoji) ?? []));
+
+    if (results.length >= limit) {
+      break;
+    }
+  }
+
+  return results;
 }

@@ -7,6 +7,7 @@
     "agent": "node tools/ensure-build.mjs && node tools/paste-agent.mjs",
     "build": "tsc",
     "check:paste-agent": "node tools/ensure-build.mjs && node tools/check-paste-agent.mjs",
+    "check:ranking": "node tools/ensure-build.mjs && node tools/check-ranking.mjs",
     "benchmark": "node tools/bench.mjs",
     "diagnose": "node tools/ensure-build.mjs && node tools/diagnose.mjs",
     "doctor": "node tools/ensure-build.mjs && node tools/doctor.mjs",

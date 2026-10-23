@@ -5,9 +5,13 @@
 
 import process from 'node:process';
 import type { Arguments } from './types.js';
+import { buildContextMenu } from './actions/aliases.js';
 import { copy } from './actions/copy.js';
 import { paste } from './actions/paste.js';
 import { query } from './actions/query.js';
+import { emojiDatabasePath } from './utils/find.js';
+import { sendJsonRpcRequest } from './utils/flowLauncher.js';
+import { removeAlias, resolvePluginSettingsDirectory } from './utils/pluginData.js';
 import { trace } from './utils/trace.js';
 
 const args: Arguments = JSON.parse(process.argv[2] ?? '{}');
@@ -17,6 +21,18 @@ if (method === 'query') {
   const input = parameters[0] as string;
 
   query(input, settings);
+}
+
+// Flow Launcher implements its right-arrow menu for JS plugins by asking the plugin for it:
+// the selected result's ContextData arrives as the only parameter, and the list of results we
+// print becomes the menu.
+if (method === 'context_menu') {
+  const emoji = parameters[0] as string;
+  const settingsDirectory = resolvePluginSettingsDirectory();
+
+  sendJsonRpcRequest({
+    result: buildContextMenu(emoji, { settingsDirectory, emojiDatabase: emojiDatabasePath() })
+  });
 }
 
 // Actions are traced, queries are not: there is one of these per Enter and one of those
@@ -37,4 +53,17 @@ if (method === 'paste') {
   const emoji = parameters[0] as string;
 
   paste(emoji);
+}
+
+// Enter on an entry of the alias list: remove it, and say so through Flow's own notification.
+if (method === 'removealias') {
+  const alias = parameters[0] as string;
+  const settingsDirectory = resolvePluginSettingsDirectory();
+  const aliases = settingsDirectory === null ? {} : removeAlias(settingsDirectory, alias);
+
+  trace('alias:removed', { alias, remaining: Object.keys(aliases).length });
+  sendJsonRpcRequest({
+    method: 'Flow.Launcher.ShowMsg',
+    parameters: [`Alias “${alias}” removed`, 'Flow Launcher Emoji Finder', 'img\\app.png']
+  });
 }

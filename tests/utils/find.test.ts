@@ -130,6 +130,83 @@ describe('find', () => {
     });
   });
 
+  describe('the user\'s own aliases', () => {
+    test('an alias finds its emoji as if it were one of its names', () => {
+      const found = find('swole', 10, { aliases: { swole: '💪' } });
+
+      expect(found[0]?.emoji).toBe('💪');
+    });
+
+    test('the alias is shown, so an unexpected result does not look like a mistake', () => {
+      const [first] = find('swole', 1, { aliases: { swole: '💪' } });
+
+      expect(first?.alias).toBe('swole');
+      expect(first?.subtitle).toContain('swole');
+    });
+
+    test('an alias does not make the emoji harder to find by its own name', () => {
+      const withAlias = find('thumbs up', 5, { aliases: { swole: '💪' } });
+      const withoutAlias = find('thumbs up', 5);
+
+      expect(withAlias.map((entry) => entry.emoji)).toEqual(withoutAlias.map((entry) => entry.emoji));
+    });
+
+    test('no aliases behaves exactly as before', () => {
+      expect(find('smile', 5, {})).toEqual(find('smile', 5));
+    });
+
+    test('an alias for an emoji that is not in the data file is simply never matched', () => {
+      expect(find('swole', 10, { aliases: { swole: '🫠🫠' } })).toEqual([]);
+    });
+  });
+
+  describe('an empty query', () => {
+    test('shows what the user actually picks, most used first', () => {
+      const found = find('', 5, {
+        usage: {
+          '🚀': { count: 9, lastUsedAt: 100 },
+          '🙈': { count: 2, lastUsedAt: 900 }
+        }
+      });
+
+      expect(found.slice(0, 2).map((entry) => entry.emoji)).toEqual(['🚀', '🙈']);
+      // And the list is not short: the rest of the table fills it up as it always did.
+      expect(found).toHaveLength(5);
+    });
+
+    test('breaks ties on how recently it was used', () => {
+      const found = find('', 2, {
+        usage: {
+          '🚀': { count: 3, lastUsedAt: 100 },
+          '🙈': { count: 3, lastUsedAt: 900 }
+        }
+      });
+
+      expect(found.map((entry) => entry.emoji)).toEqual(['🙈', '🚀']);
+    });
+
+    test('the used emoji are scored above the rest, so Flow keeps them on top', () => {
+      const found = find('', 3, { usage: { '🚀': { count: 1, lastUsedAt: 1 } } });
+
+      expect(found[0]?.emoji).toBe('🚀');
+      expect(found[0]?.score).toBeGreaterThan(found[1]?.score ?? 0);
+    });
+
+    test('with no history it is the data file order, unchanged', () => {
+      const [first] = Object.entries(emojiData);
+
+      expect(find('', 5, {}).map((entry) => entry.emoji)).toEqual(find('', 5).map((entry) => entry.emoji));
+      expect(find('', 5)[0]?.emoji).toBe(first?.[0]);
+    });
+
+    test('an entry the data file no longer has is skipped, not a crash', () => {
+      const found = find('', 2, { usage: { '🫠🫠': { count: 99, lastUsedAt: 1 } } });
+
+      expect(found).toHaveLength(2);
+      expect(found.every((entry) => entry.emoji !== '🫠🫠')).toBe(true);
+    });
+  });
+
   describe('against the v1.2.0 implementation', () => {
     test.each(CORPUS)('same results, same order, for %j', (input) => {
       const expected = legacyFind(input)

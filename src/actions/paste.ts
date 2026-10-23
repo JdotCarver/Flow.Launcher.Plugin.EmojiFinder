@@ -11,6 +11,7 @@
 // If no agent is alive, one is started through a window-less launcher that belongs to neither
 // of us (see src/utils/pasteAgent.ts), and the request already on disk is picked up by it.
 
+import { recordPick } from './copy.js';
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
 import { ensureAgentScript, requestPaste, startPasteAgent } from '../utils/pasteAgent.js';
 import { trace } from '../utils/trace.js';
@@ -37,6 +38,9 @@ export function paste (text: string | undefined): void {
   const outcome = requestPaste(text);
 
   trace('paste:request', { emoji: text, ...outcome });
+
+  // A paste is a pick like any other: the empty query should remember it.
+  recordPick(text);
 
   // Better a paste that arrives a second late than one that silently does nothing: after a
   // reboot, or after anything stopped the agent, the user would otherwise get no paste and no

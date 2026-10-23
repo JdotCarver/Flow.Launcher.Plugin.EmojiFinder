@@ -9,8 +9,10 @@
 
 import type { ResolvedSettings } from '../utils/settings.js';
 import type { JsonRpcAction, Result, Settings } from '../types.js';
-import { find } from '../utils/find.js';
+import { buildAliasCommandResults, parseAliasCommand } from './aliases.js';
+import { emojiDatabasePath, find } from '../utils/find.js';
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
+import { readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
 import { readSettings } from '../utils/settings.js';
 import { getIconFileName } from '../utils/utils.js';
 
@@ -20,12 +22,10 @@ import { getIconFileName } from '../utils/utils.js';
  * Paste mode is the only case that needs our own process (to see whether the paste agent is
  * running), and it gets its clipboard content from Flow in the same breath.
  *
- * Copy mode:
- *   - notifications off -> Flow copies in-process; picking a result starts no process
- *     at all, which is the fastest path available;
- *   - notifications on  -> our own action, because it is the only way to show a
- *     notification that names the emoji. Costs one short-lived process (see
- *     docs/PERF_ANALYSIS.md).
+ * Copy mode always runs our own action, which costs one short-lived process. That is the price
+ * of an empty query that knows what the user actually picks: Flow Launcher only ever sees the
+ * results we return, so a pick Flow handles on its own is a pick we never learn about.
+ * Inside that process, notifications off still means Flow does the copy in-process.
  *
  * Flow resolves `Flow.Launcher.*` methods by exact parameter types
  * (`IPublicAPI.GetMethod`), and optional C# parameters do not participate in that
@@ -40,11 +40,7 @@ export function buildResultAction (
     return { method: 'paste', parameters: [emoji] };
   }
 
-  if (enableNotification) {
-    return { method: 'copy', parameters: [emoji, true] };
-  }
-
-  return { method: 'Flow.Launcher.CopyToClipboard', parameters: [emoji, false, false] };
+  return { method: 'copy', parameters: [emoji, enableNotification] };
 }
 
 /**
@@ -53,8 +49,24 @@ export function buildResultAction (
  */
 export function query (input: string | undefined, settings: Settings): void {
   const resolvedSettings = readSettings(settings);
+  const search = input ?? '';
+  const settingsDirectory = resolvePluginSettingsDirectory();
+  const aliasResults = buildAliasCommandResults(parseAliasCommand(search), {
+    settingsDirectory,
+    emojiDatabase: emojiDatabasePath()
+  });
 
-  const request: Result[] = find(input ?? '', resolvedSettings.maxResults).map(finding => ({
+  if (aliasResults !== null) {
+    sendJsonRpcRequest({ result: aliasResults });
+
+    return;
+  }
+
+  const request: Result[] = find(search, resolvedSettings.maxResults, {
+    aliases: settingsDirectory === null ? undefined : readAliases(settingsDirectory),
+    // Only an empty query is ranked by history, so only an empty query pays for reading it.
+    usage: settingsDirectory === null || search.trim() !== '' ? undefined : readUsage(settingsDirectory)
+  }).map(finding => ({
     Title: finding.title,
     Subtitle: finding.subtitle,
     JsonRPCAction: buildResultAction(finding.emoji, resolvedSettings),
@@ -62,7 +74,9 @@ export function query (input: string | undefined, settings: Settings): void {
     // Our own relevance order, which Flow cannot reconstruct. Flow adds the user's selection
     // count to this, which is the "used emoji float up" behaviour, for free.
     Score: finding.score,
-    RecordKey: finding.emoji
+    RecordKey: finding.emoji,
+    // What the right-arrow menu receives when the user opens it on this result.
+    ContextData: finding.emoji
   }));
 
   sendJsonRpcRequest({ result: request });

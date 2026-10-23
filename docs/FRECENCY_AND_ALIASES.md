@@ -1,12 +1,16 @@
 # Frecency and aliases: proposed shape
 
-Status: **decided, being implemented.** Two features the maintainer asked for after
-paste-at-cursor shipped: ranking that learns from what is actually picked, and user-defined
-aliases that feed the same ranking.
+Status: **implemented.** Two features the maintainer asked for after paste-at-cursor shipped:
+ranking that learns from what is actually picked, and user-defined aliases.
 
-Done so far: the score and record key every result now carries (see below), the settings-folder
-resolution, and the two data files with their rules (`src/utils/pluginData.ts`, 15 tests).
-Next: alias matching in `find()`, the empty-query list, and the alias command + context menu.
+- `src/utils/pluginData.ts` - where the files live, and their rules (15 tests).
+- `src/actions/aliases.ts` - the typed command and the right-arrow menu (18 tests).
+- `src/utils/find.ts` - aliases as extra names, and the empty-query list (11 tests).
+- `tools/check-ranking.mjs` - the measured cost and the end-to-end checks, on Windows.
+
+The parts that changed the design are all in "What Flow Launcher already does" below: the
+selection count it keeps for us, the `Score`/`RecordKey` it needs from us, and the context menu
+it asks us for. Everything else here is what we add around those three facts.
 
 Both touch `find()`, the hot path that runs once per keystroke, and both need state that
 survives a restart. That is the whole reason this document exists: where the state lives is an
@@ -78,6 +82,24 @@ Files, both written atomically (temporary file + rename, like `request.json`):
 Corrupt or unreadable files mean "no history" and "no aliases", never a broken query: the same
 rule `settings.ts` already follows for bad settings.
 
+## Aliases as shipped
+
+```
+e addalias swole 💪        add (both word orders work; a name may contain spaces)
+e addalias 💪 swole        the same command
+e aliases                  list them, plus "open the aliases file" and "open the emoji database"
+e removealias swole        remove one
+```
+
+Right arrow on any emoji → **Add an alias for 💪** → the query box is pre-filled with
+`addalias 💪 ` and the caret at the end → type the name → Enter. That is the whole flow the
+maintainer asked for, minus the popup text box Flow does not have.
+
+An alias is an extra name, not a separate search space: `scoreEmoji` takes the better of the
+keyword score and the alias score, so an alias can never make an emoji *harder* to find, and the
+result's subtitle shows the alias so a hit under a name that is not in its keywords does not look
+like a bug.
+
 ## Frecency
 
 **Ranking**, inside `find()`, after the existing match score:
@@ -124,6 +146,23 @@ feature needs:
 4. Recording, and the action routing that makes it possible.
 5. Whatever alias UI we agree on.
 6. Measure again: `find()` cost per keystroke, and the cost of a pick.
+
+## Measured cost (this is why there is no cache)
+
+`npm run check:ranking`, on the maintainer's machine:
+
+| what | cost |
+|---|---|
+| `find()` with 40 aliases loaded, per keystroke | **+0.03 to +0.06 ms** |
+| reading `aliases.json` | 0.02 ms |
+| reading `usage.json` | 0.006 ms |
+| whole process, one query | 52.6 ms (unchanged: Node boot dominates) |
+
+The maintainer asked whether the aliases should be pre-computed or cached "on extension start".
+There is no extension start: Flow Launcher runs a fresh Node process for every keystroke, so a
+cache would be rebuilt per keystroke anyway, and reading the file is already twenty times
+cheaper than building one. Merging aliases into a pre-built index would be YAGNI until a user
+has thousands of aliases - and the file is capped at 300 history entries with aliases set by hand.
 
 ## Decisions
 

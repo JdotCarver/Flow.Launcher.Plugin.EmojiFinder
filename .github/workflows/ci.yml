@@ -82,6 +82,12 @@ jobs:
       - name: Paste agent, for real
         run: npm run check:paste-agent
 
+      # Aliases and the empty-query history, measured on the machine that runs the plugin:
+      # search cost per keystroke with and without them, the whole-process cost, and the two
+      # new surfaces end to end (results Flow can rank, and the right-arrow menu).
+      - name: Ranking and aliases, for real
+        run: npm run check:ranking
+
       - name: Installation doctor
         run: npm run doctor
         continue-on-error: true
