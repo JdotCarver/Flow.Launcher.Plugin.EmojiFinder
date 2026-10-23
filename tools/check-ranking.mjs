@@ -259,8 +259,9 @@ function checkContextMenu () {
   finding(
     add?.JsonRPCAction?.method === 'Flow.Launcher.ChangeQuery' &&
       add?.JsonRPCAction?.parameters?.[0] === 'e addalias 💪 ' &&
-      add?.JsonRPCAction?.parameters?.[1] === true,
-    'the add entry types the command into the query box, caret at the end',
+      add?.JsonRPCAction?.parameters?.[1] === true &&
+      add?.JsonRPCAction?.DontHideAfterAction === true,
+    'the add entry types the command and keeps Flow on screen',
     JSON.stringify(add?.JsonRPCAction ?? null)
   );
 

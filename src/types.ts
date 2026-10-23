@@ -20,6 +20,15 @@ export type Settings = {
 export type JsonRpcAction = {
   method: string
   parameters: Parameters
+  /**
+   * Keep Flow Launcher on screen after the action runs.
+   *
+   * Flow hides the window after every action unless this is set (`JsonRPCClientRequestModel`
+   * in Flow's `JsonPRCModel`; `ExecuteResultAsync` returns `!DontHideAfterAction`). An action
+   * that hands control back to the query box - the context menu's "Add alias" - has to set it,
+   * or it types the command and closes the window in the same breath.
+   */
+  DontHideAfterAction?: boolean
 };
 
 export type Result = {

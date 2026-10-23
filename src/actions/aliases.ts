@@ -26,9 +26,10 @@
 //
 // The right-arrow menu writes the command for the user. Flow Launcher cannot hand a plugin a text
 // box, but it does let one result call one `Flow.Launcher.*` method, and `ChangeQuery` puts a
-// complete query in the box with the caret at the end. So the menu entry types
-// `e addalias 💪 ` and the user is where they would have been had they typed it themselves -
-// one Enter, no second flow. See docs/FRECENCY_AND_ALIASES.md for what that depends on.
+// complete query in the box, leaves the context menu and puts the caret at the end. So the menu
+// entry types `e addalias 💪 ` and the user is where they would have been had they typed it
+// themselves - one Enter, no second flow. It also sets `DontHideAfterAction`, without which Flow
+// types the command and closes the window at once. See docs/FRECENCY_AND_ALIASES.md.
 
 import { ALIASES_FILE_NAME, readAliases } from '../utils/pluginData.js';
 import { getIconFileName } from '../utils/utils.js';
@@ -127,7 +128,14 @@ export function buildAddAliasResult (emoji: string, actionKeyword: string): Resu
     Title: 'Add alias',
     Subtitle: `Types “${command.trim()}” in the query box, then type the name`,
     IcoPath: emojiIcon(emoji),
-    JsonRPCAction: { method: 'Flow.Launcher.ChangeQuery', parameters: [command, true] }
+    JsonRPCAction: {
+      method: 'Flow.Launcher.ChangeQuery',
+      parameters: [command, true],
+      // The point of this entry is to leave the user in the query box with the name still to
+      // type. Without this, Flow types the command and hides itself in the same instant
+      // (measured on the machine, 2026-10-23).
+      DontHideAfterAction: true
+    }
   };
 }
 

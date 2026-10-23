@@ -186,7 +186,12 @@ describe('the context menu', () => {
     expect(copyOnly.JsonRPCAction).toEqual({ method: 'copy', parameters: ['💪', true] });
     // One result can call exactly one Flow API method, and this is the one that leaves the
     // context menu behind: ChangeQuery returns to the results and fills the box.
-    expect(add.JsonRPCAction).toEqual({ method: 'Flow.Launcher.ChangeQuery', parameters: ['e addalias 💪 ', true] });
+    expect(add.JsonRPCAction).toEqual({
+      method: 'Flow.Launcher.ChangeQuery',
+      parameters: ['e addalias 💪 ', true],
+      // Measured: without this Flow types the command and hides the window immediately.
+      DontHideAfterAction: true
+    });
     expect(add.Subtitle).toContain('e addalias 💪');
   });
 

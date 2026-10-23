@@ -154,20 +154,23 @@ no new grammar, and the hint says so.
 
 It cannot take a name - no Flow Launcher text box exists for plugins - but it can type the
 command. The entry **Add alias** calls `Flow.Launcher.ChangeQuery('e addalias 💪 ', true)`, which
-fills the query box with the command the user could have typed and leaves the caret at the end.
-That is the whole flow: right arrow, Enter, type the name, Enter. No wizard, no second grammar,
-and the menu keeps teaching rather than hiding how the feature works.
+fills the query box with the command the user could have typed, leaves the context menu and puts
+the caret at the end. That is the whole flow: right arrow, Enter, type the name, Enter. No wizard,
+no second grammar, and the menu keeps teaching rather than hiding how the feature works.
 
-Two things worth knowing about it:
+Three things worth knowing about it:
 
-- **One API call per action.** `JsonRPCPlugin.ExecuteResultAsync` executes exactly one
-  `Flow.Launcher.*` method, whether it came from the result or from our answer to an action. Flow's
-  own code needs two (`BackToQueryResults()` then `ChangeQuery(...)`, see
-  `MainViewModel.GetHistoryItems`), which is why the entry depends on `ChangeQuery` itself
-  returning to the results. `IPublicAPI.ChangeQuery` documents exactly that ("When current results
-  are from context menu or history, it will go back to query results before changing query",
-  added by Flow PR #3240) - but the v2.1.4 source of `MainViewModel.ChangeQueryText` does not
-  contain the `BackToQueryResults()` call, so this is checked on the machine rather than assumed.
+- **`DontHideAfterAction: true` is not optional.** Flow hides the window after every action
+  (`JsonRPCPlugin.ExecuteResultAsync` returns `!DontHideAfterAction`). Measured on the machine:
+  without it the entry really does type `e addalias 💪 ` into the box and close Flow in the same
+  instant, which reads as having done nothing. `JsonRPCAction` now carries the flag, and only this
+  entry sets it - a copy or a removal should still close the window.
+- **One API call per action.** `ExecuteResultAsync` executes exactly one `Flow.Launcher.*` method,
+  whether it came from the result or from our answer to an action. Flow's own code needs two
+  (`BackToQueryResults()` then `ChangeQuery(...)`, see `MainViewModel.GetHistoryItems`), so this
+  entry depends on `ChangeQuery` itself leaving the menu - which it does: measured, the menu closes
+  and the results come back with the generated query. (`IPublicAPI.ChangeQuery` documents it;
+  PR #3240 added it.)
 - **The keyword comes from plugin.json.** Flow strips the action keyword before handing us the
   search text, so the plugin cannot see the word the user typed; `readActionKeyword` reads its own
   manifest (`e`). A user who rebinds the keyword in Flow's settings keeps the old value here, and
