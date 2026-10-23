@@ -1,8 +1,10 @@
 # Design: instant copy, and paste at the cursor
 
-Status: **copy half implemented** (see §1 and docs/PERF_ANALYSIS.md §6); paste is
-still a proposal. Decisions taken: PowerShell injector to start with, a single setting
-for copy vs paste (no second keyword), copy landed first. Numbers below are measured in this repository or
+Status: **implemented.** Decisions taken with the maintainer: PowerShell injector to
+start with, a single setting for copy vs paste (no second keyword — the maintainer would
+use paste all the time, so a per-use switch buys nothing), copy landed first.
+
+Implementation notes and the parts that differ from the plan are at the bottom (§5). Numbers below are measured in this repository or
 read from Flow Launcher's source; the Windows-specific latency is the one thing I cannot
 measure from here, so it is called out where it matters.
 
@@ -166,3 +168,56 @@ mechanisms are cheap and the setting alone forces a detour for a one-off paste.
 4. `docs/DEVELOPMENT.md`: paste limits (elevation, fullscreen), and how to switch.
 5. Re-run the benchmark: Enter latency should show up as "no extra process", so
    `tools/bench.mjs` gets an action-mode row.
+
+---
+
+## 5. What was actually built
+
+```
+setting "What pressing Enter does": copy (default) | paste
+```
+
+| Mode | Result action | Processes started on Enter |
+|---|---|---|
+| copy, notifications off | `Flow.Launcher.CopyToClipboard` | none |
+| copy, notifications on | `copy` (our own) | one, short-lived |
+| paste | `paste` (our own) | one, short-lived + one detached PowerShell helper |
+
+`paste` prints a `Flow.Launcher.CopyToClipboard` request first, so Flow fills the clipboard
+in-process, then starts the helper and exits immediately (which is what lets Flow hide).
+
+The helper (`src/utils/pasteHelper.ts`) is a PowerShell script run through
+`-EncodedCommand` (base64 UTF-16LE), which sidesteps every quoting and code-page problem
+that `-Command` has with emoji and apostrophes. It waits for both conditions below, then
+sends Ctrl+V. If they never hold within 2 s it does **nothing** — pressing Ctrl+V into
+Flow's search box would paste the emoji back into the query, which is worse than a missed
+paste.
+
+1. no visible Flow Launcher main window (`Get-Process -Name 'Flow.Launcher*'` and
+   `MainWindowHandle -eq 0`);
+2. the clipboard actually holds the emoji (`Clipboard::GetText()`), because Flow's
+   in-process copy can finish a few milliseconds *after* the window hides.
+
+### Deviation from the plan, and why
+
+The plan used `GetForegroundWindow` through a C# snippet (`Add-Type`). That compiles at
+run time, which costs several hundred milliseconds — more than the feature saves. The
+`MainWindowHandle` check needs no compilation and answers the same question for our
+purposes ("has Flow gone?"), so it won. If it ever proves unreliable, the P/Invoke
+version behind `spawnPasteHelper` is a contained swap.
+
+### Known limits
+
+- **Elevated windows**: Windows blocks synthetic input from non-elevated processes to
+  elevated ones, silently. Paste does nothing there; copy still works.
+- **Fullscreen/game windows** sometimes ignore synthetic input.
+- **Clipboard is left holding the emoji** (same as copy mode), which is what makes a
+  second Ctrl+V work.
+- Around **300–500 ms** between Enter and the emoji appearing, most of it PowerShell's
+  own start-up. Moving to a cscript shim (~40–90 ms) or a compiled helper (~10 ms) is
+  described in §2 and is one function's worth of change.
+
+### Still open, deliberately
+
+- A "paste without touching the clipboard" mode (Unicode key events) — see §2.
+- Measuring the real Windows number: needs a run on the maintainer's machine.

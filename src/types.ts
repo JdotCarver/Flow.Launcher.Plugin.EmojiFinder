@@ -12,6 +12,8 @@ export type Settings = {
   enableNotification: boolean
   /** Chosen in SettingsTemplate.yaml, so it arrives as a string ("25"). */
   maxResults?: string
+  /** "copy" or "paste": what picking a result does. */
+  defaultAction?: string
 };
 
 /** The action Flow runs when the user picks a result. */

@@ -21,6 +21,13 @@ Press <kbd>E</kbd>, type what you are looking for, and get it copied to the clip
 3. Select it and press <kbd>Enter</kbd>
 4. It is now copied in your clipboard. Paste it wherever you need it.
 
+## Paste at the cursor
+
+By default an emoji is copied to your clipboard. Set **What pressing Enter does** to
+`paste` and pressing <kbd>Enter</kbd> also types <kbd>Ctrl</kbd>+<kbd>V</kbd>, so the
+emoji lands where you are typing. It cannot work in windows running as administrator,
+because Windows blocks input from non-elevated applications.
+
 ## Configuration
 You can change the action keyword in the plugins settings menu.
 

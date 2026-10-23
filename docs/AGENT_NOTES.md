@@ -43,7 +43,13 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
   *types* (`IPublicAPI.GetMethod`), so optional C# parameters do not exist for us: send
   every argument. `CopyToClipboard(string, bool directCopy, bool showDefaultNotification)`.
 - `IPublicAPI` has no key-injection/paste API (checked the whole interface). Paste at the
-  cursor requires synthesising Ctrl+V; design in `docs/PASTE_AT_CURSOR.md`.
+  cursor synthesises Ctrl+V from a detached PowerShell helper; design + limits in
+  `docs/PASTE_AT_CURSOR.md`.
+- Paste helper: `powershell.exe -EncodedCommand` (base64 UTF-16LE) avoids quoting hell.
+  Foreground detection uses `Get-Process -Name 'Flow.Launcher*'` + `MainWindowHandle`,
+  **not** `Add-Type` P/Invoke: compiling C# at run time costs several hundred ms, which is
+  more than the feature saves. Windows PowerShell 5.1 (what `powershell.exe` is) runs STA,
+  which `Clipboard::GetText()` requires.
 - Dependency policy and audit reasoning: `docs/DEPENDENCIES.md`.
 
 ## Code conventions in this repo

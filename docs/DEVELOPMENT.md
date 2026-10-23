@@ -75,6 +75,27 @@ npx -y node@16 dist/main.js '{"method":"query","parameters":["smile"],"settings"
 That command is also the fastest way to test a change without touching Flow Launcher:
 it prints the exact JSON Flow would receive.
 
+## Trying paste at cursor
+
+Set **What pressing Enter does** to `paste` in the plugin settings, then put the cursor in
+an editor (Notepad is the honest test), open Flow with `e`, type a query and press Enter.
+The emoji should appear where the cursor was, roughly 300–500 ms later.
+
+If nothing happens:
+
+1. **Is the target window running as administrator?** Windows silently blocks synthetic
+   input from non-elevated processes to elevated ones. Notepad started normally is fine;
+   an admin PowerShell is not.
+2. **Did Flow hide?** The helper only types once Flow has no visible window. If Flow stays
+   open (a pinned preview, a dialog), it gives up after 2 seconds instead of pasting into
+   your query.
+3. **Try copy mode first** with notifications off; if that works, the action is reaching
+   Flow and the problem is only in the paste helper.
+
+The helper cannot be run from this repository's tests (no Windows, no PowerShell), so the
+script itself is reviewed in `src/utils/pasteHelper.ts` and its generated output is
+asserted in `tests/utils/pasteHelper.test.ts`.
+
 ## Everyday loop
 
 ```bash

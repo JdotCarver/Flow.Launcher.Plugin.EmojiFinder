@@ -110,6 +110,42 @@ describe('query', () => {
     });
   });
 
+  describe('paste at cursor', () => {
+    test('uses our own action, which starts the paste helper', () => {
+      const { result } = queryAndReadPayload('smile', {
+        maxResults: '1',
+        defaultAction: 'paste'
+      });
+
+      expect(result[0]?.JsonRPCAction).toEqual({
+        method: 'paste',
+        parameters: [expect.any(String)]
+      });
+    });
+
+    test('takes precedence over the notification setting', () => {
+      for (const enableNotification of [true, false]) {
+        const { result } = queryAndReadPayload('smile', {
+          maxResults: '1',
+          defaultAction: 'paste',
+          enableNotification
+        });
+
+        expect(result[0]?.JsonRPCAction?.method).toBe('paste');
+      }
+    });
+
+    test('still copies when the setting says so', () => {
+      const { result } = queryAndReadPayload('smile', {
+        maxResults: '1',
+        defaultAction: 'copy',
+        enableNotification: false
+      });
+
+      expect(result[0]?.JsonRPCAction?.method).toBe('Flow.Launcher.CopyToClipboard');
+    });
+  });
+
   test('shows the emoji name as the title and its keywords as the subtitle', () => {
     const { result } = queryAndReadPayload('grinning face', { enableNotification: true, maxResults: '50' });
     const grinningFace = result.find(entry => entry.Title === 'Grinning Face');

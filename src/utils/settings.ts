@@ -22,9 +22,16 @@ export const MAX_SELECTABLE_RESULTS = 250;
  */
 export const DEFAULT_ENABLE_NOTIFICATION = true;
 
+/** What picking a result does. */
+export type DefaultAction = 'copy' | 'paste';
+
+/** What picking a result does when the user has not chosen otherwise. */
+export const DEFAULT_ACTION: DefaultAction = 'copy';
+
 export type ResolvedSettings = {
   maxResults: number
   enableNotification: boolean
+  defaultAction: DefaultAction
 };
 
 /**
@@ -44,11 +51,23 @@ export function parseMaxResults (value: string | number | undefined): number {
 }
 
 /**
+ * Resolves what picking a result should do.
+ *
+ * Only the exact value "paste" switches modes; anything else (missing setting, an old
+ * Settings.json, a hand-edited value) keeps copying, which is what every version before
+ * this one did.
+ */
+export function parseDefaultAction (value: string | undefined): DefaultAction {
+  return value === 'paste' ? 'paste' : DEFAULT_ACTION;
+}
+
+/**
  * Resolves every setting the query path needs, in one place.
  */
 export function readSettings (settings: Settings | undefined): ResolvedSettings {
   return {
     maxResults: parseMaxResults(settings?.maxResults),
-    enableNotification: settings?.enableNotification !== false
+    enableNotification: settings?.enableNotification !== false,
+    defaultAction: parseDefaultAction(settings?.defaultAction)
   };
 }

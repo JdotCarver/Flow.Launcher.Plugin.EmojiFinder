@@ -2,9 +2,11 @@
 
 import { describe, expect, test } from 'vitest';
 import {
+  DEFAULT_ACTION,
   DEFAULT_ENABLE_NOTIFICATION,
   DEFAULT_MAX_RESULTS,
   MAX_SELECTABLE_RESULTS,
+  parseDefaultAction,
   parseMaxResults,
   readSettings
 } from '../../src/utils/settings.js';
@@ -40,18 +42,38 @@ describe('parseMaxResults', () => {
   });
 });
 
+describe('parseDefaultAction', () => {
+  test('reads the dropdown value Flow Launcher sends', () => {
+    expect(parseDefaultAction('paste')).toBe('paste');
+    expect(parseDefaultAction('copy')).toBe('copy');
+  });
+
+  test('keeps copying when the setting is missing, as every earlier version did', () => {
+    expect(parseDefaultAction(undefined)).toBe(DEFAULT_ACTION);
+    expect(parseDefaultAction('')).toBe('copy');
+  });
+
+  test('ignores anything it does not recognise', () => {
+    expect(parseDefaultAction('PASTE')).toBe('copy');
+    expect(parseDefaultAction('paste ')).toBe('copy');
+    expect(parseDefaultAction('true')).toBe('copy');
+  });
+});
+
 describe('readSettings', () => {
   test('resolves the full settings object', () => {
-    expect(readSettings({ enableNotification: false, maxResults: '10' })).toEqual({
+    expect(readSettings({ enableNotification: false, maxResults: '10', defaultAction: 'paste' })).toEqual({
       maxResults: 10,
-      enableNotification: false
+      enableNotification: false,
+      defaultAction: 'paste'
     });
   });
 
   test('survives a missing settings object', () => {
     expect(readSettings(undefined)).toEqual({
       maxResults: DEFAULT_MAX_RESULTS,
-      enableNotification: DEFAULT_ENABLE_NOTIFICATION
+      enableNotification: DEFAULT_ENABLE_NOTIFICATION,
+      defaultAction: DEFAULT_ACTION
     });
   });
 
