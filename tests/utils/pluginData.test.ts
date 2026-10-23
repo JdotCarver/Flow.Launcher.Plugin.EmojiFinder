@@ -42,29 +42,55 @@ afterEach(() => {
 });
 
 describe('readActionKeyword', () => {
-  test('reads the keyword from the plugin manifest', () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'manifest-'));
-    fs.writeFileSync(path.join(directory, 'plugin.json'), JSON.stringify({ ActionKeyword: 'emoji' }));
+  /** A Flow layout with the keyword the user chose recorded in Flow's own settings file. */
+  function createFlowLayout (actionKeywords: string[] | undefined): { settings: string, plugin: string } {
+    const root = createDirectory();
+    const settings = path.join(root, 'Settings', 'Plugins', 'Emoji Finder');
+    const plugin = path.join(root, 'Plugins', 'Flow.Launcher.Plugin.EmojiFinder');
 
-    expect(readActionKeyword(directory)).toBe('emoji');
-    fs.rmSync(directory, { recursive: true, force: true });
+    fs.mkdirSync(settings, { recursive: true });
+    fs.mkdirSync(plugin, { recursive: true });
+    fs.writeFileSync(path.join(plugin, 'plugin.json'), JSON.stringify({ Name: 'Emoji Finder', ActionKeyword: 'e' }));
+
+    if (actionKeywords !== undefined) {
+      fs.writeFileSync(path.join(root, 'Settings', 'Settings.json'), JSON.stringify({
+        PluginSettings: { Plugins: { [PLUGIN_ID]: { ID: PLUGIN_ID, ActionKeywords: actionKeywords } } }
+      }));
+    }
+
+    return { settings, plugin };
+  }
+
+  test('the keyword the user chose in Flow wins over the manifest default', () => {
+    const { settings, plugin } = createFlowLayout(['emoji']);
+
+    // `e` is only what plugin.json ships. Flow stores the choice, and every string this plugin
+    // prints has to quote the keyword that actually routes back to it.
+    expect(readActionKeyword(settings, plugin)).toBe('emoji');
+  });
+
+  test('reads the plugin manifest when Flow has not stored a keyword', () => {
+    const { settings, plugin } = createFlowLayout(undefined);
+
+    fs.writeFileSync(path.join(plugin, 'plugin.json'), JSON.stringify({ Name: 'Emoji Finder', ActionKeyword: 'fav' }));
+    expect(readActionKeyword(settings, plugin)).toBe('fav');
   });
 
   test('falls back to e when the manifest is missing or says nothing', () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'manifest-'));
 
     // A missing manifest must not make the context menu throw; e is what plugin.json ships.
-    expect(readActionKeyword(directory)).toBe('e');
+    expect(readActionKeyword(null, directory)).toBe('e');
 
     fs.writeFileSync(path.join(directory, 'plugin.json'), JSON.stringify({ ActionKeyword: '  ' }));
-    expect(readActionKeyword(directory)).toBe('e');
+    expect(readActionKeyword(null, directory)).toBe('e');
 
     fs.rmSync(directory, { recursive: true, force: true });
   });
 
   test('this plugin\'s own manifest declares e', () => {
-    // The subtitle shows the command, so the constant and the file have to agree.
-    expect(readActionKeyword()).toBe('e');
+    // Only reached when there is no Flow settings file to read.
+    expect(readActionKeyword(null)).toBe('e');
   });
 });
 

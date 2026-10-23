@@ -9,9 +9,12 @@
 //
 // The grammar is deliberately strict: the emoji comes first, then the name.
 //
-//   e addalias 💪 swole        save "swole" for 💪
-//   e removealias swole        remove it
-//   e aliases                  list them, plus the files, with remove-on-Enter
+//   <keyword> addalias 💪 swole    save "swole" for 💪
+//   <keyword> removealias swole    remove it
+//   <keyword> aliases              list them, plus the file, with remove-on-Enter
+//
+// The keyword is never written as a literal: it is Flow's, the user can rebind it, and every
+// string here shows the one this installation actually answers to (`readActionKeyword`).
 //
 // Both paths end in the same save call, and aliases then behave as extra names in `find()`.
 //
@@ -167,7 +170,8 @@ export function buildAddAliasResult (emoji: string, actionKeyword: string): Resu
  */
 export function buildAliasCommandResults (
   command: AliasCommand,
-  paths: { settingsDirectory: string | null }
+  paths: { settingsDirectory: string | null },
+  actionKeyword: string
 ): Result[] | null {
   if (command.kind === 'none') {
     return null;
@@ -187,7 +191,7 @@ export function buildAliasCommandResults (
   if (command.kind === 'name-missing') {
     return [{
       Title: 'Now type the name',
-      Subtitle: `e addalias ${command.emoji} <name>`,
+      Subtitle: `${actionKeyword} addalias ${command.emoji} <name>`,
       IcoPath: emojiIcon(command.emoji)
     }];
   }
@@ -195,7 +199,7 @@ export function buildAliasCommandResults (
   if (command.kind === 'emoji-missing') {
     return [{
       Title: 'Type the emoji first, then the name',
-      Subtitle: 'e addalias 💪 swole (search e, press Enter to copy an emoji, paste it here)',
+      Subtitle: `${actionKeyword} addalias 💪 swole (search, press Enter to copy an emoji, paste it here)`,
       IcoPath: 'img\\app.png'
     }];
   }
@@ -212,12 +216,12 @@ export function buildAliasCommandResults (
   if (command.kind === 'remove-incomplete') {
     return [{
       Title: 'Type the alias to remove',
-      Subtitle: 'e removealias <name> - or e aliases to see them all',
+      Subtitle: `${actionKeyword} removealias <name> - or ${actionKeyword} aliases to see them all`,
       IcoPath: 'img\\app.png'
     }];
   }
 
-  return listingResults(paths);
+  return listingResults(paths, actionKeyword);
 }
 
 /**
@@ -230,7 +234,7 @@ export function buildAliasCommandResults (
  * on every update, so hand-edits there are lost work - and pointing people at it produces bug
  * reports about disappearing aliases. The aliases file is the one that survives updates.
  */
-function listingResults (paths: { settingsDirectory: string | null }): Result[] {
+function listingResults (paths: { settingsDirectory: string | null }, actionKeyword: string): Result[] {
   const aliases = paths.settingsDirectory === null ? {} : readAliases(paths.settingsDirectory);
   const results: Result[] = [
     {
@@ -248,7 +252,7 @@ function listingResults (paths: { settingsDirectory: string | null }): Result[] 
   if (entries.length === 0) {
     results.push({
       Title: 'No aliases yet',
-      Subtitle: 'Type: e addalias <emoji> <name>, for example e addalias 💪 swole',
+      Subtitle: `Type: ${actionKeyword} addalias <emoji> <name>, for example ${actionKeyword} addalias 💪 swole`,
       IcoPath: 'img\\app.png'
     });
 

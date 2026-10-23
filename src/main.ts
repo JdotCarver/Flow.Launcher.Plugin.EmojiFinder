@@ -33,7 +33,7 @@ if (method === 'context_menu') {
   const settingsDirectory = resolvePluginSettingsDirectory();
 
   sendJsonRpcRequest({
-    result: buildContextMenu(emoji, { settingsDirectory }, readActionKeyword())
+    result: buildContextMenu(emoji, { settingsDirectory }, readActionKeyword(settingsDirectory))
   });
 }
 

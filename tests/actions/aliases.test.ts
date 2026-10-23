@@ -77,12 +77,12 @@ describe('parseAliasCommand', () => {
 });
 
 describe('buildAliasCommandResults', () => {
-  function results (command: Parameters<typeof buildAliasCommandResults>[0], directory: string | null) {
-    return buildAliasCommandResults(command, paths(directory)) ?? [];
+  function results (command: Parameters<typeof buildAliasCommandResults>[0], directory: string | null, keyword = 'e') {
+    return buildAliasCommandResults(command, paths(directory), keyword) ?? [];
   }
 
   test('an ordinary search produces no results from here', () => {
-    expect(buildAliasCommandResults({ kind: 'none' }, paths(createSettingsDirectory()))).toBeNull();
+    expect(buildAliasCommandResults({ kind: 'none' }, paths(createSettingsDirectory()), 'e')).toBeNull();
   });
 
   test('a complete command offers to save, and writes nothing while typing', () => {
@@ -96,6 +96,24 @@ describe('buildAliasCommandResults', () => {
     // A query is run per keystroke: saving here would leave `s`, `sw`, `swo` behind as aliases.
     expect(readAliases(directory)).toEqual({});
     expect(result?.JsonRPCAction).toEqual({ method: 'addalias', parameters: ['swole', '💪'] });
+  });
+
+  test("every command the plugin prints uses the installation's own keyword", () => {
+    // `e` is only the default; the keyword can be changed in Flow's settings, and a sentence
+    // that insists on `e` would hand out a command that goes nowhere.
+    const [nameMissing] = results({ kind: 'name-missing', emoji: '💪' }, createSettingsDirectory(), 'emoji');
+    const [emojiMissing] = results({ kind: 'emoji-missing' }, createSettingsDirectory(), 'emoji');
+    const [removeMissing] = results({ kind: 'remove-incomplete' }, createSettingsDirectory(), 'emoji');
+    const emptyList = results({ kind: 'list' }, createSettingsDirectory(), 'emoji').at(-1)!;
+
+    expect(nameMissing.Subtitle).toBe('emoji addalias 💪 <name>');
+    expect(emojiMissing.Subtitle).toContain('emoji addalias 💪 swole');
+    expect(removeMissing.Subtitle).toContain('emoji removealias <name>');
+    expect(removeMissing.Subtitle).toContain('emoji aliases');
+    expect(emptyList.Subtitle).toContain('emoji addalias');
+    // Nothing still assumes the default while claiming to speak for this install.
+    expect([nameMissing, emojiMissing, removeMissing, emptyList].map(row => row.Subtitle).join(' '))
+      .not.toMatch(/\be addalias|\be removealias|\be aliases/);
   });
 
   test('an emoji without a name shows one line asking for the name', () => {

@@ -12,7 +12,7 @@ import type { JsonRpcAction, Result, Settings } from '../types.js';
 import { buildAliasCommandResults, parseAliasCommand } from './aliases.js';
 import { find } from '../utils/find.js';
 import { sendJsonRpcRequest } from '../utils/flowLauncher.js';
-import { readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
+import { readActionKeyword, readAliases, readUsage, resolvePluginSettingsDirectory } from '../utils/pluginData.js';
 import { readSettings } from '../utils/settings.js';
 import { getIconFileName } from '../utils/utils.js';
 
@@ -52,7 +52,11 @@ export function query (input: string | undefined, settings: Settings): void {
   const search = input ?? '';
   const settingsDirectory = resolvePluginSettingsDirectory();
 
-  const aliasResults = buildAliasCommandResults(parseAliasCommand(search), { settingsDirectory });
+  const aliasResults = buildAliasCommandResults(
+    parseAliasCommand(search),
+    { settingsDirectory },
+    readActionKeyword(settingsDirectory)
+  );
 
   if (aliasResults !== null) {
     sendJsonRpcRequest({ result: aliasResults });

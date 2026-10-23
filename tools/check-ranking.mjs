@@ -31,7 +31,15 @@ import process from 'node:process';
 import { performance } from 'node:perf_hooks';
 import { parseAliasCommand } from '../dist/actions/aliases.js';
 import { find } from '../dist/utils/find.js';
-import { ensureAliasesFile, readAliases, readUsage, recordUsage, saveAlias } from '../dist/utils/pluginData.js';
+import {
+  PLUGIN_ID,
+  ensureAliasesFile,
+  readActionKeyword,
+  readAliases,
+  readUsage,
+  recordUsage,
+  saveAlias
+} from '../dist/utils/pluginData.js';
 import { createStyle } from './report-style.mjs';
 
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
@@ -256,10 +264,13 @@ function checkContextMenu () {
 
   const add = menu.find((item) => item.Title === 'Add an alias for this emoji');
 
+  // The keyword is whatever this installation answers to, never a literal `e`.
+  const keyword = readActionKeyword();
+
   finding(
     add?.JsonRPCAction?.method === 'Flow.Launcher.CopyToClipboard' &&
-      add?.JsonRPCAction?.parameters?.[0] === 'e addalias 💪 ',
-    'the add entry copies the finished command',
+      add?.JsonRPCAction?.parameters?.[0] === `${keyword} addalias 💪 `,
+    "the add entry copies the finished command, with the installation's keyword",
     JSON.stringify(add?.JsonRPCAction ?? null)
   );
 
@@ -292,6 +303,23 @@ function checkAliasCommands () {
     parseAliasCommand('addalias 💪 swole').kind === 'add' && parseAliasCommand('addalias swole').kind === 'emoji-missing',
     'the emoji comes first, and a bare word is never also a search'
   );
+
+  // A rebinding must reach every string and every generated command. The choice lives in Flow's
+  // own Settings.json, so build one: Settings/Plugins/Emoji Finder is where the plugin thinks it
+  // lives, and Settings/Settings.json is two levels up.
+  const layout = createTemporarySettings();
+  const rebindSettings = path.join(layout, 'Settings', 'Plugins', 'Emoji Finder');
+
+  fs.mkdirSync(rebindSettings, { recursive: true });
+  fs.writeFileSync(path.join(layout, 'Settings', 'Settings.json'), JSON.stringify({
+    PluginSettings: { Plugins: { [PLUGIN_ID]: { ID: PLUGIN_ID, ActionKeywords: ['emoji'] } } }
+  }));
+  finding(
+    readActionKeyword(rebindSettings) === 'emoji',
+    'the keyword the user chose in Flow wins over the manifest',
+    readActionKeyword(rebindSettings)
+  );
+  fs.rmSync(layout, { recursive: true, force: true });
 
   const settings = createTemporarySettings();
 

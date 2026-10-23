@@ -202,12 +202,15 @@ results.Add(ContextMenuPluginInfo(selected));   // "<plugin name>"
 "Topmost" is Flow's per-query pinning of one result; an alias is a permanent second name for an
 emoji. They overlap in intent, not in effect.
 
-**The keyword comes from plugin.json.** Flow strips the action keyword before handing us the search
-text, so the plugin cannot see the word the user typed; `readActionKeyword` reads its own manifest
-(`e`). A user who rebinds the keyword in Flow's settings keeps the old value here, and the copied
-command would miss. The typed form always works, and the entries show the command.
+**The keyword is read, never assumed.** Flow strips the action keyword before handing us the search
+text, so the query itself does not say which word was used. The choice the user made is recorded in
+Flow's own `Settings.json`, under `PluginSettings.Plugins.<plugin ID>.ActionKeywords`
+(`PluginsSettings.UpdatePluginSettings` reads it back over the manifest's default), so
+`readActionKeyword(settingsDirectory)` reads that first, falls back to `plugin.json`, then to `e`.
+Every subtitle and the copied command therefore quote the keyword this installation actually
+answers to.
 
-## Frecency## Frecency
+## Frecency
 
 **Ranking**, inside `find()`, after the existing match score:
 

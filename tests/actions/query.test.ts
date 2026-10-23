@@ -5,6 +5,7 @@
 
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { query } from '../../src/actions/query.js';
+import { readActionKeyword } from '../../src/utils/pluginData.js';
 import type { Result } from '../../src/types.js';
 
 const consoleMock = vi.spyOn(console, 'log').mockImplementation(() => undefined);
@@ -161,5 +162,15 @@ describe('query', () => {
     const grinningFace = result.find(entry => entry.Title === 'Grinning Face');
 
     expect(grinningFace?.Subtitle).toBe('Face, Smile, Happy, Joy, :D, Grin, Smiley');
+  });
+});
+
+describe('the action keyword', () => {
+  test('is read from the installation, not assumed to be e', () => {
+    // plugin.json ships `e`, but it can be rebound in Flow's settings; nothing printed should
+    // hard-code the default.
+    const { result } = queryAndReadPayload('addalias', { maxResults: '5' });
+
+    expect(result[0]?.Subtitle).toContain(`${readActionKeyword(null)} addalias`);
   });
 });

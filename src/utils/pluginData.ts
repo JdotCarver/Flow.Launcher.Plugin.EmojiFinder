@@ -84,22 +84,76 @@ export const PLUGIN_DIRECTORY = path.resolve(import.meta.dirname, '..', '..');
 /** What the plugin answers to when Flow has not been told otherwise; also plugin.json's value. */
 export const DEFAULT_ACTION_KEYWORD = 'e';
 
+/** Flow's own settings file, next to the per-plugin settings folder. */
+export const FLOW_SETTINGS_FILE_NAME = 'Settings.json';
+
 /** The settings folder's name if plugin.json cannot be read; also plugin.json's value. */
 export const DEFAULT_PLUGIN_NAME = 'Emoji Finder';
 
 /**
- * The keyword this plugin is invoked with, as declared in its own plugin.json.
+ * The keyword this plugin is currently invoked with, as Flow Launcher has it.
  *
- * Needed to write a complete query into Flow's box (`e addalias 💪 `), because Flow strips the
- * keyword before it hands us the search text: a plugin can type the rest of the command, but it
- * has to supply the word that routes it back to us.
+ * Everything the plugin *says* uses this - every subtitle that shows a command, and the command
+ * the context menu copies - because `e` is only the default: it can be changed in Flow's settings
+ * like any other plugin's keyword, and a sentence that insists on `e` would then be handing out
+ * a command that does not work.
  *
- * plugin.json is the default; a user who rebinds the keyword in Flow's settings keeps the old
- * value here, and the generated command would then be routed elsewhere. That is why the command
- * is also always shown in the subtitle, and why the typed form works without any of this.
+ * Flow keeps the keyword the user chose in its own `Settings.json`, under
+ * `PluginSettings.Plugins.<plugin ID>.ActionKeywords` (Flow's `PluginsSettings.UpdatePluginSettings`
+ * reads it back over the manifest's default). That file is the only place the choice is recorded,
+ * since the query itself arrives without its keyword.
+ *
+ * Plugin.json is the fallback for a plugin that is not installed in a Flow layout - a test run, or
+ * someone starting `dist/main.js` by hand - where the manifest's value is all there is.
+ *
+ * @param settingsDirectory Flow's settings folder for this plugin, or null when unknown.
+ * @param pluginDirectory Where to find plugin.json.
  */
-export function readActionKeyword (pluginDirectory: string = PLUGIN_DIRECTORY): string {
-  return readManifestString('ActionKeyword', pluginDirectory) || DEFAULT_ACTION_KEYWORD;
+export function readActionKeyword (
+  settingsDirectory: string | null = resolvePluginSettingsDirectory(),
+  pluginDirectory: string = PLUGIN_DIRECTORY
+): string {
+  return readKeywordFromFlowSettings(settingsDirectory) ||
+    readManifestString('ActionKeyword', pluginDirectory) ||
+    DEFAULT_ACTION_KEYWORD;
+}
+
+/**
+ * The first keyword Flow has stored for this plugin, or an empty string.
+ *
+ * `Settings\Plugins\<name>` is two levels below the folder holding `Settings.json`, so the path
+ * is derived from where the plugin already knows it lives - no guessing at %APPDATA%, and the same
+ * rule for installed and portable Flow Launcher.
+ */
+function readKeywordFromFlowSettings (settingsDirectory: string | null): string {
+  if (settingsDirectory === null) {
+    return '';
+  }
+
+  const flowSettingsFile = path.resolve(settingsDirectory, '..', '..', FLOW_SETTINGS_FILE_NAME);
+  const settings = readJsonFile<Record<string, unknown>>(flowSettingsFile);
+  const containers = [settings?.PluginSettings, settings];
+
+  for (const container of containers) {
+    const pluginSettings = (container as { Plugins?: Record<string, unknown> } | undefined)?.Plugins;
+
+    if (pluginSettings === null || typeof pluginSettings !== 'object') {
+      continue;
+    }
+
+    const entry = (pluginSettings as Record<string, { ActionKeywords?: unknown }>)[PLUGIN_ID];
+    const keywords = entry?.ActionKeywords;
+
+    if (Array.isArray(keywords)) {
+      const first = keywords.find((keyword): keyword is string => typeof keyword === 'string' && keyword.trim() !== '');
+
+      if (first !== undefined) {
+        return first.trim();
+      }
+    }
+  }
+
+  return '';
 }
 
 /**
