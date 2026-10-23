@@ -90,16 +90,21 @@ jobs:
       # Logs and artifacts are served from hosts an agent sandbox cannot reach (Azure blob
       # storage), but git is always reachable. Publishing to a branch is what lets the
       # agent read the evidence instead of asking the maintainer to paste it.
+      #
+      # The step's own failure is reported as an annotation as well: an annotation is
+      # readable through the API, so a broken publisher still explains itself.
       - name: Publish reports to the dogfood-reports branch
         if: always()
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No interactive prompt: with a credential manager in the way, a failed push
+          # would wait for a user who is not there.
+          GIT_TERMINAL_PROMPT: 0
         run: |
-          set -u
-          # Built from $PWD, never from $RUNNER_TEMP: on Windows that variable is a
-          # D:\... path, which bash cannot mkdir or cd into (this is what failed the
-          # first attempt). $PWD is already in bash's own /d/... form.
+          set -o pipefail
+          # Built from $PWD, never from $RUNNER_TEMP: on Windows that variable holds a
+          # D:\... path, which bash cannot mkdir or cd into.
           reports="$PWD/../dogfood-reports"
           rm -rf "$reports"
           mkdir -p "$reports"
@@ -111,11 +116,21 @@ jobs:
             echo "when: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } > "$reports/context.txt"
 
-          cd "$reports"
-          git init -q
-          git checkout -q -B dogfood-reports
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -q -m "dogfood: reports from ${GITHUB_SHA:0:7}" || echo "nothing to publish"
-          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" dogfood-reports
+          publish() {
+            cd "$reports" || return 1
+            git init -q || return 1
+            git checkout -q -B dogfood-reports || return 1
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A || return 1
+            git commit -q -m "dogfood: reports from ${GITHUB_SHA:0:7}" || echo "nothing new to publish"
+            git -c credential.helper= push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" dogfood-reports
+          }
+
+          if ! output=$(publish 2>&1); then
+            printf '%s\n' "$output" | tail -20
+            first_line=$(printf '%s\n' "$output" | grep -v '^$' | tail -1 | sed 's/%/%25/g; s/\r//g')
+            echo "::error title=publish failed::$first_line"
+            exit 1
+          fi
+          printf '%s\n' "$output" | tail -5

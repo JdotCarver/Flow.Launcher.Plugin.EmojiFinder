@@ -244,6 +244,31 @@ async function probeOnWindows () {
   };
 }
 
+/**
+ * Repeats the findings as workflow annotations.
+ *
+ * Why: a self-hosted run's log lives in a place an agent sandbox cannot fetch. Annotations
+ * are served by the API instead, so a run whose report branch cannot be pushed still
+ * tells us what happened.
+ */
+function annotate (result) {
+  if (process.env.GITHUB_ACTIONS !== 'true') {
+    return;
+  }
+
+  const { production, variants } = result;
+
+  console.log(`::warning title=paste probe production::started=${production.started} ` +
+    `pid=${production.pid ?? '-'} traceLines=${production.newTraceLines} ` +
+    `stderr=${production.helperStderr.trim().split('\n')[0] || 'none'}`);
+
+  for (const variant of variants) {
+    console.log(`::warning title=paste probe ${variant.name}::exit=${variant.exitCode ?? '-'} ` +
+      `signal=${variant.signal ?? '-'} traceLines=${variant.traceLines} ` +
+      `stderr=${variant.stderr.trim().split('\n')[0] || 'none'}`);
+  }
+}
+
 /** Prints one line per variant, then names the first that managed to write a trace line. */
 function report (result) {
   const { production, variants } = result;
@@ -288,6 +313,7 @@ async function main () {
   const result = await probeOnWindows();
   fs.writeFileSync(REPORT_FILE, JSON.stringify(result, null, 2) + '\n');
   report(result);
+  annotate(result);
   console.log(style.finding('info', `wrote ${path.relative(PLUGIN_ROOT, REPORT_FILE)}`));
 }
 
