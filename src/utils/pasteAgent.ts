@@ -184,6 +184,7 @@ function Send-Paste([string] $targetEmoji) {
   $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
   $shouldPaste = $false
   $lastState = ''
+  $loggedMismatch = $false
 
   while ($stopwatch.ElapsedMilliseconds -lt $pasteWindowMilliseconds) {
     $flowProcessIds = @()
@@ -223,6 +224,14 @@ function Send-Paste([string] $targetEmoji) {
       $lastState = $state
     }
 
+    # Once per request: what the clipboard actually holds. Without this, "the clipboard never
+    # matched" is the end of the investigation instead of the start of it.
+    if ((-not $clipboardMatches) -and (-not $loggedMismatch) -and ($clipboardText -ne '')) {
+      $clipboardCodes = ($clipboardText.ToCharArray() | ForEach-Object { [int]$_ }) -join ','
+      Write-Trace ('mismatch clipboardCodes=[{0}] clipboardLength={1}' -f $clipboardCodes, $clipboardText.Length)
+      $loggedMismatch = $true
+    }
+
     # Either signal is enough: "no visible window" or "focus went elsewhere".
     if ((-not $flowVisible -or -not $flowHasFocus) -and $clipboardMatches) {
       $shouldPaste = $true
@@ -260,7 +269,10 @@ while ($true) {
 
     if ($null -ne $request -and [double]$request.sequence -gt $lastSequence) {
       $lastSequence = [double]$request.sequence
-      Write-Trace ("request sequence={0} emoji=[{1}]" -f $request.sequence, $request.emoji)
+      # Code points, not just the glyph: an encoding mistake in the request file looks
+      # exactly like "the clipboard never matched", and this is what tells them apart.
+      $targetCodes = ($request.emoji.ToCharArray() | ForEach-Object { [int]$_ }) -join ','
+      Write-Trace ("request sequence={0} emoji=[{1}] targetCodes=[{2}]" -f $request.sequence, $request.emoji, $targetCodes)
       Send-Paste ([string]$request.emoji)
     }
   }
