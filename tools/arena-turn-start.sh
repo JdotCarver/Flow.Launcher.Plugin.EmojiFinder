@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/arena-turn-start.sh
 #
-# Arena turn-start sync + harness repair for the FlowLauncherPlugin-PlayniteLibrary repository.
+# Arena turn-start sync + harness repair for the Flow.Launcher.Plugin.EmojiFinder repository.
 #
 # Run at the START of every turn:   bash tools/arena-turn-start.sh
 #
@@ -12,7 +12,7 @@
 #   1. HEAD is reset to the base commit, so the branch looks "behind".
 #   2. The working tree keeps changing after the first glance: restored files land
 #      in WAVES, minutes apart, appearing and vanishing.
-# Both are handled below. Nothing here touches the remote.
+# Both are handled below. Nothing here touches the remote beyond `git fetch`.
 #
 # What it does
 #   1. Waits out an in-flight snapshot restore (the tree churns while it lands).
@@ -24,7 +24,7 @@
 #        - HEAD == base commit      -> RE-CLONE: hard-reset to the remote tip
 #        - both sides diverged      -> stop; repair by hand (docs/AGENT_NOTES.md)
 #   3. Settles: requires the status hash to hold steady before trusting the tree.
-#   4. Verifies the tree is whole (key files present, manifest.json parses).
+#   4. Verifies the tree is whole (key files present, plugin.json parses).
 #
 # HISTORY / READ THIS BEFORE EDITING
 # ----------------------------------
@@ -32,30 +32,36 @@
 # `reset --hard` whenever HEAD != remote, which would have eaten unpushed commits
 # made mid-turn. The ancestry checks below are the fix; do not simplify them away.
 #
-# The first version here also died on a missing tracking ref (`git rev-parse
-# FETCH_HEAD` aborts under `set -e`) on the very first turn, before the session
-# branch existed on the remote. Hence the explicit "no remote branch yet" branch.
+# The first version also died on a missing tracking ref (`git rev-parse FETCH_HEAD`
+# aborts under `set -e`) on the very first turn, before the session branch existed
+# on the remote. Hence the explicit "no remote branch yet" branch.
 #
 # CHICKEN-AND-EGG: after a re-clone this file itself may be missing until the
 # snapshot restore settles. If it is absent, repair by hand using docs/AGENT_NOTES.md.
+#
+# Adapted 2026-10-23 for this repository: branch/base-commit and the key-file list
+# now describe a TypeScript Flow Launcher plugin instead of the Playnite library.
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BRANCH="BRANCHNAMEHERE"
-BASE_COMMIT="BASECOMMITHERE"
+BRANCH="arena/cdf6971a-flow-launcher-plugin-emojifind"
+BASE_COMMIT="c897b075266f18dfcab125f03d30bc5e0efa6db4"
 
 # Files whose absence means "the snapshot restore is incomplete".
-# Keep this in sync with docs/AGENT_NOTES.md §2 when load-bearing files appear.
+# Keep this in sync with docs/AGENT_NOTES.md when load-bearing files appear.
 KEY_FILES=(
-    "data/plugin.json"
-    "src/run.py"
-    "src/plugin/__main__.py"
-    "src/plugin/playnite.py"
-    "src/plugin/library_source.py"
-    "src/plugin/library_server.py"
-    "src/plugin/results.py"
-    "src/plugin/settings.py"
+    "package.json"
+    "package-lock.json"
+    "plugin.json"
+    "tsconfig.json"
+    "src/main.ts"
+    "src/types.ts"
+    "src/actions/query.ts"
+    "src/actions/copy.ts"
+    "src/utils/find.ts"
+    "src/utils/utils.ts"
+    "src/utils/flowLauncher.ts"
 )
 
 cd "$REPO_ROOT" || exit 1
@@ -142,7 +148,7 @@ elif git merge-base --is-ancestor "$HEAD_NOW" "$REMOTE"; then
     fi
 else
     echo "!! DIVERGED (both sides have unique commits) — repair by hand"
-    echo "   see docs/AGENT_NOTES.md §2; do NOT force-push over the user's work"
+    echo "   see docs/AGENT_NOTES.md; do NOT force-push over the user's work"
     # The usual cause is a re-clone arriving mid-turn (observed twice on 2026-09-29,
     # both times right after a user-facing pause): HEAD is knocked back to the base
     # commit, the next commit therefore sits on top of BASE, and the push is rejected
@@ -178,17 +184,25 @@ for file in "${KEY_FILES[@]}"; do
     fi
 done
 
-# Any JSON we ship must at least parse; a corrupted manifest is invisible otherwise.
-if [ -f data/plugin.json ]; then
-    if ! python3 -c 'import json,sys; json.load(open("data/plugin.json"))'; then
-        echo "!! data/plugin.json is not valid JSON"
-        missing=1
+# Any JSON we ship must at least parse; a corrupted plugin manifest is invisible otherwise.
+for manifest in plugin.json package.json tsconfig.json; do
+    if [ -f "$manifest" ]; then
+        if ! node -e "JSON.parse(require('fs').readFileSync('$manifest','utf8'))" 2>/dev/null; then
+            echo "!! $manifest is not valid JSON"
+            missing=1
+        fi
     fi
-fi
+done
 
 if [ "$missing" -ne 0 ]; then
-    echo "!! tree incomplete — repair by hand (docs/AGENT_NOTES.md §2)"
+    echo "!! tree incomplete — repair by hand (docs/AGENT_NOTES.md)"
     exit 1
+fi
+
+# node_modules is not tracked, so a re-clone silently loses it. Report, do not install:
+# `npm ci` takes ~80s and that decision belongs to the agent, not to a pre-flight check.
+if [ ! -d node_modules ]; then
+    echo "!! node_modules missing (re-clone) — run: npm ci   (~80s)"
 fi
 
 echo "== ready: HEAD=$(git rev-parse --short HEAD) dirty=$(git status --porcelain | wc -l)"

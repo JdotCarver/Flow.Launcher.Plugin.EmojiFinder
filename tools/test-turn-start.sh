@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/test-turn-start.sh
 #
-# Self-test for tools/arena-turn-start.sh.
+# Self-test for tools/arena-turn-start.sh (Flow.Launcher.Plugin.EmojiFinder edition).
 #
 # Run after ANY edit to the turn-start script:   bash tools/test-turn-start.sh
 #
@@ -20,8 +20,8 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-BRANCH="BRANCHNAMEHERE"
-BASE_COMMIT="BASECOMMITHERE"
+BRANCH="arena/cdf6971a-flow-launcher-plugin-emojifind"
+BASE_COMMIT="c897b075266f18dfcab125f03d30bc5e0efa6db4"
 
 PASS=0
 FAIL=0
