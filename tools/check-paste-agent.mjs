@@ -36,8 +36,7 @@ import { createStyle } from './report-style.mjs';
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, '..');
 const DOGFOOD_DIRECTORY = path.join(PLUGIN_ROOT, 'dogfood');
 const REPORT_FILE = path.join(DOGFOOD_DIRECTORY, 'paste-agent-check.json');
-const TRACE_MARKER = path.join(PLUGIN_ROOT, 'trace.on');
-const AGENT_LOG = path.join(DOGFOOD_DIRECTORY, 'agent.log');
+
 
 /** Long enough for the agent to see the request and finish its (refused) paste attempt. */
 const REQUEST_SETTLE_MILLISECONDS = 4000;
@@ -92,15 +91,11 @@ async function checkOnWindows () {
 
   fs.mkdirSync(DOGFOOD_DIRECTORY, { recursive: true });
 
-  const createdTraceMarker = !fs.existsSync(TRACE_MARKER);
-  if (createdTraceMarker) {
-    fs.writeFileSync(TRACE_MARKER, '');
-  }
-
-  // Start from a clean log, so "the agent handled our request" cannot be an old line.
-  fs.rmSync(AGENT_LOG, { force: true });
-
   const paths = resolveAgentPaths();
+
+  // Start from a clean log, so "the agent handled our request" cannot be an old line. The
+  // agent always logs now, into its own data folder, so this works without tracing.
+  fs.rmSync(paths.log, { force: true });
   ensureAgentScript(paths);
 
   // The check starts the agent itself and keeps the handle. The CLI would have exited, and
@@ -129,7 +124,7 @@ async function checkOnWindows () {
 
   await new Promise((resolve) => setTimeout(resolve, REQUEST_SETTLE_MILLISECONDS));
 
-  const log = readIfPresent(AGENT_LOG);
+  const log = readIfPresent(paths.log);
   findings.push({ label: 'agent logs the request with its sequence number', ok: log.includes(`request sequence=${request.sequence}`) });
   findings.push({ label: 'agent refuses to paste while the clipboard holds something else', ok: log.includes('decision paste=False') });
   findings.push({ label: 'agent is still alive after handling a request', ok: readAgentStatus(paths).running });
@@ -145,10 +140,6 @@ async function checkOnWindows () {
     ok: !readAgentStatus(paths).running,
     detail: readAgentStatus(paths).running ? 'heartbeat still fresh 2 s after the kill' : ''
   });
-
-  if (createdTraceMarker) {
-    fs.rmSync(TRACE_MARKER, { force: true });
-  }
 
   return {
     generatedAt: new Date().toISOString(),
