@@ -94,7 +94,7 @@ self-test typing `abc` into it, which needs a real window to type into.
 | `dogfood/diagnose.json` | `npm run diagnose` (on your machine) | yes |
 | `dogfood/agent.log` | the agent, every time it runs (copied back by `npm run diagnose`) | yes |
 | `dogfood/runtime.log` | the plugin, only when `trace.on` exists next to `plugin.json` | yes |
-| `dogfood/selftest.json` | `npm run paste:selftest` | yes |
+| `dogfood/selftest.json` | `npm run paste:selftest` | yes, once you have run it |
 | `dogfood/diagnose-linux.json` | `npm run diagnose` in the sandbox | no (gitignored) |
 | `dogfood/paste-agent-check.json` | `npm run check:paste-agent` | no (gitignored) |
 
