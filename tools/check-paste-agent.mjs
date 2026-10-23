@@ -25,7 +25,8 @@
 //   npm run check:paste-agent        (Windows only; exits 0 elsewhere)
 //
 // Output
-//   dogfood/paste-agent-check.json, plus annotations when run in CI.
+//   dogfood/paste-agent-check.json, plus annotations when run in CI, and a non-zero exit
+//   status if any assertion failed under any installed host.
 
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -102,6 +103,27 @@ function codePointsOf (text) {
   return [...text.split('')].map((character) => character.charCodeAt(0)).join(',');
 }
 
+/**
+ * Waits until no agent is running.
+ *
+ * A heartbeat stays "fresh" for a few seconds after the process dies, so a stop that is not
+ * waited for makes the next host's start look successful when nothing started at all. That
+ * false positive is how a host can appear green while its agent never ran a single line.
+ */
+async function waitUntilStopped (paths) {
+  const deadline = Date.now() + START_WAIT_MILLISECONDS;
+
+  while (Date.now() < deadline) {
+    if (!readAgentStatus(paths).running) {
+      return true;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  return false;
+}
+
 async function waitForHeartbeat (paths) {
   const deadline = Date.now() + START_WAIT_MILLISECONDS;
 
@@ -141,9 +163,13 @@ async function checkHost (host, emoji) {
 
   const findings = [];
   const startupLog = path.join(paths.directory, `agent-startup-${host.replace('.exe', '')}.log`);
-  const logOffset = existingBytes(paths.log);
 
   stopAnyAgent();
+  const stopped = await waitUntilStopped(paths);
+  findings.push({ label: 'the previous agent is gone before this host starts', ok: stopped });
+
+  // After the stop, so nothing the previous host wrote can be mistaken for this host's work.
+  const logOffset = existingBytes(paths.log);
   fs.rmSync(startupLog, { force: true });
 
   let agent = null;
@@ -158,10 +184,12 @@ async function checkHost (host, emoji) {
   }
 
   const alive = await waitForHeartbeat(paths);
+  const startupText = readIfPresent(startupLog).trim().slice(0, 600);
+
   findings.push({
     label: 'agent starts and publishes a heartbeat',
     ok: alive,
-    detail: alive ? '' : `start-up log: ${readIfPresent(startupLog).trim().slice(0, 400) || '(empty)'}`
+    detail: alive ? '' : `start-up log: ${startupText || '(empty)'}`
   });
 
   const request = requestPaste(emoji, paths);
@@ -171,6 +199,15 @@ async function checkHost (host, emoji) {
 
   const log = readIfPresent(paths.log).slice(logOffset);
   const expectedCodes = codePointsOf(emoji);
+
+  // First: did this host's process write anything at all? When it did not, its stderr is the
+  // only thing that explains why, and it is attached to the finding rather than buried.
+  const wroteAnything = log.trim() !== '';
+  findings.push({
+    label: 'the agent writes its own log',
+    ok: wroteAnything,
+    detail: wroteAnything ? '' : `start-up log: ${startupText || '(empty)'}`
+  });
 
   findings.push({ label: 'agent logs the request with its sequence number', ok: log.includes(`request sequence=${request.sequence}`) });
   findings.push({
@@ -186,7 +223,12 @@ async function checkHost (host, emoji) {
   await new Promise((resolve) => setTimeout(resolve, HEARTBEAT_STALE_AFTER_MILLISECONDS + 1000));
   findings.push({ label: 'agent stops when its process is ended', ok: !readAgentStatus(paths).running });
 
-  return { host, findings, logTail: log.trim() === '' ? [] : log.trim().split('\n').slice(-10) };
+  return {
+    host,
+    findings,
+    startupLog: startupText || null,
+    logTail: log.trim() === '' ? [] : log.trim().split('\n').slice(-10)
+  };
 }
 
 async function checkOnWindows () {
@@ -196,20 +238,23 @@ async function checkOnWindows () {
   const hosts = availableHosts();
   const results = [];
 
-  for (const host of hosts) {
-    results.push(await checkHost(host, emoji));
-  }
-
-  // Leave the machine able to paste: the last host run ended with a killed agent.
   try {
-    execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), '--start'], {
-      cwd: PLUGIN_ROOT,
-      encoding: 'utf8',
-      timeout: 60000,
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
-  } catch {
-    results.push({ host: 'restart', findings: [{ label: 'agent restarted after the checks', ok: false }], logTail: [] });
+    for (const host of hosts) {
+      results.push(await checkHost(host, emoji));
+    }
+  } finally {
+    // Leave the machine able to paste, even if a host's run threw: the last thing the loop
+    // does is kill its agent, and a user's paste setting must not stay broken after a check.
+    try {
+      execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), '--start'], {
+        cwd: PLUGIN_ROOT,
+        encoding: 'utf8',
+        timeout: 60000,
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+    } catch {
+      results.push({ host: 'restart', findings: [{ label: 'agent restarted after the checks', ok: false }], logTail: [] });
+    }
   }
 
   return {
@@ -243,6 +288,8 @@ function report (result) {
   const failures = findings.filter((finding) => !finding.ok).length;
 
   console.log(style.finding(failures === 0 ? 'ok' : 'fail', `${findings.length - failures}/${findings.length} checks passed across ${result.hosts.join(' and ')}`));
+
+  return failures;
 }
 
 function annotate (result) {
@@ -272,9 +319,15 @@ async function main () {
   }));
 
   fs.writeFileSync(REPORT_FILE, JSON.stringify(result, null, 2) + '\n');
-  report(result);
+  const failures = report(result);
   annotate(result);
   console.log(style.finding('info', `wrote ${path.relative(PLUGIN_ROOT, REPORT_FILE)}`));
+
+  // Every host has to pass. A green job that only proves the host the maintainer happens to
+  // have installed is exactly the false confidence this check exists to remove.
+  if (failures > 0) {
+    process.exitCode = 1;
+  }
 }
 
 await main();
