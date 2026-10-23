@@ -51,12 +51,27 @@ function readIfPresent (filePath) {
   }
 }
 
+/**
+ * Runs the agent CLI and returns its output either way.
+ *
+ * The first version let a non-zero exit throw, so a failing start produced no report at all
+ * and the step looked like a silent no-op. An experiment that cannot report its own failure
+ * is not an experiment.
+ */
 function runCli (flag) {
-  return execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), flag], {
-    cwd: PLUGIN_ROOT,
-    encoding: 'utf8',
-    timeout: 30000
-  }).trim();
+  try {
+    return execFileSync(process.execPath, [path.join('tools', 'paste-agent.mjs'), flag], {
+      cwd: PLUGIN_ROOT,
+      encoding: 'utf8',
+      timeout: 30000,
+      stdio: ['ignore', 'pipe', 'pipe']
+    }).trim();
+  } catch (error) {
+    const stdout = String(error.stdout ?? '').trim();
+    const stderr = String(error.stderr ?? '').trim();
+
+    return `exit ${error.status}: ${stderr || stdout || error.message}`;
+  }
 }
 
 /** An emoji that is not on the clipboard, so a bug cannot paste into a runner window. */
@@ -71,6 +86,17 @@ function chooseEmojiNotOnClipboard () {
 }
 
 async function checkOnWindows () {
+  const failures = [];
+  const collect = (label, action) => {
+    try {
+      return action();
+    } catch (error) {
+      failures.push(`${label}: ${error.message}`);
+
+      return null;
+    }
+  };
+
   fs.mkdirSync(DOGFOOD_DIRECTORY, { recursive: true });
 
   const createdTraceMarker = !fs.existsSync(TRACE_MARKER);
@@ -85,7 +111,7 @@ async function checkOnWindows () {
   ensureAgentScript(paths);
 
   const findings = [];
-  const startedOutput = runCli('--start');
+  const startedOutput = collect('start', () => runCli('--start')) ?? '';
   const afterStart = readAgentStatus(paths);
   findings.push({ label: 'agent starts and publishes a heartbeat', ok: afterStart.running, detail: startedOutput });
 
@@ -100,7 +126,7 @@ async function checkOnWindows () {
   findings.push({ label: 'agent refuses to paste while the clipboard holds something else', ok: log.includes('decision paste=False') });
   findings.push({ label: 'agent is still alive after handling a request', ok: readAgentStatus(paths).running });
 
-  const stopOutput = runCli('--stop');
+  const stopOutput = collect('stop', () => runCli('--stop')) ?? '';
   await new Promise((resolve) => setTimeout(resolve, 1500));
   findings.push({ label: 'agent stops on request', ok: !readAgentStatus(paths).running, detail: stopOutput });
 
@@ -114,11 +140,18 @@ async function checkOnWindows () {
     emoji,
     dataFolder: paths.directory,
     findings,
+    failures,
+    agentScriptExists: fs.existsSync(paths.script),
+    agentScriptBytes: fs.existsSync(paths.script) ? fs.statSync(paths.script).size : 0,
     agentLogTail: log.trim() === '' ? [] : log.trim().split('\n').slice(-12)
   };
 }
 
 function report (result) {
+  for (const failure of result.failures ?? []) {
+    console.log(style.finding('fail', failure));
+  }
+
   for (const finding of result.findings) {
     console.log(style.finding(finding.ok ? 'ok' : 'fail', finding.label));
   }
@@ -144,7 +177,13 @@ async function main () {
     return;
   }
 
-  const result = await checkOnWindows();
+  const result = await checkOnWindows().catch((error) => ({
+    generatedAt: new Date().toISOString(),
+    platform: process.platform,
+    findings: [],
+    failures: [`the check itself threw: ${error.message}`],
+    agentLogTail: []
+  }));
   fs.writeFileSync(REPORT_FILE, JSON.stringify(result, null, 2) + '\n');
   report(result);
   annotate(result);
