@@ -1,0 +1,431 @@
+﻿2026-10-27T13:23:31.4825934Z Current runner version: '2.338.2'
+2026-10-27T13:23:31.4830648Z Runner name: 'DESKTOP-SK3RC8N-session'
+2026-10-27T13:23:31.4831045Z Runner group name: 'Default'
+2026-10-27T13:23:31.4831540Z Machine name: 'DESKTOP-SK3RC8N'
+2026-10-27T13:23:31.4833701Z ##[group]GITHUB_TOKEN Permissions
+2026-10-27T13:23:31.4834901Z Contents: write
+2026-10-27T13:23:31.4835208Z Metadata: read
+2026-10-27T13:23:31.4835502Z ##[endgroup]
+2026-10-27T13:23:31.4836663Z Secret source: Actions
+2026-10-27T13:23:31.4837149Z Cache mode: write
+2026-10-27T13:23:31.4837498Z Prepare workflow directory
+2026-10-27T13:23:31.5142005Z Prepare all required actions
+2026-10-27T13:23:31.5168403Z Getting action download info
+2026-10-27T13:23:32.1335211Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-27T13:23:32.8945593Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-10-27T13:23:33.8805057Z Complete job name: Emoji Finder verification
+2026-10-27T13:23:33.9501001Z ##[group]Run actions/checkout@v4
+2026-10-27T13:23:33.9501740Z with:
+2026-10-27T13:23:33.9502115Z   fetch-depth: 0
+2026-10-27T13:23:33.9502592Z   repository: JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:23:33.9506506Z   token: ***
+2026-10-27T13:23:33.9506865Z   ssh-strict: true
+2026-10-27T13:23:33.9507239Z   ssh-user: git
+2026-10-27T13:23:33.9507612Z   persist-credentials: true
+2026-10-27T13:23:33.9508019Z   clean: true
+2026-10-27T13:23:33.9508397Z   sparse-checkout-cone-mode: true
+2026-10-27T13:23:33.9508853Z   fetch-tags: false
+2026-10-27T13:23:33.9509228Z   show-progress: true
+2026-10-27T13:23:33.9509615Z   lfs: false
+2026-10-27T13:23:33.9509967Z   submodules: false
+2026-10-27T13:23:33.9510343Z   set-safe-directory: true
+2026-10-27T13:23:33.9510770Z   allow-unsafe-pr-checkout: false
+2026-10-27T13:23:33.9511333Z ##[endgroup]
+2026-10-27T13:23:34.0983034Z Syncing repository: JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:23:34.0984554Z ##[group]Getting Git version info
+2026-10-27T13:23:34.0985788Z Working directory is 'C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\Flow.Launcher.Plugin.EmojiFinder\Flow.Launcher.Plugin.EmojiFinder'
+2026-10-27T13:23:34.1194092Z [command]"C:\Program Files\Git\cmd\git.exe" version
+2026-10-27T13:23:34.1362108Z git version 2.53.0.windows.1
+2026-10-27T13:23:34.1385976Z ##[endgroup]
+2026-10-27T13:23:34.1395243Z Copying 'C:\Users\<user>\.gitconfig' to 'C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\_temp\d1c62914-fe89-4de3-b31b-13b893466e88\.gitconfig'
+2026-10-27T13:23:34.1410235Z Temporarily overriding HOME='C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\_temp\d1c62914-fe89-4de3-b31b-13b893466e88' before making global git config changes
+2026-10-27T13:23:34.1412758Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-27T13:23:34.1418505Z [command]"C:\Program Files\Git\cmd\git.exe" config --global --add safe.directory C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\Flow.Launcher.Plugin.EmojiFinder\Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:23:34.1640531Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --get remote.origin.url
+2026-10-27T13:23:34.1814717Z https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:23:34.1841834Z ##[group]Removing previously created refs, to avoid conflicts
+2026-10-27T13:23:34.1849686Z [command]"C:\Program Files\Git\cmd\git.exe" rev-parse --symbolic-full-name --verify --quiet HEAD
+2026-10-27T13:23:34.2022592Z refs/heads/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:23:34.2051905Z [command]"C:\Program Files\Git\cmd\git.exe" checkout --detach
+2026-10-27T13:23:34.2351239Z HEAD is now at 31d9c3b Actions: request local-windows run
+2026-10-27T13:23:34.2813066Z ##[endgroup]
+2026-10-27T13:23:34.2818769Z [command]"C:\Program Files\Git\cmd\git.exe" submodule status
+2026-10-27T13:23:34.6025008Z ##[group]Cleaning the repository
+2026-10-27T13:23:34.6032539Z [command]"C:\Program Files\Git\cmd\git.exe" clean -ffdx
+2026-10-27T13:23:35.7946366Z Removing dist/
+2026-10-27T13:23:35.7946752Z Removing dogfood/paste-agent-check.json
+2026-10-27T13:23:35.7947087Z Removing node_modules/
+2026-10-27T13:23:35.7947574Z Removing tools/github_actions_runner/__pycache__/redact.cpython-313.pyc
+2026-10-27T13:23:35.7948165Z Removing tools/github_actions_runner/__pycache__/select_runner.cpython-313.pyc
+2026-10-27T13:23:35.7948748Z Removing tools/github_actions_runner/__pycache__/test_redact.cpython-313.pyc
+2026-10-27T13:23:35.7978869Z [command]"C:\Program Files\Git\cmd\git.exe" reset --hard HEAD
+2026-10-27T13:23:35.9314188Z HEAD is now at 31d9c3b Actions: request local-windows run
+2026-10-27T13:23:35.9338779Z ##[endgroup]
+2026-10-27T13:23:35.9342570Z ##[group]Disabling automatic garbage collection
+2026-10-27T13:23:35.9349809Z [command]"C:\Program Files\Git\cmd\git.exe" config --local gc.auto 0
+2026-10-27T13:23:35.9547512Z ##[endgroup]
+2026-10-27T13:23:35.9555843Z ##[group]Setting up auth
+2026-10-27T13:23:35.9556173Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-27T13:23:35.9763239Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-27T13:23:36.3046179Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-27T13:23:36.3248242Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-27T13:23:36.6494807Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-27T13:23:36.6686100Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-27T13:23:36.9876481Z [command]"C:\Program Files\Git\cmd\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-10-27T13:23:37.0125246Z ##[endgroup]
+2026-10-27T13:23:37.0125538Z ##[group]Fetching the repository
+2026-10-27T13:23:37.0135386Z [command]"C:\Program Files\Git\cmd\git.exe" -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-10-27T13:23:37.8958564Z From https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:23:37.8958879Z    110c4ba..64b3c2f  actions-logs -> origin/actions-logs
+2026-10-27T13:23:37.8962862Z    31d9c3b..eb12596  arena/cdf6971a-flow-launcher-plugin-emojifind -> origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:23:37.9142324Z [command]"C:\Program Files\Git\cmd\git.exe" branch --list --remote origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:23:37.9312005Z   origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:23:37.9340057Z [command]"C:\Program Files\Git\cmd\git.exe" rev-parse refs/remotes/origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:23:37.9501590Z eb12596b6e6468a0316c0f82b6bd63e4b53add16
+2026-10-27T13:23:37.9523145Z ##[endgroup]
+2026-10-27T13:23:37.9523419Z ##[group]Determining the checkout info
+2026-10-27T13:23:37.9524895Z ##[endgroup]
+2026-10-27T13:23:37.9532194Z [command]"C:\Program Files\Git\cmd\git.exe" sparse-checkout disable
+2026-10-27T13:23:37.9788879Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-10-27T13:23:37.9977725Z ##[group]Checking out the ref
+2026-10-27T13:23:37.9984915Z [command]"C:\Program Files\Git\cmd\git.exe" checkout --progress --force -B arena/cdf6971a-flow-launcher-plugin-emojifind refs/remotes/origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:23:38.0269514Z Previous HEAD position was 31d9c3b Actions: request local-windows run
+2026-10-27T13:23:38.0340124Z Switched to and reset branch 'arena/cdf6971a-flow-launcher-plugin-emojifind'
+2026-10-27T13:23:38.0364289Z branch 'arena/cdf6971a-flow-launcher-plugin-emojifind' set up to track 'origin/arena/cdf6971a-flow-launcher-plugin-emojifind'.
+2026-10-27T13:23:38.0364715Z Your branch is up to date with 'origin/arena/cdf6971a-flow-launcher-plugin-emojifind'.
+2026-10-27T13:23:38.0397204Z ##[endgroup]
+2026-10-27T13:23:38.0629056Z [command]"C:\Program Files\Git\cmd\git.exe" log -1 --format=%H
+2026-10-27T13:23:38.0807881Z eb12596b6e6468a0316c0f82b6bd63e4b53add16
+2026-10-27T13:23:38.1100690Z ##[group]Run $resolved = $null
+2026-10-27T13:23:38.1100898Z $resolved = $null
+2026-10-27T13:23:38.1101069Z foreach ($candidate in @('py', 'python', 'python3')) {
+2026-10-27T13:23:38.1101296Z   $command = Get-Command $candidate -ErrorAction SilentlyContinue
+2026-10-27T13:23:38.1101501Z   if (-not $command) { continue }
+2026-10-27T13:23:38.1101711Z   $executable = & $command.Source -c "import sys; print(sys.executable)" 2>$null
+2026-10-27T13:23:38.1101939Z   if ($LASTEXITCODE -eq 0 -and $executable) {
+2026-10-27T13:23:38.1102101Z     $resolved = "$executable".Trim()
+2026-10-27T13:23:38.1102236Z     break
+2026-10-27T13:23:38.1102333Z   }
+2026-10-27T13:23:38.1102424Z }
+2026-10-27T13:23:38.1102572Z if (-not $resolved) { throw "No usable Python found on this runner." }
+2026-10-27T13:23:38.1102848Z "PYTHON=$resolved" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+2026-10-27T13:23:38.1103050Z & $resolved --version
+2026-10-27T13:23:38.1107576Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:38.1107777Z ##[endgroup]
+2026-10-27T13:23:38.3312078Z Python 3.13.14
+2026-10-27T13:23:38.3831676Z ##[group]Run # Family and architecture only: an exact build is a finding aid, not a finding.
+2026-10-27T13:23:38.3832039Z # Family and architecture only: an exact build is a finding aid, not a finding.
+2026-10-27T13:23:38.3832268Z # These logs are republished to a public branch.
+2026-10-27T13:23:38.3832426Z $node = node --version
+2026-10-27T13:23:38.3832545Z $shells = @()
+2026-10-27T13:23:38.3832695Z foreach ($candidate in @('powershell.exe', 'pwsh.exe')) {
+2026-10-27T13:23:38.3832916Z   $command = Get-Command $candidate -ErrorAction SilentlyContinue
+2026-10-27T13:23:38.3833104Z   if (-not $command) { continue }
+2026-10-27T13:23:38.3833360Z   $version = & $candidate -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()' 2>$null
+2026-10-27T13:23:38.3833632Z   $shells += "$candidate $version"
+2026-10-27T13:23:38.3833759Z }
+2026-10-27T13:23:38.3834032Z Write-Host ("os: {0} | arch: {1} | node: {2}" -f [System.Environment]::OSVersion.VersionString, $env:PROCESSOR_ARCHITECTURE, $node)
+2026-10-27T13:23:38.3834345Z Write-Host ("powershell hosts: {0}" -f ($shells -join ', '))
+2026-10-27T13:23:38.3836638Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:38.3836807Z env:
+2026-10-27T13:23:38.3836957Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:38.3837133Z ##[endgroup]
+2026-10-27T13:23:38.8202099Z os: Microsoft Windows NT 10.0.<version>.0 | arch: AMD64 | node: v24.13.0
+2026-10-27T13:23:38.8205417Z powershell hosts: powershell.exe 5.1.19041.6456, pwsh.exe 7.6.8
+2026-10-27T13:23:38.8688976Z ##[group]Run & $env:PYTHON tools/github_actions_runner/probe.py .github/runner-request.toml
+2026-10-27T13:23:38.8689320Z & $env:PYTHON tools/github_actions_runner/probe.py .github/runner-request.toml
+2026-10-27T13:23:38.8691643Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:38.8692134Z env:
+2026-10-27T13:23:38.8692336Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:38.8692514Z ##[endgroup]
+2026-10-27T13:23:39.0917918Z {
+2026-10-27T13:23:39.0918071Z   "architecture": "AMD64",
+2026-10-27T13:23:39.0918268Z   "commit": "eb12596b6e6468a0316c0f82b6bd63e4b53add16",
+2026-10-27T13:23:39.0918458Z   "job_name": "Emoji Finder verification",
+2026-10-27T13:23:39.0918624Z   "operating_system": "Windows",
+2026-10-27T13:23:39.0918769Z   "python_version": "3.13.14",
+2026-10-27T13:23:39.0918954Z   "repository": "JdotCarver/Flow.Launcher.Plugin.EmojiFinder",
+2026-10-27T13:23:39.0919226Z   "request_id": "c4c2150e-caf5-4285-a32a-c43a75d26ec7",
+2026-10-27T13:23:39.0919392Z   "run_id": "40511592452",
+2026-10-27T13:23:39.0919530Z   "runner_environment": "self-hosted",
+2026-10-27T13:23:39.0919694Z   "runner_name": "DESKTOP-SK3RC8N-session",
+2026-10-27T13:23:39.0919850Z   "target": "local-windows"
+2026-10-27T13:23:39.0919971Z }
+2026-10-27T13:23:39.1611906Z ##[group]Run & $env:PYTHON -m unittest discover -s tools/github_actions_runner -p "test_*.py" -v
+2026-10-27T13:23:39.1612276Z & $env:PYTHON -m unittest discover -s tools/github_actions_runner -p "test_*.py" -v
+2026-10-27T13:23:39.1614481Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:39.1614646Z env:
+2026-10-27T13:23:39.1614799Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:39.1614978Z ##[endgroup]
+2026-10-27T13:23:39.3800127Z test_a_bare_build_number_is_removed (test_redact.OperatingSystemVersions.test_a_bare_build_number_is_removed) ... ok
+2026-10-27T13:23:39.3800679Z test_a_labelled_build_number_is_removed (test_redact.OperatingSystemVersions.test_a_labelled_build_number_is_removed) ... ok
+2026-10-27T13:23:39.3801166Z test_a_release_id_and_its_build_are_removed (test_redact.OperatingSystemVersions.test_a_release_id_and_its_build_are_removed) ... ok
+2026-10-27T13:23:39.3801735Z test_each_redaction_can_be_applied_twice_safely (test_redact.OperatingSystemVersions.test_each_redaction_can_be_applied_twice_safely) ... ok
+2026-10-27T13:23:39.3802213Z test_ordinary_numbers_are_left_alone (test_redact.OperatingSystemVersions.test_ordinary_numbers_are_left_alone)
+2026-10-27T13:23:39.3802554Z A log is full of timings and counts; none of them are OS versions. ... ok
+2026-10-27T13:23:39.3802939Z test_other_platforms_keep_only_the_family (test_redact.OperatingSystemVersions.test_other_platforms_keep_only_the_family) ... ok
+2026-10-27T13:23:39.3803387Z test_the_family_can_be_masked_too (test_redact.OperatingSystemVersions.test_the_family_can_be_masked_too) ... ok
+2026-10-27T13:23:39.3803854Z test_the_platform_string_keeps_only_the_family (test_redact.OperatingSystemVersions.test_the_platform_string_keeps_only_the_family) ... ok
+2026-10-27T13:23:39.3804268Z test_bare_account_name (test_redact.RedactionTests.test_bare_account_name) ... ok
+2026-10-27T13:23:39.3804623Z test_bare_name_must_be_a_whole_word (test_redact.RedactionTests.test_bare_name_must_be_a_whole_word) ... ok
+2026-10-27T13:23:39.3805042Z test_escaped_backslashes_from_json_output (test_redact.RedactionTests.test_escaped_backslashes_from_json_output) ... ok
+2026-10-27T13:23:39.3805455Z test_generic_names_do_not_damage_paths (test_redact.RedactionTests.test_generic_names_do_not_damage_paths)
+2026-10-27T13:23:39.3805800Z An account called `user` must not turn `C:\Users` into `C:\<user>s`. ... ok
+2026-10-27T13:23:39.3806130Z test_ordinary_log_text_is_untouched (test_redact.RedactionTests.test_ordinary_log_text_is_untouched) ... ok
+2026-10-27T13:23:39.3806492Z test_posix_home_directory (test_redact.RedactionTests.test_posix_home_directory) ... ok
+2026-10-27T13:23:39.3806839Z test_redaction_is_idempotent (test_redact.RedactionTests.test_redaction_is_idempotent) ... ok
+2026-10-27T13:23:39.3807186Z test_windows_home_directory (test_redact.RedactionTests.test_windows_home_directory) ... ok
+2026-10-27T13:23:39.3807756Z test_windows_path_with_forward_slashes (test_redact.RedactionTests.test_windows_path_with_forward_slashes) ... ok
+2026-10-27T13:23:39.3807967Z 
+2026-10-27T13:23:39.3808079Z ----------------------------------------------------------------------
+2026-10-27T13:23:39.3808271Z Ran 17 tests in 0.001s
+2026-10-27T13:23:39.3808342Z 
+2026-10-27T13:23:39.3808392Z OK
+2026-10-27T13:23:39.4489066Z ##[group]Run npm ci
+2026-10-27T13:23:39.4489227Z npm ci
+2026-10-27T13:23:39.4491344Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:39.4491511Z env:
+2026-10-27T13:23:39.4491663Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:39.4491847Z ##[endgroup]
+2026-10-27T13:23:44.7722378Z 
+2026-10-27T13:23:44.7722729Z added 305 packages, and audited 306 packages in 5s
+2026-10-27T13:23:44.7722877Z 
+2026-10-27T13:23:44.7723144Z 156 packages are looking for funding
+2026-10-27T13:23:44.7723683Z   run `npm fund` for details
+2026-10-27T13:23:44.7728669Z 
+2026-10-27T13:23:44.7728760Z found 0 vulnerabilities
+2026-10-27T13:23:44.8356070Z ##[group]Run npm run lint
+2026-10-27T13:23:44.8356230Z npm run lint
+2026-10-27T13:23:44.8358208Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:44.8358372Z env:
+2026-10-27T13:23:44.8358527Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:44.8358703Z ##[endgroup]
+2026-10-27T13:23:45.2271299Z 
+2026-10-27T13:23:45.2271973Z > flow.launcher.plugin.emojifinder@1.2.0 lint
+2026-10-27T13:23:45.2272308Z > eslint
+2026-10-27T13:23:45.2272406Z 
+2026-10-27T13:23:48.1804431Z ##[group]Run npm run test
+2026-10-27T13:23:48.1804604Z npm run test
+2026-10-27T13:23:48.1806692Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:48.1806854Z env:
+2026-10-27T13:23:48.1807004Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:48.1807192Z ##[endgroup]
+2026-10-27T13:23:48.5910341Z 
+2026-10-27T13:23:48.5910661Z > flow.launcher.plugin.emojifinder@1.2.0 test
+2026-10-27T13:23:48.5910852Z > vitest run
+2026-10-27T13:23:48.5910911Z 
+2026-10-27T13:23:48.8798402Z 
+2026-10-27T13:23:48.8800223Z  RUN  v5.0.5 C:/actions-runners/JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session/_work/Flow.Launcher.Plugin.EmojiFinder/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:23:48.8800621Z 
+2026-10-27T13:23:49.1370481Z  ✓ tests/tools/packagePaths.test.ts (8 tests) 3ms
+2026-10-27T13:23:49.1372061Z  ✓ tests/utils/settings.test.ts (13 tests) 7ms
+2026-10-27T13:23:49.1373373Z  ✓ tests/utils/flowLauncher.test.ts (4 tests) 3ms
+2026-10-27T13:23:49.1419107Z  ✓ tests/actions/copy.test.ts (8 tests) 6ms
+2026-10-27T13:23:49.1423458Z  ✓ tests/utils/utils.test.ts (3 tests) 2ms
+2026-10-27T13:23:49.1555141Z  ✓ tests/actions/paste.test.ts (7 tests) 8ms
+2026-10-27T13:23:49.1593154Z  ✓ tests/utils/trace.test.ts (7 tests) 24ms
+2026-10-27T13:23:49.1671488Z  ✓ tests/utils/pasteAgent.test.ts (39 tests) 48ms
+2026-10-27T13:23:49.1757660Z  ✓ tests/actions/aliases.test.ts (23 tests) 33ms
+2026-10-27T13:23:49.1853750Z  ✓ tests/actions/query.test.ts (15 tests) 38ms
+2026-10-27T13:23:49.1979799Z  ✓ tests/utils/pluginData.test.ts (23 tests) 70ms
+2026-10-27T13:23:49.2520707Z  ✓ tests/utils/find.test.ts (48 tests) 120ms
+2026-10-27T13:23:49.2561298Z 
+2026-10-27T13:23:49.2563656Z  Test Files  12 passed (12)
+2026-10-27T13:23:49.2564117Z       Tests  198 passed (198)
+2026-10-27T13:23:49.2564321Z    Start at  14:23:48
+2026-10-27T13:23:49.2566440Z    Duration  368ms (transform 56%, tests 24%, import 16%, worker 4%)
+2026-10-27T13:23:49.2571984Z 
+2026-10-27T13:23:49.3204083Z ##[group]Run npm run build <version>-10-27T13:23:49.3204231Z npm run build <version>-10-27T13:23:49.3206258Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:49.3206422Z env:
+2026-10-27T13:23:49.3206570Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:49.3206743Z ##[endgroup]
+2026-10-27T13:23:49.7236132Z 
+2026-10-27T13:23:49.7236464Z > flow.launcher.plugin.emojifinder@1.2.0 build <version>-10-27T13:23:49.7236645Z > tsc
+2026-10-27T13:23:49.7236719Z 
+2026-10-27T13:23:50.3127373Z ##[group]Run npm run check:paste-agent
+2026-10-27T13:23:50.3127563Z npm run check:paste-agent
+2026-10-27T13:23:50.3129636Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:50.3129804Z env:
+2026-10-27T13:23:50.3129951Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:50.3130132Z ##[endgroup]
+2026-10-27T13:23:50.7053910Z 
+2026-10-27T13:23:50.7054261Z > flow.launcher.plugin.emojifinder@1.2.0 check:paste-agent
+2026-10-27T13:23:50.7054533Z > node tools/ensure-build.mjs && node tools/check-paste-agent.mjs
+2026-10-27T13:23:50.7054665Z 
+2026-10-27T13:23:52.9567759Z info  --- check ---
+2026-10-27T13:23:52.9568391Z FAIL  the check can put a known text on the clipboard
+2026-10-27T13:23:52.9568752Z WARN      the clipboard did not accept the write after 2 attempts; nothing was run, because a paste could not be confined
+2026-10-27T13:23:52.9569120Z FAIL  0/1 checks passed across powershell.exe and pwsh.exe
+2026-10-27T13:23:52.9578265Z ##[error]the check can put a known text on the clipboard
+2026-10-27T13:23:52.9581574Z info  wrote dogfood\paste-agent-check.json
+2026-10-27T13:23:53.0016611Z ##[error]Process completed with exit code 1.
+2026-10-27T13:23:53.0112312Z ##[group]Run $log = Join-Path $env:LOCALAPPDATA 'Flow.Launcher.Plugin.EmojiFinder\agent.log'
+2026-10-27T13:23:53.0112676Z $log = Join-Path $env:LOCALAPPDATA 'Flow.Launcher.Plugin.EmojiFinder\agent.log'
+2026-10-27T13:23:53.0112917Z if (-not (Test-Path $log)) {
+2026-10-27T13:23:53.0113111Z   Write-Host 'no agent log: the paste agent has never run on this machine'
+2026-10-27T13:23:53.0113298Z   exit 0
+2026-10-27T13:23:53.0113392Z }
+2026-10-27T13:23:53.0113533Z $lines = Get-Content -LiteralPath $log -Tail 120
+2026-10-27T13:23:53.0113739Z Write-Host "--- last $($lines.Count) lines of the agent log ---"
+2026-10-27T13:23:53.0113952Z foreach ($line in $lines) { Write-Host $line }
+2026-10-27T13:23:53.0116194Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:53.0116364Z env:
+2026-10-27T13:23:53.0116541Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:53.0116725Z ##[endgroup]
+2026-10-27T13:23:53.1904191Z --- last 120 lines of the agent log ---
+2026-10-27T13:23:53.1910274Z 2026-10-23T19:37:53.7808451+02:00 | agent | request sequence=1792777073758 emoji=[👍] targetCodes=[55357,56397]
+2026-10-27T13:23:53.1912774Z 2026-10-23T19:37:53.7989224+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1914574Z 2026-10-23T19:37:53.8004301+02:00 | agent | decision paste=True elapsedMs=17
+2026-10-27T13:23:53.1916616Z 2026-10-23T19:37:53.8442634+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1919007Z 2026-10-23T19:37:58.7817928+02:00 | agent | request sequence=1792777078707 emoji=[💪] targetCodes=[55357,56490]
+2026-10-27T13:23:53.1920956Z 2026-10-23T19:37:58.7923669+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1922580Z 2026-10-23T19:37:58.7933444+02:00 | agent | decision paste=True elapsedMs=10
+2026-10-27T13:23:53.1924326Z 2026-10-23T19:37:58.8294151+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1926350Z 2026-10-23T19:38:11.2629474+02:00 | agent | request sequence=1792777091244 emoji=[✅] targetCodes=[9989]
+2026-10-27T13:23:53.1929103Z 2026-10-23T19:38:11.2828779+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1931066Z 2026-10-23T19:38:11.2837401+02:00 | agent | decision paste=True elapsedMs=19
+2026-10-27T13:23:53.1933027Z 2026-10-23T19:38:11.3287200+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1935146Z 2026-10-23T19:38:16.4508595+02:00 | agent | request sequence=1792777096410 emoji=[❌] targetCodes=[10060]
+2026-10-27T13:23:53.1937088Z 2026-10-23T19:38:16.4611900+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1938917Z 2026-10-23T19:38:16.4621096+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-27T13:23:53.1940686Z 2026-10-23T19:38:16.5043645+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1943194Z 2026-10-23T19:38:26.8725882+02:00 | agent | request sequence=1792777106858 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-27T13:23:53.1948069Z 2026-10-23T19:38:26.8988907+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1951824Z 2026-10-23T19:38:26.8997541+02:00 | agent | decision paste=True elapsedMs=25
+2026-10-27T13:23:53.1954698Z 2026-10-23T19:38:26.9446873+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1957343Z 2026-10-23T19:38:42.0139719+02:00 | agent | request sequence=1792777121973 emoji=[😄] targetCodes=[55357,56836]
+2026-10-27T13:23:53.1961815Z 2026-10-23T19:38:42.0238408+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1962542Z 2026-10-23T19:38:42.0247083+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-27T13:23:53.1964741Z 2026-10-23T19:38:42.0692940+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1966781Z 2026-10-23T19:38:55.3272065+02:00 | agent | request sequence=1792777135257 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-27T13:23:53.1969283Z 2026-10-23T19:38:55.3406786+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1971281Z 2026-10-23T19:38:55.3415222+02:00 | agent | decision paste=True elapsedMs=13
+2026-10-27T13:23:53.1973732Z 2026-10-23T19:38:55.3770279+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1976110Z 2026-10-23T19:38:58.7507774+02:00 | agent | request sequence=1792777138682 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-27T13:23:53.1978304Z 2026-10-23T19:38:58.7680739+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1979928Z 2026-10-23T19:38:58.7688819+02:00 | agent | decision paste=True elapsedMs=16
+2026-10-27T13:23:53.1981680Z 2026-10-23T19:38:58.7996979+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1983624Z 2026-10-23T19:39:06.0453638+02:00 | agent | request sequence=1792777145996 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-27T13:23:53.1985571Z 2026-10-23T19:39:06.0760502+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=1624 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1987318Z 2026-10-23T19:39:06.0780832+02:00 | agent | decision paste=True elapsedMs=30
+2026-10-27T13:23:53.1989710Z 2026-10-23T19:39:06.1138282+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1991791Z 2026-10-23T19:52:59.6386131+02:00 | agent | request sequence=1792777979591 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-27T13:23:53.1993787Z 2026-10-23T19:52:59.6503415+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.1995343Z 2026-10-23T19:52:59.6511550+02:00 | agent | decision paste=True elapsedMs=11
+2026-10-27T13:23:53.1997130Z 2026-10-23T19:52:59.6964969+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.1998980Z 2026-10-23T21:05:17.3746051+02:00 | agent | request sequence=1792782317352 emoji=[🧰] targetCodes=[55358,56816]
+2026-10-27T13:23:53.2000891Z 2026-10-23T21:05:17.3850232+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2002483Z 2026-10-23T21:05:17.3858288+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-27T13:23:53.2004224Z 2026-10-23T21:05:17.4428650+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2006067Z 2026-10-24T09:21:34.3580825+02:00 | agent | start pid=10916 host=pwsh ps=7.6.7 edition=Core
+2026-10-27T13:23:53.2008418Z 2026-10-24T09:21:34.3665014+02:00 | agent | winforms loaded
+2026-10-27T13:23:53.2010142Z 2026-10-24T09:21:34.3677283+02:00 | agent | uiautomation loaded
+2026-10-27T13:23:53.2011866Z 2026-10-24T09:21:34.3803690+02:00 | agent | waiting for requests
+2026-10-27T13:23:53.2013750Z 2026-10-24T15:38:05.7449801+02:00 | agent | request sequence=1792849085713 emoji=[😄] targetCodes=[55357,56836]
+2026-10-27T13:23:53.2015677Z 2026-10-24T15:38:05.8213535+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=1744 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2017274Z 2026-10-24T15:38:05.8223407+02:00 | agent | decision paste=True elapsedMs=72
+2026-10-27T13:23:53.2019864Z 2026-10-24T15:38:05.8872221+02:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2022342Z 2026-10-25T09:21:25.5880901+01:00 | agent | start pid=3176 host=pwsh ps=7.6.8 edition=Core
+2026-10-27T13:23:53.2023607Z 2026-10-25T09:21:25.6213846+01:00 | agent | winforms loaded
+2026-10-27T13:23:53.2025405Z 2026-10-25T09:21:25.6264932+01:00 | agent | uiautomation loaded
+2026-10-27T13:23:53.2027176Z 2026-10-25T09:21:25.6378345+01:00 | agent | waiting for requests
+2026-10-27T13:23:53.2029527Z 2026-10-25T14:35:33.0394534+01:00 | agent | request sequence=1792935332973 emoji=[👍] targetCodes=[55357,56397]
+2026-10-27T13:23:53.2031434Z 2026-10-25T14:35:33.2055752+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36100 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2032954Z 2026-10-25T14:35:33.2083943+01:00 | agent | decision paste=True elapsedMs=148
+2026-10-27T13:23:53.2034716Z 2026-10-25T14:35:33.2668356+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2036566Z 2026-10-25T14:35:38.8860625+01:00 | agent | request sequence=1792935338878 emoji=[👍] targetCodes=[55357,56397]
+2026-10-27T13:23:53.2038671Z 2026-10-25T14:35:38.9012921+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2040404Z 2026-10-25T14:35:38.9022794+01:00 | agent | decision paste=True elapsedMs=15
+2026-10-27T13:23:53.2042205Z 2026-10-25T14:35:38.9406465+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2044024Z 2026-10-25T14:35:45.4968096+01:00 | agent | request sequence=1792935345438 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-27T13:23:53.2045951Z 2026-10-25T14:35:45.5225377+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36100 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2047857Z 2026-10-25T14:35:45.5242597+01:00 | agent | decision paste=True elapsedMs=26
+2026-10-27T13:23:53.2049908Z 2026-10-25T14:35:45.5657775+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2051885Z 2026-10-25T14:35:49.8108043+01:00 | agent | request sequence=1792935349793 emoji=[👍] targetCodes=[55357,56397]
+2026-10-27T13:23:53.2053728Z 2026-10-25T14:35:49.8187610+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2055382Z 2026-10-25T14:35:49.8205739+01:00 | agent | decision paste=True elapsedMs=8
+2026-10-27T13:23:53.2057070Z 2026-10-25T14:35:49.8631617+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2059279Z 2026-10-25T14:36:13.9813139+01:00 | agent | request sequence=1792935373944 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-27T13:23:53.2061200Z 2026-10-25T14:36:13.9874153+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2062722Z 2026-10-25T14:36:13.9883533+01:00 | agent | decision paste=True elapsedMs=6
+2026-10-27T13:23:53.2064464Z 2026-10-25T14:36:14.0506742+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2066303Z 2026-10-25T14:36:18.3553850+01:00 | agent | request sequence=1792935378344 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-27T13:23:53.2068381Z 2026-10-25T14:36:18.3695235+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2070348Z 2026-10-25T14:36:18.3704099+01:00 | agent | decision paste=True elapsedMs=14
+2026-10-27T13:23:53.2072116Z 2026-10-25T14:36:18.4148953+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2073925Z 2026-10-25T14:37:00.4785988+01:00 | agent | request sequence=1792935420473 emoji=[👍] targetCodes=[55357,56397]
+2026-10-27T13:23:53.2075817Z 2026-10-25T14:37:00.4940547+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2077748Z 2026-10-25T14:37:00.4949905+01:00 | agent | decision paste=True elapsedMs=15
+2026-10-27T13:23:53.2079643Z 2026-10-25T14:37:00.5573510+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2081718Z 2026-10-25T15:41:46.7322331+01:00 | agent | request sequence=1792939306689 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-27T13:23:53.2083687Z 2026-10-25T15:41:46.7414189+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2085538Z 2026-10-25T15:41:46.7422507+01:00 | agent | decision paste=True elapsedMs=9
+2026-10-27T13:23:53.2087279Z 2026-10-25T15:41:46.7916727+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2090396Z 2026-10-25T16:49:17.5427507+01:00 | agent | request sequence=1792943357520 emoji=[✅] targetCodes=[9989]
+2026-10-27T13:23:53.2094620Z 2026-10-25T16:49:17.5511926+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2097898Z 2026-10-25T16:49:17.5519608+01:00 | agent | decision paste=True elapsedMs=8
+2026-10-27T13:23:53.2100920Z 2026-10-25T16:49:17.5955104+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2104187Z 2026-10-25T16:53:17.4638316+01:00 | agent | request sequence=1792943597415 emoji=[ℹ️] targetCodes=[8505,65039]
+2026-10-27T13:23:53.2107463Z 2026-10-25T16:53:17.4704779+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2111174Z 2026-10-25T16:53:17.4712705+01:00 | agent | decision paste=True elapsedMs=6
+2026-10-27T13:23:53.2115559Z 2026-10-25T16:53:17.5356307+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2120356Z 2026-10-25T16:53:20.9011112+01:00 | agent | request sequence=1792943600879 emoji=[✅] targetCodes=[9989]
+2026-10-27T13:23:53.2126346Z 2026-10-25T16:53:20.9074373+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2129537Z 2026-10-25T16:53:20.9082035+01:00 | agent | decision paste=True elapsedMs=6
+2026-10-27T13:23:53.2132991Z 2026-10-25T16:53:20.9389101+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2136530Z 2026-10-25T16:53:37.7471503+01:00 | agent | request sequence=1792943617688 emoji=[⏳] targetCodes=[9203]
+2026-10-27T13:23:53.2140247Z 2026-10-25T16:53:37.7758501+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36100 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2143144Z 2026-10-25T16:53:37.7766498+01:00 | agent | decision paste=True elapsedMs=28
+2026-10-27T13:23:53.2145617Z 2026-10-25T16:53:37.8181909+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2148930Z 2026-10-25T16:54:52.9483360+01:00 | agent | request sequence=1792943692931 emoji=[ℹ️] targetCodes=[8505,65039]
+2026-10-27T13:23:53.2151901Z 2026-10-25T16:54:52.9571748+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2154530Z 2026-10-25T16:54:52.9579544+01:00 | agent | decision paste=True elapsedMs=8
+2026-10-27T13:23:53.2157290Z 2026-10-25T16:54:52.9886103+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2160983Z 2026-10-26T08:52:13.8467666+01:00 | agent | start pid=10388 host=pwsh ps=7.6.8 edition=Core
+2026-10-27T13:23:53.2164344Z 2026-10-26T08:52:13.8625140+01:00 | agent | winforms loaded
+2026-10-27T13:23:53.2167819Z 2026-10-26T08:52:13.8661393+01:00 | agent | uiautomation loaded
+2026-10-27T13:23:53.2171220Z 2026-10-26T08:52:13.8798727+01:00 | agent | waiting for requests
+2026-10-27T13:23:53.2174182Z 2026-10-26T19:30:30.3811503+01:00 | agent | request sequence=1793039430356 emoji=[🧰] targetCodes=[55358,56816]
+2026-10-27T13:23:53.2177379Z 2026-10-26T19:30:30.5173401+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=34752 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T13:23:53.2180244Z 2026-10-26T19:30:30.5183999+01:00 | agent | decision paste=True elapsedMs=122
+2026-10-27T13:23:53.2183281Z 2026-10-26T19:30:30.5736113+01:00 | agent | sendkeys sent
+2026-10-27T13:23:53.2186402Z 2026-10-27T09:21:30.9129502+01:00 | agent | start pid=17816 host=pwsh ps=7.6.8 edition=Core
+2026-10-27T13:23:53.2189128Z 2026-10-27T09:21:30.9364413+01:00 | agent | winforms loaded
+2026-10-27T13:23:53.2191969Z 2026-10-27T09:21:30.9422094+01:00 | agent | uiautomation loaded
+2026-10-27T13:23:53.2194512Z 2026-10-27T09:21:30.9595339+01:00 | agent | waiting for requests
+2026-10-27T13:23:53.2605328Z ##[group]Run npm run dogfood:check
+2026-10-27T13:23:53.2605502Z npm run dogfood:check
+2026-10-27T13:23:53.2607535Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:23:53.2607706Z env:
+2026-10-27T13:23:53.2607858Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:23:53.2608043Z ##[endgroup]
+2026-10-27T13:23:53.6551452Z 
+2026-10-27T13:23:53.6551802Z > flow.launcher.plugin.emojifinder@1.2.0 dogfood:check
+2026-10-27T13:23:53.6552022Z > node tools/check-dogfood.mjs
+2026-10-27T13:23:53.6552113Z 
+2026-10-27T13:23:53.7091207Z OK    the plugin published a paste request and could see a running agent (sequence 1792757171938)
+2026-10-27T13:23:53.7092382Z OK    the agent pasted: it saw the emoji on the clipboard and sent Ctrl+V
+2026-10-27T13:23:53.7092841Z info  UI Automation focus probe works (37 ms): the agent can tell when focus left Flow
+2026-10-27T13:23:53.7093240Z info  PowerShell cold start on this machine: 103 ms (that is the pause before the emoji appears)
+2026-10-27T13:23:53.7093600Z info  compiling P/Invoke with Add-Type took 64 ms, which is why the agent uses Get-Process instead
+2026-10-27T13:23:53.7094073Z info  the agent is running under powershell (PowerShell 5.1.19041.6456)
+2026-10-27T13:23:53.7094678Z info  if the emoji did not appear, the keystroke went to a window that is not the one you were typing in (an elevated window, a fullscreen app, or focus that did not return to your editor).
+2026-10-27T13:23:53.7094992Z 
+2026-10-27T13:23:53.7095151Z verdict: nothing broken in the evidence collected so far.
+2026-10-27T13:23:53.7715189Z Post job cleanup.
+2026-10-27T13:23:53.8579008Z [command]"C:\Program Files\Git\cmd\git.exe" version
+2026-10-27T13:23:53.8749481Z git version 2.53.0.windows.1
+2026-10-27T13:23:53.8781401Z Copying 'C:\Users\<user>\.gitconfig' to 'C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\_temp\5bd7f0de-8c6c-4ced-98b8-c33371f5593c\.gitconfig'
+2026-10-27T13:23:53.8799595Z Temporarily overriding HOME='C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\_temp\5bd7f0de-8c6c-4ced-98b8-c33371f5593c' before making global git config changes
+2026-10-27T13:23:53.8800253Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-27T13:23:53.8807853Z [command]"C:\Program Files\Git\cmd\git.exe" config --global --add safe.directory C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\Flow.Launcher.Plugin.EmojiFinder\Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:23:53.9006856Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-27T13:23:53.9203922Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-27T13:23:54.2504044Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-27T13:23:54.2675986Z http.https://github.com/.extraheader
+2026-10-27T13:23:54.2704960Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --unset-all http.https://github.com/.extraheader
+2026-10-27T13:23:54.2905786Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-27T13:23:54.6092340Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-27T13:23:54.6291342Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-27T13:23:54.9613633Z Cleaning up orphan processes
+2026-10-27T13:23:54.9775066Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
