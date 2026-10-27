@@ -26,9 +26,21 @@ Its workload is this repository's verification - lint, tests, build, the paste a
 ranking checks for real - and it is **not** the other project's: `tools/perf/*.py` and
 `tests/test_*.py` do not exist here, and the job fails immediately if they are asked for.
 
-The session runner registers with the label `arena-session`, which is what the request bridge
-asks for; the older `flowlauncher` label is what `ci.yml` asks for. A job that stays queued
-means the label it wants is not on a running runner, not that the code is broken.
+### `request_run.sh` is the only path to the machine (2026-10-27)
+
+The session runner carries `self-hosted, windows, arena-session`. It does **not** carry
+`flowlauncher`, which is the label `ci.yml`'s windows job asks for, so that job queues forever
+and never starts. Decision taken on 2026-10-27: leave it that way and use the request bridge
+for every Windows run.
+
+The practical rule for an agent: **a queued `ci` windows job is not a pending result.** Cancel
+it or ignore it; start a `request_run.sh local-windows` run instead. `gh run list --workflow ci`
+showing `windows: queued` for hours is this mismatch, not a busy machine.
+
+The request workload covers what that job used to do - lint, tests, build, the paste agent and
+ranking checks, the environment probe, the installation and the doctor - and publishes the
+reports to `dogfood-reports`, which the sandbox can read. The one thing it does not do is run on
+a commit message alone: it needs an explicit request.
 
 ## Setup, in order
 

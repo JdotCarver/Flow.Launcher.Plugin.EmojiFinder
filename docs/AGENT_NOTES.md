@@ -96,6 +96,13 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
 - **Right-arrow context menus keep filtering themselves.** While the menu is open the query box
   filters the menu's entries, and only Escape leaves it, so nothing that needs typed input can
   start there.
+- **The runner bridge's log exporter does not publish the self-hosted job's log.** It republishes
+  the planner's and stops there, so a green workload leaves no readable evidence unless the
+  workload puts it somewhere the sandbox can reach. Both workflows now push `dogfood/` to the
+  `dogfood-reports` branch; read that, not `gh run view --log` (signed URLs are unreachable here).
+- **A verification run has to install what it verified.** `doctor` said the installed agent script
+  was from 2026-10-23 while the build under test was new: the checks were green on a machine still
+  running the bug. The request workload now installs after the checks and before the doctor.
 - **A shallow checkout breaks history-based decisions.** `actions/checkout` fetches one commit by
   default, so `git diff HEAD~1 HEAD` fails silently in a workflow. Ask for `fetch-depth: 2`, or
   decide from something other than history.

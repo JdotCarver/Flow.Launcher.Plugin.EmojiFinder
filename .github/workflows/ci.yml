@@ -40,6 +40,13 @@ jobs:
   # Launcher actually exist. Opt-in per commit so a normal push does not tie up their PC:
   # include [windows] anywhere in the commit message.
   #
+  # AS OF 2026-10-27 THIS JOB NEVER STARTS: it asks for the label `flowlauncher`, and the
+  # runner that is actually started for this repository carries `arena-session`. The label
+  # mismatch is deliberate - `docs/WINDOWS_RUNNER.md` records the decision. Use
+  # `bash tools/github_actions_runner/request_run.sh local-windows "Job Name"` instead; it
+  # runs these same checks, installs the build, and publishes the reports where the sandbox
+  # can read them. A job sitting in the queue here is not a pending result.
+  #
   # workflow_dispatch only works once this file is on the default branch, which is why the
   # commit-message trigger exists for feature branches.
   windows:
