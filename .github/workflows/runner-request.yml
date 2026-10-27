@@ -11,9 +11,9 @@
 # branch because artifact and signed-URL downloads are blocked in the sandbox
 # (see tools/github_actions_runner/AGENTS.md).
 #
-# The workload is this repository's verification: unit tests, a read-only
-# diagnostic of the real browser histories on that machine, and the synthetic
-# A/B benchmark. Replace those steps when the question changes; keep the
+# The workload is this repository's verification: lint, unit tests, the build,
+# the paste agent and the ranking checks for real, then the environment probe and
+# the installation doctor. Replace those steps when the question changes; keep the
 # planner and the exporter.
 
 name: Runner request
@@ -94,36 +94,88 @@ jobs:
           & $resolved --version
 
       - name: Environment
+        shell: pwsh
         run: |
-          # Family and architecture only: the exact build is a finding aid for
-          # an attacker, and these logs are public. See tools/machine_label.py.
-          & $env:PYTHON -c "import sqlite3, sys; sys.path.insert(0, 'tools'); from machine_label import describe_machine; print('python', sys.version.split()[0], '| sqlite', sqlite3.sqlite_version, '|', describe_machine())"
+          # Family and architecture only: an exact build is a finding aid, not a finding.
+          # These logs are republished to a public branch.
+          $node = node --version
+          $shells = @()
+          foreach ($candidate in @('powershell.exe', 'pwsh.exe')) {
+            $command = Get-Command $candidate -ErrorAction SilentlyContinue
+            if (-not $command) { continue }
+            $version = & $candidate -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()' 2>$null
+            $shells += "$candidate $version"
+          }
+          Write-Host ("os: {0} | arch: {1} | node: {2}" -f [System.Environment]::OSVersion.VersionString, $env:PROCESSOR_ARCHITECTURE, $node)
+          Write-Host ("powershell hosts: {0}" -f ($shells -join ', '))
 
       - name: Runner receipt
         run: |
           & $env:PYTHON tools/github_actions_runner/probe.py .github/runner-request.toml
 
-      - name: Unit tests
-        run: |
-          & $env:PYTHON -m unittest discover -s tests -p "test_*.py" -v
-
       - name: Runner tool tests
         run: |
           & $env:PYTHON -m unittest discover -s tools/github_actions_runner -p "test_*.py" -v
 
-      - name: Diagnostic on the real browser histories
-        run: |
-          & $env:PYTHON tools/perf/diagnose.py
+      # Everything below is this repository's own verification, on the machine that has
+      # PowerShell, the clipboard, SendKeys and Flow Launcher. A red step here is a real
+      # regression: nothing is continue-on-error unless it only produces evidence.
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Per-keystroke measurement
-        run: |
-          # 25 results: the owner's UI depth, where rendering is not the story.
-          & $env:PYTHON tools/perf/measure_keystroke.py --max-results 25
-          & $env:PYTHON tools/perf/measure_keystroke.py --max-results 25 --favicons
+      - name: Lint
+        run: npm run lint
 
-      - name: Synthetic A/B benchmark
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      # The only place the generated PowerShell is proven, once per installed host. Includes
+      # the focus gate: with every process counted as Flow Launcher, the agent must refuse to
+      # paste even when the clipboard holds the emoji it was asked for.
+      - name: Paste agent, for real
+        run: npm run check:paste-agent
+
+      # Aliases, the empty-query history, the context menu and the action keyword, measured
+      # on the machine that runs the plugin.
+      - name: Ranking and aliases, for real
+        run: npm run check:ranking
+
+      # Evidence, not a verdict: the probe copies this machine's live state, including the
+      # paste agent's own log, into dogfood/.
+      - name: Windows environment probe
+        run: npm run diagnose
+        continue-on-error: true
+
+      # continue-on-error on purpose: the doctor reports on the *installed* copy, so a machine
+      # that has not installed this build yet is not a regression in this commit. Installing is
+      # the ci workflow's job, not this one's.
+      - name: Installation doctor
+        run: npm run doctor
+        continue-on-error: true
+
+      # The tail of the agent's log is printed here rather than uploaded, because artifact
+      # downloads are blocked in the sandbox and there is no other way for the agent to read
+      # it. It contains process ids, window handles and emoji code points - never a window
+      # title - and the exporter replaces the account name.
+      - name: Paste agent log tail from this machine
+        if: always()
+        shell: pwsh
         run: |
-          & $env:PYTHON tools/perf/bench_queries.py --profiles 2 --firefox 2 --urls 100000 --repeats 5
+          $log = Join-Path $env:LOCALAPPDATA 'Flow.Launcher.Plugin.EmojiFinder\agent.log'
+          if (-not (Test-Path $log)) {
+            Write-Host 'no agent log: the paste agent has never run on this machine'
+            exit 0
+          }
+          $lines = Get-Content -LiteralPath $log -Tail 120
+          Write-Host "--- last $($lines.Count) lines of the agent log ---"
+          foreach ($line in $lines) { Write-Host $line }
+
+      - name: Read the verdict
+        if: always()
+        run: npm run dogfood:check
 
   export-logs:
     name: Export logs
