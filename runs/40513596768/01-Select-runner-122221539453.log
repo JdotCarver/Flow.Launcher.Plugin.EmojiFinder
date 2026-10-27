@@ -1,0 +1,139 @@
+﻿2026-10-27T13:37:08.1131750Z Current runner version: '2.338.0'
+2026-10-27T13:37:08.1168214Z ##[group]Runner Image Provisioner
+2026-10-27T13:37:08.1169558Z Hosted Compute Agent
+2026-10-27T13:37:08.1170760Z Version: 20261021.618
+2026-10-27T13:37:08.1171958Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-10-27T13:37:08.1173396Z Build Date: 2026-10-21T00:45:21Z
+2026-10-27T13:37:08.1174790Z Worker ID: {5ad48af8-b062-4674-807f-2f0abcec5b4f}
+2026-10-27T13:37:08.1176055Z Region: eastus
+2026-10-27T13:37:08.1177479Z Cloud: Azure
+2026-10-27T13:37:08.1178543Z ##[endgroup]
+2026-10-27T13:37:08.1180820Z ##[group]Operating System
+2026-10-27T13:37:08.1182050Z Ubuntu
+2026-10-27T13:37:08.1183037Z 24.04.5
+2026-10-27T13:37:08.1184124Z LTS
+2026-10-27T13:37:08.1185078Z ##[endgroup]
+2026-10-27T13:37:08.1186163Z ##[group]Runner Image
+2026-10-27T13:37:08.1187672Z Image: ubuntu-24.04
+2026-10-27T13:37:08.1188674Z Version: 20261012.334.1
+2026-10-27T13:37:08.1191030Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-27T13:37:08.1194550Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-27T13:37:08.1196481Z ##[endgroup]
+2026-10-27T13:37:08.1198910Z ##[group]GITHUB_TOKEN Permissions
+2026-10-27T13:37:08.1202172Z Contents: write
+2026-10-27T13:37:08.1203340Z Metadata: read
+2026-10-27T13:37:08.1204473Z ##[endgroup]
+2026-10-27T13:37:08.1208939Z Secret source: Actions
+2026-10-27T13:37:08.1210883Z Cache mode: write
+2026-10-27T13:37:08.1212578Z Prepare workflow directory
+2026-10-27T13:37:08.1709553Z Prepare all required actions
+2026-10-27T13:37:08.1780689Z Getting action download info
+2026-10-27T13:37:08.3831872Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-27T13:37:08.5664472Z Complete job name: Select runner
+2026-10-27T13:37:08.6738563Z ##[group]Run actions/checkout@v4
+2026-10-27T13:37:08.6739521Z with:
+2026-10-27T13:37:08.6740087Z   repository: JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:37:08.6743917Z   token: ***
+2026-10-27T13:37:08.6744358Z   ssh-strict: true
+2026-10-27T13:37:08.6744804Z   ssh-user: git
+2026-10-27T13:37:08.6745259Z   persist-credentials: true
+2026-10-27T13:37:08.6745752Z   clean: true
+2026-10-27T13:37:08.6746223Z   sparse-checkout-cone-mode: true
+2026-10-27T13:37:08.6746948Z   fetch-depth: 1
+2026-10-27T13:37:08.6747411Z   fetch-tags: false
+2026-10-27T13:37:08.6747914Z   show-progress: true
+2026-10-27T13:37:08.6748360Z   lfs: false
+2026-10-27T13:37:08.6748783Z   submodules: false
+2026-10-27T13:37:08.6749244Z   set-safe-directory: true
+2026-10-27T13:37:08.6749760Z   allow-unsafe-pr-checkout: false
+2026-10-27T13:37:08.6750553Z ##[endgroup]
+2026-10-27T13:37:08.9940134Z Syncing repository: JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:37:08.9943144Z ##[group]Getting Git version info
+2026-10-27T13:37:08.9945091Z Working directory is '/home/<user>/work/Flow.Launcher.Plugin.EmojiFinder/Flow.Launcher.Plugin.EmojiFinder'
+2026-10-27T13:37:08.9948070Z [command]/usr/bin/git version
+2026-10-27T13:37:09.0042969Z git version 2.55.0
+2026-10-27T13:37:09.0067136Z ##[endgroup]
+2026-10-27T13:37:09.0085019Z Temporarily overriding HOME='/home/<user>/work/_temp/bac59b4f-2850-491c-bcc2-226449da029b' before making global git config changes
+2026-10-27T13:37:09.0089740Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-27T13:37:09.0093261Z [command]/usr/bin/git config --global --add safe.directory /home/<user>/work/Flow.Launcher.Plugin.EmojiFinder/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:37:09.0161658Z Deleting the contents of '/home/<user>/work/Flow.Launcher.Plugin.EmojiFinder/Flow.Launcher.Plugin.EmojiFinder'
+2026-10-27T13:37:09.0171642Z ##[group]Initializing the repository
+2026-10-27T13:37:09.0180858Z [command]/usr/bin/git init /home/<user>/work/Flow.Launcher.Plugin.EmojiFinder/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:37:09.0313714Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-27T13:37:09.0319063Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-27T13:37:09.0322697Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-27T13:37:09.0325540Z hint: call:
+2026-10-27T13:37:09.0327204Z hint:
+2026-10-27T13:37:09.0329069Z hint: 	git config --global init.defaultBranch <name>
+2026-10-27T13:37:09.0331431Z hint:
+2026-10-27T13:37:09.0333575Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-27T13:37:09.0337256Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-27T13:37:09.0340237Z hint:
+2026-10-27T13:37:09.0341225Z hint: 	git branch -m <name>
+2026-10-27T13:37:09.0342368Z hint:
+2026-10-27T13:37:09.0343932Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-27T13:37:09.0347666Z Initialized empty Git repository in /home/<user>/work/Flow.Launcher.Plugin.EmojiFinder/Flow.Launcher.Plugin.EmojiFinder/.git/
+2026-10-27T13:37:09.0354476Z [command]/usr/bin/git remote add origin https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:37:09.0398201Z ##[endgroup]
+2026-10-27T13:37:09.0400975Z ##[group]Disabling automatic garbage collection
+2026-10-27T13:37:09.0403757Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-27T13:37:09.0452918Z ##[endgroup]
+2026-10-27T13:37:09.0454884Z ##[group]Setting up auth
+2026-10-27T13:37:09.0457330Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-27T13:37:09.0495818Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-27T13:37:09.0977007Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-27T13:37:09.1015246Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-27T13:37:09.1248724Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-27T13:37:09.1308478Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-27T13:37:09.1570123Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-27T13:37:09.1619958Z ##[endgroup]
+2026-10-27T13:37:09.1621992Z ##[group]Fetching the repository
+2026-10-27T13:37:09.1641350Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +78394254a2e9a3e9e266f9333ac31d3bb01936a5:refs/remotes/origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:37:09.6506628Z From https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:37:09.6508483Z  * [new ref]         78394254a2e9a3e9e266f9333ac31d3bb01936a5 -> origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:37:09.6511413Z ##[endgroup]
+2026-10-27T13:37:09.6512097Z ##[group]Determining the checkout info
+2026-10-27T13:37:09.6515081Z ##[endgroup]
+2026-10-27T13:37:09.6523232Z [command]/usr/bin/git sparse-checkout disable
+2026-10-27T13:37:09.6583038Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-27T13:37:09.6616710Z ##[group]Checking out the ref
+2026-10-27T13:37:09.6622090Z [command]/usr/bin/git checkout --progress --force -B arena/cdf6971a-flow-launcher-plugin-emojifind refs/remotes/origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:37:09.8297475Z Switched to a new branch 'arena/cdf6971a-flow-launcher-plugin-emojifind'
+2026-10-27T13:37:09.8302422Z branch 'arena/cdf6971a-flow-launcher-plugin-emojifind' set up to track 'origin/arena/cdf6971a-flow-launcher-plugin-emojifind'.
+2026-10-27T13:37:09.8311491Z ##[endgroup]
+2026-10-27T13:37:09.8360665Z [command]/usr/bin/git log -1 --format=%H
+2026-10-27T13:37:09.8391891Z 78394254a2e9a3e9e266f9333ac31d3bb01936a5
+2026-10-27T13:37:09.8667258Z ##[group]Run python3 tools/github_actions_runner/select_runner.py .github/runner-request.toml >> "$GITHUB_OUTPUT"
+2026-10-27T13:37:09.8669456Z python3 tools/github_actions_runner/select_runner.py .github/runner-request.toml >> "$GITHUB_OUTPUT"
+2026-10-27T13:37:09.9060184Z shell: /usr/bin/bash -e {0}
+2026-10-27T13:37:09.9060862Z ##[endgroup]
+2026-10-27T13:37:09.9956221Z ##[group]Run echo "target: local-windows"
+2026-10-27T13:37:09.9957160Z echo "target: local-windows"
+2026-10-27T13:37:09.9957778Z echo "labels: ["self-hosted","windows","arena-session"]"
+2026-10-27T13:37:09.9958431Z echo "workload: Emoji Finder install and verify"
+2026-10-27T13:37:10.0026686Z shell: /usr/bin/bash -e {0}
+2026-10-27T13:37:10.0027550Z ##[endgroup]
+2026-10-27T13:37:10.0119539Z target: local-windows
+2026-10-27T13:37:10.0120394Z labels: [self-hosted,windows,arena-session]
+2026-10-27T13:37:10.0121589Z workload: Emoji Finder install and verify
+2026-10-27T13:37:10.0264802Z Post job cleanup.
+2026-10-27T13:37:10.1155745Z [command]/usr/bin/git version
+2026-10-27T13:37:10.1199605Z git version 2.55.0
+2026-10-27T13:37:10.1340694Z Temporarily overriding HOME='/home/<user>/work/_temp/4594b1ec-9c8c-4f6c-adc6-383a044b90e2' before making global git config changes
+2026-10-27T13:37:10.1342036Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-27T13:37:10.1344389Z [command]/usr/bin/git config --global --add safe.directory /home/<user>/work/Flow.Launcher.Plugin.EmojiFinder/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:37:10.1347820Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-27T13:37:10.1350706Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-27T13:37:10.1645163Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-27T13:37:10.1674829Z http.https://github.com/.extraheader
+2026-10-27T13:37:10.1696463Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-27T13:37:10.1739043Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-27T13:37:10.2003672Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-27T13:37:10.2048106Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-27T13:37:10.2418270Z Evaluate and set job outputs
+2026-10-27T13:37:10.2426248Z Set output 'request_id'
+2026-10-27T13:37:10.2428654Z Set output 'target'
+2026-10-27T13:37:10.2429410Z Set output 'workload_name'
+2026-10-27T13:37:10.2430128Z Set output 'runner_labels'
+2026-10-27T13:37:10.2431292Z Cleaning up orphan processes
+2026-10-27T13:37:10.2862653Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

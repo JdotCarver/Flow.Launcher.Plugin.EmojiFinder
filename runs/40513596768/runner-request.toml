@@ -1,0 +1,5 @@
+# runner-request.toml
+# Written by tools/github_actions_runner/request_run.sh.
+request_id = "3b0bf533-7b7b-40c7-a69d-1ca25d557b9d"
+target = "local-windows"
+job_name = "Emoji Finder install and verify"
