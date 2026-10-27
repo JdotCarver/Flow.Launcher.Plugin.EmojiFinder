@@ -14,7 +14,7 @@ the agent needs.
 | | How | When |
 |---|---|---|
 | **`ci` workflow** | put `[windows]` anywhere in a commit message | you want the machine kept current: it installs the build into Flow Launcher when `src/` changed |
-| **`runner-request` workflow** | `bash tools/github_actions_runner/request_run.sh local-windows "Job Name"` | you want one explicit verification run: no install, prints the checks' evidence into the log |
+| **`runner-request` workflow** | `bash tools/github_actions_runner/request_run.sh local-windows "Job Name"` | you want one explicit verification run: it also installs the verified build and restarts the agent, then publishes the reports to `dogfood-reports` |
 
 The request bridge is a push-triggered workflow (`runner-request.yml`), because the harness
 token cannot call `gh workflow run`. It commits `.github/runner-request.toml`, which is the
