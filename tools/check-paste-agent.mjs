@@ -149,9 +149,15 @@ const CLIPBOARD_TIMEOUT_MILLISECONDS = 45000;
 /** One retry, because the clipboard is shared and can be briefly owned by another process. */
 const CLIPBOARD_ATTEMPTS = 2;
 
-/** Runs one PowerShell command and returns its stdout, or throws. */
+/**
+ * Runs one PowerShell command and returns its stdout, or throws.
+ *
+ * `-Sta` is explicit because the clipboard needs a single-threaded apartment: Windows
+ * PowerShell 5.1 happens to default to one, and a check that depends on a host's default is a
+ * check that breaks on the next host.
+ */
 function runPowerShell (command) {
-  return execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', command], {
+  return execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Sta', '-Command', command], {
     encoding: 'utf8',
     timeout: CLIPBOARD_TIMEOUT_MILLISECONDS,
     stdio: ['ignore', 'pipe', 'ignore']
@@ -183,7 +189,18 @@ function readClipboard () {
  */
 function writeClipboard (text) {
   const base64 = Buffer.from(text, 'utf8').toString('base64');
-  const command = `[System.Windows.Forms.Clipboard]::SetText([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64}')))`;
+  // The assembly has to be loaded first: `[System.Windows.Forms.Clipboard]` is not available to
+  // a bare `-Command`, and without Add-Type the type lookup throws before anything is written -
+  // which is exactly what the first version of this did, and what made the check report that it
+  // could not reach the clipboard at all.
+  const command = [
+    "$ErrorActionPreference = 'Stop'",
+    'Add-Type -AssemblyName System.Windows.Forms',
+    `$text = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64}'))`,
+    // SetText is what Flow Launcher itself uses; Set-Clipboard is the fallback for a host whose
+    // WinForms assembly cannot be loaded.
+    'try { [System.Windows.Forms.Clipboard]::SetText($text) } catch { Set-Clipboard -Value $text }'
+  ].join('; ');
 
   for (let attempt = 1; attempt <= CLIPBOARD_ATTEMPTS; attempt++) {
     try {
