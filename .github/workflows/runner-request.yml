@@ -1,0 +1,142 @@
+# .github/workflows/runner-request.yml
+#
+# One explicit Windows run per request commit, dispatched by a push.
+#
+#   bash tools/github_actions_runner/request_run.sh local-windows "Job Name"
+#
+# The request script rewrites .github/runner-request.toml and pushes it; that
+# path is the only trigger, so ordinary commits never start a run. The planner
+# validates the request and picks the runner labels, the workload runs on that
+# runner, and the exporter republishes every job's log to the `actions-logs`
+# branch because artifact and signed-URL downloads are blocked in the sandbox
+# (see tools/github_actions_runner/AGENTS.md).
+#
+# The workload is this repository's verification: unit tests, a read-only
+# diagnostic of the real browser histories on that machine, and the synthetic
+# A/B benchmark. Replace those steps when the question changes; keep the
+# planner and the exporter.
+
+name: Runner request
+
+on:
+  push:
+    paths:
+      - .github/runner-request.toml
+
+concurrency:
+  group: runner-request-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  select-runner:
+    name: Select runner
+    runs-on: ubuntu-24.04
+    outputs:
+      request_id: ${{ steps.request.outputs.request_id }}
+      target: ${{ steps.request.outputs.target }}
+      workload_name: ${{ steps.request.outputs.workload_name }}
+      runner_labels: ${{ steps.request.outputs.runner_labels }}
+    steps:
+      - name: Check out the request commit
+        uses: actions/checkout@v4
+
+      - name: Validate the request
+        id: request
+        run: python3 tools/github_actions_runner/select_runner.py .github/runner-request.toml >> "$GITHUB_OUTPUT"
+
+      - name: Report the selection
+        run: |
+          echo "target: ${{ steps.request.outputs.target }}"
+          echo "labels: ${{ steps.request.outputs.runner_labels }}"
+          echo "workload: ${{ steps.request.outputs.workload_name }}"
+
+  workload:
+    name: ${{ needs.select-runner.outputs.workload_name }}
+    needs: select-runner
+    runs-on: ${{ fromJSON(needs.select-runner.outputs.runner_labels) }}
+    timeout-minutes: 30
+    steps:
+      - name: Check out the request commit
+        uses: actions/checkout@v4
+        with:
+          # The benchmark extracts the published code from origin/main, so the
+          # whole history has to be here.
+          fetch-depth: 0
+
+      # GitHub-hosted runners are bare, so they need a Python installed. The
+      # session runner is a real desktop that already has one -- and
+      # actions/setup-python cannot install there: it asks for registry access it
+      # does not have, then retries for twenty minutes before failing.
+      - name: Install Python (hosted runners only)
+        if: needs.select-runner.outputs.target != 'local-windows'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Resolve the Python to run with
+        shell: pwsh
+        run: |
+          $resolved = $null
+          foreach ($candidate in @('py', 'python', 'python3')) {
+            $command = Get-Command $candidate -ErrorAction SilentlyContinue
+            if (-not $command) { continue }
+            $executable = & $command.Source -c "import sys; print(sys.executable)" 2>$null
+            if ($LASTEXITCODE -eq 0 -and $executable) {
+              $resolved = "$executable".Trim()
+              break
+            }
+          }
+          if (-not $resolved) { throw "No usable Python found on this runner." }
+          "PYTHON=$resolved" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          & $resolved --version
+
+      - name: Environment
+        run: |
+          # Family and architecture only: the exact build is a finding aid for
+          # an attacker, and these logs are public. See tools/machine_label.py.
+          & $env:PYTHON -c "import sqlite3, sys; sys.path.insert(0, 'tools'); from machine_label import describe_machine; print('python', sys.version.split()[0], '| sqlite', sqlite3.sqlite_version, '|', describe_machine())"
+
+      - name: Runner receipt
+        run: |
+          & $env:PYTHON tools/github_actions_runner/probe.py .github/runner-request.toml
+
+      - name: Unit tests
+        run: |
+          & $env:PYTHON -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Runner tool tests
+        run: |
+          & $env:PYTHON -m unittest discover -s tools/github_actions_runner -p "test_*.py" -v
+
+      - name: Diagnostic on the real browser histories
+        run: |
+          & $env:PYTHON tools/perf/diagnose.py
+
+      - name: Per-keystroke measurement
+        run: |
+          # 25 results: the owner's UI depth, where rendering is not the story.
+          & $env:PYTHON tools/perf/measure_keystroke.py --max-results 25
+          & $env:PYTHON tools/perf/measure_keystroke.py --max-results 25 --favicons
+
+      - name: Synthetic A/B benchmark
+        run: |
+          & $env:PYTHON tools/perf/bench_queries.py --profiles 2 --firefox 2 --urls 100000 --repeats 5
+
+  export-logs:
+    name: Export logs
+    needs:
+      - select-runner
+      - workload
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the request commit
+        uses: actions/checkout@v4
+
+      - name: Publish this run's logs to the actions-logs branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/github_actions_runner/export_logs.py --exporter-name "Export logs"
