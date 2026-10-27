@@ -1,0 +1,122 @@
+{
+    "generatedAt":  "2026-10-27T14:38:11.8745522+01:00",
+    "computer":  "DESKTOP-SK3RC8N",
+    "user":  "IDLT",
+    "winForms":  {
+                     "ok":  true,
+                     "milliseconds":  6,
+                     "error":  ""
+                 },
+    "clipboard":  {
+                      "tests":  [
+                                    {
+                                        "written":  "hello",
+                                        "read":  "hello",
+                                        "matches":  true,
+                                        "writtenCodes":  "104,101,108,108,111",
+                                        "readCodes":  "104,101,108,108,111",
+                                        "error":  ""
+                                    },
+                                    {
+                                        "written":  "🙈",
+                                        "read":  "🙈",
+                                        "matches":  true,
+                                        "writtenCodes":  "55357,56904",
+                                        "readCodes":  "55357,56904",
+                                        "error":  ""
+                                    },
+                                    {
+                                        "written":  "❤️",
+                                        "read":  "❤️",
+                                        "matches":  true,
+                                        "writtenCodes":  "10084,65039",
+                                        "readCodes":  "10084,65039",
+                                        "error":  ""
+                                    }
+                                ],
+                      "error":  ""
+                  },
+    "sendKeys":  {
+                     "ok":  true,
+                     "typed":  "abc",
+                     "expected":  "abc",
+                     "error":  ""
+                 },
+    "uiAutomation":  {
+                         "ok":  true,
+                         "milliseconds":  34,
+                         "focusedProcessId":  34368,
+                         "focusedName":  "Thought for 1 second",
+                         "error":  ""
+                     },
+    "win32":  {
+                  "ok":  true,
+                  "milliseconds":  67,
+                  "error":  ""
+              },
+    "flowProcesses":  [
+                          {
+                              "name":  "Flow.Launcher",
+                              "id":  25436,
+                              "mainWindowHandle":  0,
+                              "mainWindowTitle":  "",
+                              "responding":  true,
+                              "startTime":  "2026-10-27T13:52:12.9146110+01:00"
+                          }
+                      ],
+    "flowLikeProcesses":  [
+                              {
+                                  "name":  "Flow.Launcher",
+                                  "id":  25436,
+                                  "mainWindowHandle":  0,
+                                  "mainWindowTitle":  ""
+                              }
+                          ],
+    "foregroundWindow":  {
+                             "processId":  34368,
+                             "title":  "Arena | Benchmark \u0026 Compare the Best AI Models - Brave",
+                             "className":  "Chrome_WidgetWin_1"
+                         },
+    "visibleWindows":  [
+                           {
+                               "processId":  34368,
+                               "title":  "Arena | Benchmark \u0026 Compare the Best AI Models - Brave",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  31604,
+                               "title":  "● Feedback.md - Emoji Picker Extension (Workspace) - Visual Studio Code",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  22896,
+                               "title":  "Life Journal",
+                               "className":  "Chrome_WidgetWin_1"
+                           },
+                           {
+                               "processId":  17772,
+                               "title":  "XonarSwitch",
+                               "className":  "ThunderRT6Main"
+                           },
+                           {
+                               "processId":  27500,
+                               "title":  "Paramètres",
+                               "className":  "Windows.UI.Core.CoreWindow"
+                           },
+                           {
+                               "processId":  35576,
+                               "title":  "Paramètres",
+                               "className":  "ApplicationFrameWindow"
+                           },
+                           {
+                               "processId":  22404,
+                               "title":  "Microsoft Text Input Application",
+                               "className":  "Windows.UI.Core.CoreWindow"
+                           },
+                           {
+                               "processId":  18468,
+                               "title":  "Program Manager",
+                               "className":  "Progman"
+                           }
+                       ]
+}

@@ -1,0 +1,277 @@
+{
+  "generatedAt": "2026-10-27T13:38:11.622Z",
+  "plugin": {
+    "nodeVersion": "v24.13.0",
+    "platform": "win32",
+    "processArchitecture": "x64",
+    "workingDirectory": "C:\\actions-runners\\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder",
+    "pluginRoot": "C:\\actions-runners\\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder",
+    "builtEntryPointExists": true,
+    "iconCount": 3778,
+    "emojiDataExists": true,
+    "tracingEnabled": false,
+    "traceFileExists": true,
+    "packageVersion": "1.2.0",
+    "pluginVersion": "1.2.0"
+  },
+  "installedPlugin": {
+    "found": true,
+    "directory": "C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher\\Plugins\\Flow.Launcher.Plugin.EmojiFinder",
+    "builtEntryPointExists": true,
+    "builtAt": "2026-10-23T17:32:27.388Z",
+    "repositoryBuildAt": "2026-10-27T13:37:34.489Z",
+    "tracingEnabled": true,
+    "traceFileExists": true,
+    "traceFileBytes": 7257,
+    "traceFileModifiedAt": "2026-10-27T13:34:33.179Z",
+    "helperErrorFileExists": false,
+    "helperErrorBytes": 0,
+    "helperErrorTail": []
+  },
+  "powershellStartup": {
+    "milliseconds": 109,
+    "exitCode": 0,
+    "version": "5.1.19041.6456",
+    "error": "",
+    "standardError": ""
+  },
+  "windows": {
+    "milliseconds": 1100,
+    "exitCode": 0,
+    "standardOutput": "diagnostic-written: C:\\actions-runners\\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\\_work\\Flow.Launcher.Plugin.EmojiFinder\\Flow.Launcher.Plugin.EmojiFinder\\dogfood\\windows-probe.json",
+    "standardError": "Get-ExecutionPolicy : La commande �Get-ExecutionPolicy� a �t� trouv�e dans le module �Microsoft.PowerShell.Security�, \r\nmais ce dernier n'a pas pu �tre charg�. Pour plus d'informations, ex�cutez la commande �Import-Module \r\nMicrosoft.PowerShell.Security�.\r\nAu caract�re C:\\actions-runners\\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\\_work\\Flow.Launcher.Plugin.EmojiFin\r\nder\\Flow.Launcher.Plugin.EmojiFinder\\tools\\windows-diagnostic.ps1:36 : 24\r\n+     executionPolicy = (Get-ExecutionPolicy).ToString()\r\n+                        ~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (Get-ExecutionPolicy:String) [], CommandNotFoundException\r\n    + FullyQualifiedErrorId : CouldNotAutoloadMatchingModule\r\n \r\nImpossible de convertir la valeur �128105� en type �System.Char�. Erreur: �La valeur �tait trop grande ou trop petite \r\npour un caract�re.�\r\nAu caract�re C:\\actions-runners\\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\\_work\\Flow.Launcher.Plugin.EmojiFin\r\nder\\Flow.Launcher.Plugin.EmojiFinder\\tools\\windows-diagnostic.ps1:68 : 9\r\n+         ([string][char]0x1F469) + ([string][char]0x200D) + ([string][ ...\r\n+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : InvalidArgument : (:) [], RuntimeException\r\n    + FullyQualifiedErrorId : InvalidCastIConvertible",
+    "result": {
+      "generatedAt": "2026-10-27T14:38:11.8745522+01:00",
+      "computer": "DESKTOP-SK3RC8N",
+      "user": "IDLT",
+      "winForms": {
+        "ok": true,
+        "milliseconds": 6,
+        "error": ""
+      },
+      "clipboard": {
+        "tests": [
+          {
+            "written": "hello",
+            "read": "hello",
+            "matches": true,
+            "writtenCodes": "104,101,108,108,111",
+            "readCodes": "104,101,108,108,111",
+            "error": ""
+          },
+          {
+            "written": "🙈",
+            "read": "🙈",
+            "matches": true,
+            "writtenCodes": "55357,56904",
+            "readCodes": "55357,56904",
+            "error": ""
+          },
+          {
+            "written": "❤️",
+            "read": "❤️",
+            "matches": true,
+            "writtenCodes": "10084,65039",
+            "readCodes": "10084,65039",
+            "error": ""
+          }
+        ],
+        "error": ""
+      },
+      "sendKeys": {
+        "ok": true,
+        "typed": "abc",
+        "expected": "abc",
+        "error": ""
+      },
+      "uiAutomation": {
+        "ok": true,
+        "milliseconds": 34,
+        "focusedProcessId": 34368,
+        "focusedName": "Thought for 1 second",
+        "error": ""
+      },
+      "win32": {
+        "ok": true,
+        "milliseconds": 67,
+        "error": ""
+      },
+      "flowProcesses": [
+        {
+          "name": "Flow.Launcher",
+          "id": 25436,
+          "mainWindowHandle": 0,
+          "mainWindowTitle": "",
+          "responding": true,
+          "startTime": "2026-10-27T13:52:12.9146110+01:00"
+        }
+      ],
+      "flowLikeProcesses": [
+        {
+          "name": "Flow.Launcher",
+          "id": 25436,
+          "mainWindowHandle": 0,
+          "mainWindowTitle": ""
+        }
+      ],
+      "foregroundWindow": {
+        "processId": 34368,
+        "title": "Arena | Benchmark & Compare the Best AI Models - Brave",
+        "className": "Chrome_WidgetWin_1"
+      },
+      "visibleWindows": [
+        {
+          "processId": 34368,
+          "title": "Arena | Benchmark & Compare the Best AI Models - Brave",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 31604,
+          "title": "● Feedback.md - Emoji Picker Extension (Workspace) - Visual Studio Code",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 22896,
+          "title": "Life Journal",
+          "className": "Chrome_WidgetWin_1"
+        },
+        {
+          "processId": 17772,
+          "title": "XonarSwitch",
+          "className": "ThunderRT6Main"
+        },
+        {
+          "processId": 27500,
+          "title": "Paramètres",
+          "className": "Windows.UI.Core.CoreWindow"
+        },
+        {
+          "processId": 35576,
+          "title": "Paramètres",
+          "className": "ApplicationFrameWindow"
+        },
+        {
+          "processId": 22404,
+          "title": "Microsoft Text Input Application",
+          "className": "Windows.UI.Core.CoreWindow"
+        },
+        {
+          "processId": 18468,
+          "title": "Program Manager",
+          "className": "Progman"
+        }
+      ]
+    }
+  },
+  "pluginTrace": {
+    "exists": true,
+    "source": "C:\\Users\\IDLT\\AppData\\Roaming\\FlowLauncher\\Plugins\\Flow.Launcher.Plugin.EmojiFinder\\dogfood\\runtime.log",
+    "copiedIntoRepository": true,
+    "totalLines": 70,
+    "lastLines": [
+      "{\"at\":\"2026-10-23T17:37:28.955Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-23T17:37:28.958Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792777048957,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:37:53.757Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👍\"]}",
+      "{\"at\":\"2026-10-23T17:37:53.759Z\",\"event\":\"paste:request\",\"emoji\":\"👍\",\"sequence\":1792777073758,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:37:58.706Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"💪\"]}",
+      "{\"at\":\"2026-10-23T17:37:58.708Z\",\"event\":\"paste:request\",\"emoji\":\"💪\",\"sequence\":1792777078707,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:38:11.243Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"✅\"]}",
+      "{\"at\":\"2026-10-23T17:38:11.245Z\",\"event\":\"paste:request\",\"emoji\":\"✅\",\"sequence\":1792777091244,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:38:16.408Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"❌\"]}",
+      "{\"at\":\"2026-10-23T17:38:16.411Z\",\"event\":\"paste:request\",\"emoji\":\"❌\",\"sequence\":1792777096410,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:38:26.856Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🌟\"]}",
+      "{\"at\":\"2026-10-23T17:38:26.859Z\",\"event\":\"paste:request\",\"emoji\":\"🌟\",\"sequence\":1792777106858,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:38:41.972Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"😄\"]}",
+      "{\"at\":\"2026-10-23T17:38:41.974Z\",\"event\":\"paste:request\",\"emoji\":\"😄\",\"sequence\":1792777121973,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:38:55.256Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-23T17:38:55.259Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792777135257,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:38:58.681Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-23T17:38:58.683Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792777138682,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:39:05.994Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-23T17:39:05.997Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792777145996,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T17:39:54.298Z\",\"event\":\"method\",\"method\":\"context_menu\",\"parameters\":[\"🌟\"]}",
+      "{\"at\":\"2026-10-23T17:39:54.349Z\",\"event\":\"method\",\"method\":\"context_menu\",\"parameters\":[\"🌟\"]}",
+      "{\"at\":\"2026-10-23T17:40:04.492Z\",\"event\":\"method\",\"method\":\"addalias\",\"parameters\":[\"shine\",\"🌟\"]}",
+      "{\"at\":\"2026-10-23T17:40:04.495Z\",\"event\":\"alias:added\",\"alias\":\"shine\",\"emoji\":\"🌟\",\"saved\":true}",
+      "{\"at\":\"2026-10-23T17:52:59.589Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-23T17:52:59.592Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792777979591,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-23T19:05:17.350Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🧰\"]}",
+      "{\"at\":\"2026-10-23T19:05:17.354Z\",\"event\":\"paste:request\",\"emoji\":\"🧰\",\"sequence\":1792782317352,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-24T13:38:05.711Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"😄\"]}",
+      "{\"at\":\"2026-10-24T13:38:05.715Z\",\"event\":\"paste:request\",\"emoji\":\"😄\",\"sequence\":1792849085713,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T13:35:32.971Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👍\"]}",
+      "{\"at\":\"2026-10-25T13:35:32.974Z\",\"event\":\"paste:request\",\"emoji\":\"👍\",\"sequence\":1792935332973,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T13:35:38.876Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👍\"]}",
+      "{\"at\":\"2026-10-25T13:35:38.879Z\",\"event\":\"paste:request\",\"emoji\":\"👍\",\"sequence\":1792935338878,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T13:35:45.436Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🌟\"]}",
+      "{\"at\":\"2026-10-25T13:35:45.439Z\",\"event\":\"paste:request\",\"emoji\":\"🌟\",\"sequence\":1792935345438,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T13:35:49.791Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👍\"]}",
+      "{\"at\":\"2026-10-25T13:35:49.794Z\",\"event\":\"paste:request\",\"emoji\":\"👍\",\"sequence\":1792935349793,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T13:36:13.942Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-25T13:36:13.945Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792935373944,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T13:36:18.342Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-25T13:36:18.345Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792935378344,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T13:37:00.471Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👍\"]}",
+      "{\"at\":\"2026-10-25T13:37:00.474Z\",\"event\":\"paste:request\",\"emoji\":\"👍\",\"sequence\":1792935420473,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T14:41:46.687Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🙏\"]}",
+      "{\"at\":\"2026-10-25T14:41:46.690Z\",\"event\":\"paste:request\",\"emoji\":\"🙏\",\"sequence\":1792939306689,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T15:49:17.517Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"✅\"]}",
+      "{\"at\":\"2026-10-25T15:49:17.522Z\",\"event\":\"paste:request\",\"emoji\":\"✅\",\"sequence\":1792943357520,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T15:53:17.413Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"ℹ️\"]}",
+      "{\"at\":\"2026-10-25T15:53:17.416Z\",\"event\":\"paste:request\",\"emoji\":\"ℹ️\",\"sequence\":1792943597415,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T15:53:20.877Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"✅\"]}",
+      "{\"at\":\"2026-10-25T15:53:20.880Z\",\"event\":\"paste:request\",\"emoji\":\"✅\",\"sequence\":1792943600879,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T15:53:37.686Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"⏳\"]}",
+      "{\"at\":\"2026-10-25T15:53:37.689Z\",\"event\":\"paste:request\",\"emoji\":\"⏳\",\"sequence\":1792943617688,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-25T15:54:52.929Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"ℹ️\"]}",
+      "{\"at\":\"2026-10-25T15:54:52.932Z\",\"event\":\"paste:request\",\"emoji\":\"ℹ️\",\"sequence\":1792943692931,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-26T18:30:30.353Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🧰\"]}",
+      "{\"at\":\"2026-10-26T18:30:30.357Z\",\"event\":\"paste:request\",\"emoji\":\"🧰\",\"sequence\":1793039430356,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-27T13:34:18.969Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🌟\"]}",
+      "{\"at\":\"2026-10-27T13:34:18.973Z\",\"event\":\"paste:request\",\"emoji\":\"🌟\",\"sequence\":1793108058971,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-27T13:34:21.606Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🌟\"]}",
+      "{\"at\":\"2026-10-27T13:34:21.610Z\",\"event\":\"paste:request\",\"emoji\":\"🌟\",\"sequence\":1793108061608,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-27T13:34:23.601Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🌟\"]}",
+      "{\"at\":\"2026-10-27T13:34:23.605Z\",\"event\":\"paste:request\",\"emoji\":\"🌟\",\"sequence\":1793108063604,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-27T13:34:26.274Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"🌟\"]}",
+      "{\"at\":\"2026-10-27T13:34:26.277Z\",\"event\":\"paste:request\",\"emoji\":\"🌟\",\"sequence\":1793108066276,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-27T13:34:31.630Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👍\"]}",
+      "{\"at\":\"2026-10-27T13:34:31.633Z\",\"event\":\"paste:request\",\"emoji\":\"👍\",\"sequence\":1793108071632,\"agentRunning\":true}",
+      "{\"at\":\"2026-10-27T13:34:33.175Z\",\"event\":\"method\",\"method\":\"paste\",\"parameters\":[\"👍\"]}",
+      "{\"at\":\"2026-10-27T13:34:33.178Z\",\"event\":\"paste:request\",\"emoji\":\"👍\",\"sequence\":1793108073177,\"agentRunning\":true}"
+    ]
+  },
+  "pasteAgent": {
+    "exists": true,
+    "bytes": 80863,
+    "totalLines": 824,
+    "lastLines": [
+      "2026-10-27T14:34:21.6688352+01:00 | agent | request sequence=1793108061608 emoji=[🌟] targetCodes=[55356,57119]\r",
+      "2026-10-27T14:34:21.6923406+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=31604 clipboardMatches=True clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-27T14:34:21.6932963+01:00 | agent | decision paste=True elapsedMs=23\r",
+      "2026-10-27T14:34:21.7393215+01:00 | agent | sendkeys sent\r",
+      "2026-10-27T14:34:23.6223326+01:00 | agent | request sequence=1793108063604 emoji=[🌟] targetCodes=[55356,57119]\r",
+      "2026-10-27T14:34:23.6338714+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-27T14:34:23.6347349+01:00 | agent | decision paste=True elapsedMs=11\r",
+      "2026-10-27T14:34:23.6897141+01:00 | agent | sendkeys sent\r",
+      "2026-10-27T14:34:26.3092164+01:00 | agent | request sequence=1793108066276 emoji=[🌟] targetCodes=[55356,57119]\r",
+      "2026-10-27T14:34:26.3146979+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-27T14:34:26.3155833+01:00 | agent | decision paste=True elapsedMs=5\r",
+      "2026-10-27T14:34:26.3590431+01:00 | agent | sendkeys sent\r",
+      "2026-10-27T14:34:31.6680589+01:00 | agent | request sequence=1793108071632 emoji=[👍] targetCodes=[55357,56397]\r",
+      "2026-10-27T14:34:31.6745915+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-27T14:34:31.6754147+01:00 | agent | decision paste=True elapsedMs=6\r",
+      "2026-10-27T14:34:31.7294670+01:00 | agent | sendkeys sent\r",
+      "2026-10-27T14:34:33.2298751+01:00 | agent | request sequence=1793108073177 emoji=[👍] targetCodes=[55357,56397]\r",
+      "2026-10-27T14:34:33.2354460+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]\r",
+      "2026-10-27T14:34:33.2362695+01:00 | agent | decision paste=True elapsedMs=5\r",
+      "2026-10-27T14:34:33.2671121+01:00 | agent | sendkeys sent"
+    ]
+  },
+  "pasteAgentStatus": {
+    "running": true,
+    "dataDirectory": "C:\\Users\\IDLT\\AppData\\Local\\Flow.Launcher.Plugin.EmojiFinder",
+    "scriptOnDisk": true,
+    "scriptIsCurrent": false
+  }
+}

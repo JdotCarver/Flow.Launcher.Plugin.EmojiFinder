@@ -1,0 +1,195 @@
+{
+  "generatedAt": "2026-10-27T13:38:10.030Z",
+  "platform": "win32",
+  "emoji": "🧪",
+  "hosts": [
+    "powershell.exe",
+    "pwsh.exe"
+  ],
+  "dataFolder": "C:\\Users\\IDLT\\AppData\\Local\\Temp\\paste-agent-check-Ja64SU",
+  "results": [
+    {
+      "host": "powershell.exe",
+      "startLine": "2026-10-27T14:37:36.2346794+01:00 | agent | start pid=6576 host=powershell ps=5.1.19041.6456 edition=Desktop",
+      "findings": [
+        {
+          "label": "no agent is running before this host starts",
+          "ok": true
+        },
+        {
+          "label": "agent starts and publishes a heartbeat",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the plugin can see a running agent before it asks",
+          "ok": true
+        },
+        {
+          "label": "the agent writes its own log",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the start line names this host (powershell) and its version",
+          "ok": true,
+          "detail": "2026-10-27T14:37:36.2346794+01:00 | agent | start pid=6576 host=powershell ps=5.1.19041.6456 edition=Desktop"
+        },
+        {
+          "label": "agent logs the request with its sequence number",
+          "ok": true
+        },
+        {
+          "label": "emoji survives the request file intact (expected code points 55358,56810)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "agent refuses to paste while the clipboard holds something else",
+          "ok": true
+        },
+        {
+          "label": "agent is still alive after handling a request",
+          "ok": true
+        },
+        {
+          "label": "agent stops when its process is ended",
+          "ok": true
+        }
+      ],
+      "startupLog": null,
+      "logTail": [
+        "2026-10-27T14:37:36.2346794+01:00 | agent | start pid=6576 host=powershell ps=5.1.19041.6456 edition=Desktop\r",
+        "2026-10-27T14:37:36.2426869+01:00 | agent | winforms loaded\r",
+        "2026-10-27T14:37:36.2476874+01:00 | agent | uiautomation loaded\r",
+        "2026-10-27T14:37:36.2496791+01:00 | agent | waiting for requests\r",
+        "2026-10-27T14:37:36.3303589+01:00 | agent | request sequence=1793108256272 emoji=[🧪] targetCodes=[55358,56810]\r",
+        "2026-10-27T14:37:36.3935088+01:00 | agent | poll flowProcesses=1 flowHasFocus=False focusedProcess=34368 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
+        "2026-10-27T14:37:36.3955092+01:00 | agent | mismatch clipboardCodes=[112,97,115,116,101,45,97,103,101,110,116,45,99,104,101,99,107] clipboardLength=17\r",
+        "2026-10-27T14:37:38.8958158+01:00 | agent | decision paste=False elapsedMs=2559"
+      ]
+    },
+    {
+      "host": "pwsh.exe",
+      "startLine": "2026-10-27T14:37:46.5092900+01:00 | agent | start pid=37088 host=pwsh ps=7.6.8 edition=Core",
+      "findings": [
+        {
+          "label": "no agent is running before this host starts",
+          "ok": true
+        },
+        {
+          "label": "agent starts and publishes a heartbeat",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the plugin can see a running agent before it asks",
+          "ok": true
+        },
+        {
+          "label": "the agent writes its own log",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the start line names this host (pwsh) and its version",
+          "ok": true,
+          "detail": "2026-10-27T14:37:46.5092900+01:00 | agent | start pid=37088 host=pwsh ps=7.6.8 edition=Core"
+        },
+        {
+          "label": "agent logs the request with its sequence number",
+          "ok": true
+        },
+        {
+          "label": "emoji survives the request file intact (expected code points 55358,56810)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "agent refuses to paste while the clipboard holds something else",
+          "ok": true
+        },
+        {
+          "label": "agent is still alive after handling a request",
+          "ok": true
+        },
+        {
+          "label": "agent stops when its process is ended",
+          "ok": true
+        }
+      ],
+      "startupLog": null,
+      "logTail": [
+        "2026-10-27T14:37:46.5174149+01:00 | agent | uiautomation loaded\r",
+        "2026-10-27T14:37:46.5237128+01:00 | agent | adopting recent request sequence=1793108256272 ageMs=10249\r",
+        "2026-10-27T14:37:46.5251405+01:00 | agent | waiting for requests\r",
+        "2026-10-27T14:37:46.5335460+01:00 | agent | request sequence=1793108256272 emoji=[🧪] targetCodes=[55358,56810]\r",
+        "2026-10-27T14:37:46.5809044+01:00 | agent | poll flowProcesses=1 flowHasFocus=False focusedProcess=34368 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
+        "2026-10-27T14:37:46.5830184+01:00 | agent | mismatch clipboardCodes=[112,97,115,116,101,45,97,103,101,110,116,45,99,104,101,99,107] clipboardLength=17\r",
+        "2026-10-27T14:37:49.0547036+01:00 | agent | decision paste=False elapsedMs=2516\r",
+        "2026-10-27T14:37:49.1219926+01:00 | agent | request sequence=1793108266535 emoji=[🧪] targetCodes=[55358,56810]\r",
+        "2026-10-27T14:37:49.1273122+01:00 | agent | poll flowProcesses=1 flowHasFocus=False focusedProcess=34368 clipboardMatches=False clipboardEmpty=False clipboardError=[]\r",
+        "2026-10-27T14:37:49.1283882+01:00 | agent | mismatch clipboardCodes=[112,97,115,116,101,45,97,103,101,110,116,45,99,104,101,99,107] clipboardLength=17"
+      ]
+    },
+    {
+      "host": "focus gate (C:\\Program Files\\PowerShell\\7\\pwsh.exe)",
+      "findings": [
+        {
+          "label": "no agent is running before the focus gate is checked",
+          "ok": true
+        },
+        {
+          "label": "the focus gate agent starts and publishes a heartbeat",
+          "ok": true
+        },
+        {
+          "label": "a poll sees Flow holding focus and the clipboard holding the emoji at the same time",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "agent refuses to paste in that state, which is the bug of 2026-10-27",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "label": "the installed agent names no window title anywhere",
+          "ok": true,
+          "detail": "the agent script reads or logs a window title"
+        }
+      ],
+      "startLine": null,
+      "startupLog": null,
+      "logTail": []
+    },
+    {
+      "host": "wscript launcher (paste-agent-launcher.vbs)",
+      "findings": [
+        {
+          "label": "no agent is running before the launcher is used",
+          "ok": true
+        },
+        {
+          "label": "the launcher exists beside the agent script",
+          "ok": true
+        },
+        {
+          "label": "the launcher starts without a PowerShell of its own",
+          "ok": true
+        },
+        {
+          "label": "the launcher started an agent (host C:\\Program Files\\PowerShell\\7\\pwsh.exe)",
+          "ok": true
+        },
+        {
+          "label": "the agent it started is the one this build generates",
+          "ok": true
+        }
+      ],
+      "startLine": null,
+      "startupLog": null,
+      "logTail": []
+    }
+  ]
+}

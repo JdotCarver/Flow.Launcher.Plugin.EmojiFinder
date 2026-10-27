@@ -1,0 +1,824 @@
+2026-10-23T13:13:49.0441856+02:00 | agent | start pid=39300 ps=5.1.19041.6456
+2026-10-23T13:13:49.0531877+02:00 | agent | winforms loaded
+2026-10-23T13:13:49.0561873+02:00 | agent | uiautomation loaded
+2026-10-23T13:13:49.0797835+02:00 | agent | waiting for requests
+2026-10-23T13:13:49.3419612+02:00 | agent | request sequence=1792754029291 emoji=[🧪]
+2026-10-23T13:13:49.4109611+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:13:51.8679565+02:00 | agent | decision paste=False elapsedMs=2518
+2026-10-23T13:14:50.2686266+02:00 | agent | start pid=3100 ps=5.1.19041.6456
+2026-10-23T13:14:50.2746337+02:00 | agent | winforms loaded
+2026-10-23T13:14:50.2776268+02:00 | agent | uiautomation loaded
+2026-10-23T13:14:50.2946268+02:00 | agent | waiting for requests
+2026-10-23T13:14:50.5426450+02:00 | agent | request sequence=1792754090524 emoji=[🧪]
+2026-10-23T13:14:50.6076384+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:14:53.0709717+02:00 | agent | decision paste=False elapsedMs=2521
+2026-10-23T13:16:46.8491839+02:00 | agent | start pid=8940 ps=5.1.19041.6456
+2026-10-23T13:16:46.8551813+02:00 | agent | winforms loaded
+2026-10-23T13:16:46.8572708+02:00 | agent | uiautomation loaded
+2026-10-23T13:16:46.8787822+02:00 | agent | waiting for requests
+2026-10-23T13:16:47.1367281+02:00 | agent | request sequence=1792754207107 emoji=[🧪]
+2026-10-23T13:16:47.2013529+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=16976 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:16:49.6632889+02:00 | agent | decision paste=False elapsedMs=2519
+2026-10-23T13:18:02.6082942+02:00 | agent | start pid=40284 ps=5.1.19041.6456
+2026-10-23T13:18:02.6149420+02:00 | agent | winforms loaded
+2026-10-23T13:18:02.6169414+02:00 | agent | uiautomation loaded
+2026-10-23T13:18:02.6339424+02:00 | agent | waiting for requests
+2026-10-23T13:18:02.8875638+02:00 | agent | request sequence=1792754282864 emoji=[🧪]
+2026-10-23T13:18:02.9525657+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:18:05.4126353+02:00 | agent | decision paste=False elapsedMs=2518
+2026-10-23T13:18:19.5004730+02:00 | agent | start pid=38876 ps=5.1.19041.6456
+2026-10-23T13:18:19.5064741+02:00 | agent | winforms loaded
+2026-10-23T13:18:19.5080980+02:00 | agent | uiautomation loaded
+2026-10-23T13:18:19.5250558+02:00 | agent | waiting for requests
+2026-10-23T13:19:09.3224532+02:00 | agent | already running as pid=38876
+2026-10-23T13:19:09.3884821+02:00 | agent | request sequence=1792754349326 emoji=[🧪]
+2026-10-23T13:19:09.4565179+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:19:11.9135950+02:00 | agent | decision paste=False elapsedMs=2517
+2026-10-23T13:19:48.4805490+02:00 | agent | request sequence=1792754388426 emoji=[🤣]
+2026-10-23T13:19:48.4976912+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=1624 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:19:48.5595998+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:19:50.9926292+02:00 | agent | decision paste=False elapsedMs=2511
+2026-10-23T13:20:12.4336019+02:00 | agent | request sequence=1792754412383 emoji=[👏]
+2026-10-23T13:20:12.4415992+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=16368 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:20:12.5018845+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36092 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:20:14.9761202+02:00 | agent | decision paste=False elapsedMs=2541
+2026-10-23T13:20:18.8070981+02:00 | agent | request sequence=1792754418771 emoji=[🙏]
+2026-10-23T13:20:18.8140976+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=16368 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:20:18.8811100+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36092 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:20:21.3382722+02:00 | agent | decision paste=False elapsedMs=2529
+2026-10-23T13:20:59.2844468+02:00 | agent | already running as pid=38876
+2026-10-23T13:20:59.3561965+02:00 | agent | request sequence=1792754459299 emoji=[🧪]
+2026-10-23T13:20:59.3632031+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:21:01.8668663+02:00 | agent | decision paste=False elapsedMs=2509
+2026-10-23T13:22:14.7625962+02:00 | agent | request sequence=1792754534704 emoji=[🧪]
+2026-10-23T13:22:14.7701317+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:22:17.3192236+02:00 | agent | decision paste=False elapsedMs=2555
+2026-10-23T13:28:58.4057251+02:00 | agent | start pid=39984 ps=5.1.19041.6456
+2026-10-23T13:28:58.4117342+02:00 | agent | winforms loaded
+2026-10-23T13:28:58.4137334+02:00 | agent | uiautomation loaded
+2026-10-23T13:28:58.4347257+02:00 | agent | waiting for requests
+2026-10-23T13:28:58.6863437+02:00 | agent | request sequence=1792754938661 emoji=[🧪] targetCodes=[240,376,167,170]
+2026-10-23T13:28:58.7527442+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:28:58.7547455+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:29:01.2253652+02:00 | agent | decision paste=False elapsedMs=2532
+2026-10-23T13:30:17.9436177+02:00 | agent | start pid=38408 ps=5.1.19041.6456
+2026-10-23T13:30:17.9506170+02:00 | agent | winforms loaded
+2026-10-23T13:30:17.9526177+02:00 | agent | uiautomation loaded
+2026-10-23T13:30:17.9706266+02:00 | agent | waiting for requests
+2026-10-23T13:30:18.2342778+02:00 | agent | request sequence=1792755018195 emoji=[🧪] targetCodes=[240,376,167,170]
+2026-10-23T13:30:18.3006226+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:30:18.3036232+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:30:20.7569992+02:00 | agent | decision paste=False elapsedMs=2515
+2026-10-23T13:31:05.2226787+02:00 | agent | start pid=37212 ps=5.1.19041.6456
+2026-10-23T13:31:05.2286792+02:00 | agent | winforms loaded
+2026-10-23T13:31:05.2306792+02:00 | agent | uiautomation loaded
+2026-10-23T13:31:05.2473177+02:00 | agent | waiting for requests
+2026-10-23T13:31:05.5011237+02:00 | agent | request sequence=1792755065475 emoji=[🧪] targetCodes=[240,376,167,170]
+2026-10-23T13:31:05.5652208+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:31:05.5682320+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:31:08.0395163+02:00 | agent | decision paste=False elapsedMs=2530
+2026-10-23T13:31:21.7596498+02:00 | agent | start pid=36600 ps=5.1.19041.6456
+2026-10-23T13:31:21.7706584+02:00 | agent | winforms loaded
+2026-10-23T13:31:21.7746509+02:00 | agent | uiautomation loaded
+2026-10-23T13:31:21.8036596+02:00 | agent | waiting for requests
+2026-10-23T13:32:24.8640150+02:00 | agent | request sequence=1792755144820 emoji=[🧪] targetCodes=[240,376,167,170]
+2026-10-23T13:32:24.9562397+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=2576 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:32:24.9602488+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:32:27.3837585+02:00 | agent | decision paste=False elapsedMs=2507
+2026-10-23T13:35:32.4346641+02:00 | agent | start pid=35360 ps=5.1.19041.6456
+2026-10-23T13:35:32.4407122+02:00 | agent | winforms loaded
+2026-10-23T13:35:32.4427116+02:00 | agent | uiautomation loaded
+2026-10-23T13:35:32.4640131+02:00 | agent | waiting for requests
+2026-10-23T13:35:32.8423097+02:00 | agent | request sequence=1792755332830 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:35:32.9070913+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:35:32.9090912+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:35:35.3976373+02:00 | agent | decision paste=False elapsedMs=2548
+2026-10-23T13:36:39.0802961+02:00 | agent | start pid=36024 ps=5.1.19041.6456
+2026-10-23T13:36:39.0873057+02:00 | agent | winforms loaded
+2026-10-23T13:36:39.0893026+02:00 | agent | uiautomation loaded
+2026-10-23T13:36:39.1063034+02:00 | agent | waiting for requests
+2026-10-23T13:36:39.3589511+02:00 | agent | request sequence=1792755399336 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:36:39.4246407+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:36:39.4266409+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:36:41.8968931+02:00 | agent | decision paste=False elapsedMs=2531
+2026-10-23T13:36:55.6360908+02:00 | agent | start pid=37684 ps=5.1.19041.6456
+2026-10-23T13:36:55.6487531+02:00 | agent | winforms loaded
+2026-10-23T13:36:55.6517516+02:00 | agent | uiautomation loaded
+2026-10-23T13:36:55.6812994+02:00 | agent | waiting for requests
+2026-10-23T13:37:29.2301171+02:00 | agent | request sequence=1792755449152 emoji=[👏] targetCodes=[55357,56399]
+2026-10-23T13:37:29.3276776+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36092 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T13:37:29.3289464+02:00 | agent | decision paste=True elapsedMs=85
+2026-10-23T13:37:29.3706765+02:00 | agent | sendkeys sent
+2026-10-23T13:37:40.2490077+02:00 | agent | request sequence=1792755460200 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T13:37:40.2750061+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36092 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T13:37:40.2770066+02:00 | agent | decision paste=True elapsedMs=25
+2026-10-23T13:37:40.3112690+02:00 | agent | sendkeys sent
+2026-10-23T13:38:48.0287349+02:00 | agent | request sequence=1792755528000 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:38:48.0407291+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:38:48.0437225+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:38:50.8519842+02:00 | agent | decision paste=False elapsedMs=2820
+2026-10-23T13:46:06.9369300+02:00 | agent | start pid=32284 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T13:46:06.9703628+02:00 | agent | winforms loaded
+2026-10-23T13:46:06.9755865+02:00 | agent | uiautomation loaded
+2026-10-23T13:46:06.9854800+02:00 | agent | waiting for requests
+2026-10-23T13:46:07.2507669+02:00 | agent | request sequence=1792755967221 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:46:07.3863579+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:46:07.3889034+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:46:09.7736470+02:00 | agent | decision paste=False elapsedMs=2507
+2026-10-23T13:46:17.6671490+02:00 | agent | start pid=38740 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:46:17.6821572+02:00 | agent | winforms loaded
+2026-10-23T13:46:17.6861486+02:00 | agent | uiautomation loaded
+2026-10-23T13:46:17.7141485+02:00 | agent | waiting for requests
+2026-10-23T13:48:14.6071778+02:00 | agent | start pid=35644 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:48:14.6161492+02:00 | agent | winforms loaded
+2026-10-23T13:48:14.6187479+02:00 | agent | uiautomation loaded
+2026-10-23T13:48:14.6347799+02:00 | agent | waiting for requests
+2026-10-23T13:48:14.7646222+02:00 | agent | request sequence=1792756094697 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:48:14.8339048+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:48:14.8358972+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:48:17.3039258+02:00 | agent | decision paste=False elapsedMs=2529
+2026-10-23T13:48:24.9569894+02:00 | agent | start pid=29548 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T13:48:24.9640056+02:00 | agent | winforms loaded
+2026-10-23T13:48:24.9653847+02:00 | agent | uiautomation loaded
+2026-10-23T13:48:24.9703287+02:00 | agent | waiting for requests
+2026-10-23T13:48:25.0455823+02:00 | agent | request sequence=1792756105001 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:48:25.1038118+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:48:25.1060333+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:48:27.5711459+02:00 | agent | decision paste=False elapsedMs=2518
+2026-10-23T13:48:35.4472461+02:00 | agent | start pid=11380 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:48:35.4632549+02:00 | agent | winforms loaded
+2026-10-23T13:48:35.4662548+02:00 | agent | uiautomation loaded
+2026-10-23T13:48:35.4953956+02:00 | agent | waiting for requests
+2026-10-23T13:49:39.8978002+02:00 | agent | start pid=37692 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:49:39.9069499+02:00 | agent | winforms loaded
+2026-10-23T13:49:39.9079207+02:00 | agent | uiautomation loaded
+2026-10-23T13:49:39.9249284+02:00 | agent | waiting for requests
+2026-10-23T13:49:40.0005290+02:00 | agent | request sequence=1792756179978 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:49:40.0640562+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:49:40.0660565+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:49:42.5236436+02:00 | agent | decision paste=False elapsedMs=2517
+2026-10-23T13:49:50.2230843+02:00 | agent | start pid=30580 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T13:49:50.2301263+02:00 | agent | winforms loaded
+2026-10-23T13:49:50.2315051+02:00 | agent | uiautomation loaded
+2026-10-23T13:49:50.2364362+02:00 | agent | waiting for requests
+2026-10-23T13:49:50.3123412+02:00 | agent | request sequence=1792756190270 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:49:50.3698116+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:49:50.3721510+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:49:52.8187862+02:00 | agent | decision paste=False elapsedMs=2500
+2026-10-23T13:50:00.7025712+02:00 | agent | start pid=38400 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:50:00.7175708+02:00 | agent | winforms loaded
+2026-10-23T13:50:00.7205707+02:00 | agent | uiautomation loaded
+2026-10-23T13:50:00.7485712+02:00 | agent | waiting for requests
+2026-10-23T13:51:21.1860868+02:00 | agent | start pid=41080 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:51:21.1951044+02:00 | agent | winforms loaded
+2026-10-23T13:51:21.1971800+02:00 | agent | uiautomation loaded
+2026-10-23T13:51:21.2137734+02:00 | agent | waiting for requests
+2026-10-23T13:51:21.2798813+02:00 | agent | request sequence=1792756281267 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:51:21.3442475+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:51:21.3462312+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:51:23.8027412+02:00 | agent | decision paste=False elapsedMs=2516
+2026-10-23T13:51:31.5163706+02:00 | agent | start pid=41872 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T13:51:31.5235403+02:00 | agent | winforms loaded
+2026-10-23T13:51:31.5248784+02:00 | agent | uiautomation loaded
+2026-10-23T13:51:31.5296174+02:00 | agent | waiting for requests
+2026-10-23T13:51:31.5943146+02:00 | agent | request sequence=1792756291564 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:51:31.6521692+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:51:31.6543704+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:51:34.1024257+02:00 | agent | decision paste=False elapsedMs=2501
+2026-10-23T13:51:42.0031126+02:00 | agent | start pid=384 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:51:42.0186960+02:00 | agent | winforms loaded
+2026-10-23T13:51:42.0216955+02:00 | agent | uiautomation loaded
+2026-10-23T13:51:42.0492631+02:00 | agent | waiting for requests
+2026-10-23T13:53:22.6028452+02:00 | agent | start pid=37308 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:53:22.6128532+02:00 | agent | winforms loaded
+2026-10-23T13:53:22.6138449+02:00 | agent | uiautomation loaded
+2026-10-23T13:53:22.6328448+02:00 | agent | waiting for requests
+2026-10-23T13:53:22.7008549+02:00 | agent | request sequence=1792756402687 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:53:22.7648619+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:53:22.7671367+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:53:25.2267494+02:00 | agent | decision paste=False elapsedMs=2519
+2026-10-23T13:53:32.9429542+02:00 | agent | start pid=41752 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T13:53:32.9503960+02:00 | agent | winforms loaded
+2026-10-23T13:53:32.9520823+02:00 | agent | uiautomation loaded
+2026-10-23T13:53:32.9569839+02:00 | agent | waiting for requests
+2026-10-23T13:53:33.0321708+02:00 | agent | request sequence=1792756412983 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:53:33.0982754+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=2576 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:53:33.1014970+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:53:34.8897526+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:53:35.5722107+02:00 | agent | decision paste=False elapsedMs=2533
+2026-10-23T13:53:43.4244204+02:00 | agent | start pid=40256 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:53:43.4399333+02:00 | agent | winforms loaded
+2026-10-23T13:53:43.4429340+02:00 | agent | uiautomation loaded
+2026-10-23T13:53:43.4709341+02:00 | agent | waiting for requests
+2026-10-23T13:55:02.7678980+02:00 | agent | start pid=14920 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:55:02.7768985+02:00 | agent | winforms loaded
+2026-10-23T13:55:02.7788977+02:00 | agent | uiautomation loaded
+2026-10-23T13:55:02.7968986+02:00 | agent | waiting for requests
+2026-10-23T13:55:02.8739051+02:00 | agent | request sequence=1792756502858 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:55:02.9423458+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:55:02.9438981+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:55:05.4126238+02:00 | agent | decision paste=False elapsedMs=2533
+2026-10-23T13:55:13.1026646+02:00 | agent | start pid=19992 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T13:55:13.1098160+02:00 | agent | winforms loaded
+2026-10-23T13:55:13.1111450+02:00 | agent | uiautomation loaded
+2026-10-23T13:55:13.1161193+02:00 | agent | waiting for requests
+2026-10-23T13:55:13.1881293+02:00 | agent | request sequence=1792756513149 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T13:55:13.2467836+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T13:55:13.2496121+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T13:55:15.7578012+02:00 | agent | decision paste=False elapsedMs=2563
+2026-10-23T13:55:23.5941685+02:00 | agent | start pid=15096 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T13:55:23.6095843+02:00 | agent | winforms loaded
+2026-10-23T13:55:23.6125849+02:00 | agent | uiautomation loaded
+2026-10-23T13:55:23.6405851+02:00 | agent | waiting for requests
+2026-10-23T14:00:58.5282707+02:00 | agent | start pid=16264 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T14:00:58.5372783+02:00 | agent | winforms loaded
+2026-10-23T14:00:58.5395439+02:00 | agent | uiautomation loaded
+2026-10-23T14:00:58.5602701+02:00 | agent | waiting for requests
+2026-10-23T14:00:58.6872784+02:00 | agent | request sequence=1792756858620 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T14:00:58.7503454+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=2576 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T14:00:58.7523369+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T14:01:01.2099075+02:00 | agent | decision paste=False elapsedMs=2517
+2026-10-23T14:01:08.8824542+02:00 | agent | start pid=39700 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T14:01:08.8898781+02:00 | agent | winforms loaded
+2026-10-23T14:01:08.8911984+02:00 | agent | uiautomation loaded
+2026-10-23T14:01:08.8961798+02:00 | agent | waiting for requests
+2026-10-23T14:01:08.9702704+02:00 | agent | request sequence=1792756868914 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T14:01:09.0296856+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=2576 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T14:01:09.0317535+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T14:01:11.4791309+02:00 | agent | decision paste=False elapsedMs=2501
+2026-10-23T14:01:19.3480685+02:00 | agent | start pid=2216 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T14:01:19.3641056+02:00 | agent | winforms loaded
+2026-10-23T14:01:19.3660970+02:00 | agent | uiautomation loaded
+2026-10-23T14:01:19.3950976+02:00 | agent | waiting for requests
+2026-10-23T14:03:05.9310418+02:00 | agent | start pid=38904 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T14:03:05.9396578+02:00 | agent | winforms loaded
+2026-10-23T14:03:05.9416565+02:00 | agent | uiautomation loaded
+2026-10-23T14:03:05.9582675+02:00 | agent | waiting for requests
+2026-10-23T14:03:06.0963070+02:00 | agent | request sequence=1792756986027 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T14:03:06.1617008+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T14:03:06.1637007+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T14:03:08.6315312+02:00 | agent | decision paste=False elapsedMs=2529
+2026-10-23T14:03:16.2882835+02:00 | agent | start pid=38356 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T14:03:16.2962627+02:00 | agent | winforms loaded
+2026-10-23T14:03:16.2976155+02:00 | agent | uiautomation loaded
+2026-10-23T14:03:16.3022936+02:00 | agent | waiting for requests
+2026-10-23T14:03:16.3737320+02:00 | agent | request sequence=1792756996321 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T14:03:16.7166853+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T14:03:16.7196931+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T14:03:18.9297521+02:00 | agent | decision paste=False elapsedMs=2549
+2026-10-23T14:03:26.7552789+02:00 | agent | start pid=39060 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T14:03:26.7717935+02:00 | agent | winforms loaded
+2026-10-23T14:03:26.7747980+02:00 | agent | uiautomation loaded
+2026-10-23T14:03:26.8028605+02:00 | agent | waiting for requests
+2026-10-23T14:06:07.3453950+02:00 | agent | request sequence=1792757167276 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T14:06:07.4374349+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T14:06:07.4383919+02:00 | agent | decision paste=True elapsedMs=81
+2026-10-23T14:06:07.4712451+02:00 | agent | sendkeys sent
+2026-10-23T14:06:11.9688536+02:00 | agent | request sequence=1792757171938 emoji=[👏] targetCodes=[55357,56399]
+2026-10-23T14:06:11.9798611+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=13800 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T14:06:11.9808542+02:00 | agent | decision paste=True elapsedMs=10
+2026-10-23T14:06:12.0194772+02:00 | agent | sendkeys sent
+2026-10-23T14:10:10.8063349+02:00 | agent | start pid=41256 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T14:10:10.8208466+02:00 | agent | winforms loaded
+2026-10-23T14:10:10.8238464+02:00 | agent | uiautomation loaded
+2026-10-23T14:10:10.8444133+02:00 | agent | waiting for requests
+2026-10-23T14:10:10.9831292+02:00 | agent | request sequence=1792757410938 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T14:10:11.0490424+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T14:10:11.0510429+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T14:10:13.5400545+02:00 | agent | decision paste=False elapsedMs=2549
+2026-10-23T14:10:21.1884597+02:00 | agent | start pid=2936 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T14:10:21.1956224+02:00 | agent | winforms loaded
+2026-10-23T14:10:21.1969873+02:00 | agent | uiautomation loaded
+2026-10-23T14:10:21.2033811+02:00 | agent | adopting recent request sequence=1792757410938 ageMs=10262
+2026-10-23T14:10:21.2047793+02:00 | agent | waiting for requests
+2026-10-23T14:10:21.2130514+02:00 | agent | request sequence=1792757410938 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T14:10:21.2710694+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T14:10:21.2732909+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T14:10:23.7271648+02:00 | agent | decision paste=False elapsedMs=2507
+2026-10-23T14:10:23.7969473+02:00 | agent | request sequence=1792757421231 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T14:10:23.8027353+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T14:10:23.8049020+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T14:10:31.5868057+02:00 | agent | start pid=5532 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T14:10:31.5937843+02:00 | agent | winforms loaded
+2026-10-23T14:10:31.5951037+02:00 | agent | uiautomation loaded
+2026-10-23T14:10:31.6010305+02:00 | agent | adopting recent request sequence=1792757421231 ageMs=10367
+2026-10-23T14:10:31.6023243+02:00 | agent | waiting for requests
+2026-10-23T14:10:31.6107916+02:00 | agent | request sequence=1792757421231 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T14:10:31.6685401+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T14:10:31.6708087+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T14:10:34.1178020+02:00 | agent | decision paste=False elapsedMs=2500
+2026-10-23T14:10:38.4271973+02:00 | agent | start pid=18916 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T14:10:38.4397241+02:00 | agent | winforms loaded
+2026-10-23T14:10:38.4425482+02:00 | agent | uiautomation loaded
+2026-10-23T14:10:38.4534111+02:00 | agent | waiting for requests
+2026-10-23T14:19:16.6274335+02:00 | agent | start pid=40436 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T14:19:16.6377958+02:00 | agent | winforms loaded
+2026-10-23T14:19:16.6402252+02:00 | agent | uiautomation loaded
+2026-10-23T14:19:16.6489407+02:00 | agent | waiting for requests
+2026-10-23T14:19:32.6781742+02:00 | agent | request sequence=1792757972610 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-23T14:19:32.7582832+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T14:19:32.7592412+02:00 | agent | decision paste=True elapsedMs=68
+2026-10-23T14:19:32.8341580+02:00 | agent | sendkeys sent
+2026-10-23T14:30:08.8141759+02:00 | agent | request sequence=1792758608795 emoji=[💪] targetCodes=[55357,56490]
+2026-10-23T14:30:08.8249960+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=13800 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T14:30:08.8259721+02:00 | agent | decision paste=True elapsedMs=10
+2026-10-23T14:30:08.8640373+02:00 | agent | sendkeys sent
+2026-10-23T15:17:57.4231272+02:00 | agent | request sequence=1792761477375 emoji=[😄] targetCodes=[55357,56836]
+2026-10-23T15:17:57.4446632+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=13800 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:17:57.4460269+02:00 | agent | decision paste=True elapsedMs=20
+2026-10-23T15:17:57.4881798+02:00 | agent | sendkeys sent
+2026-10-23T15:18:01.9848506+02:00 | agent | request sequence=1792761481976 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T15:18:01.9972785+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=13800 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:18:01.9992088+02:00 | agent | decision paste=True elapsedMs=12
+2026-10-23T15:18:02.0361984+02:00 | agent | sendkeys sent
+2026-10-23T15:18:08.9202530+02:00 | agent | request sequence=1792761488870 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T15:18:08.9479466+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=1624 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:18:08.9496846+02:00 | agent | decision paste=True elapsedMs=27
+2026-10-23T15:18:08.9846945+02:00 | agent | sendkeys sent
+2026-10-23T15:18:15.7325916+02:00 | agent | request sequence=1792761495677 emoji=[👏] targetCodes=[55357,56399]
+2026-10-23T15:18:15.7621825+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:18:15.7639680+02:00 | agent | decision paste=True elapsedMs=29
+2026-10-23T15:18:15.7988366+02:00 | agent | sendkeys sent
+2026-10-23T15:18:42.9221615+02:00 | agent | request sequence=1792761522864 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T15:18:42.9497367+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:18:42.9506152+02:00 | agent | decision paste=True elapsedMs=27
+2026-10-23T15:18:42.9859753+02:00 | agent | sendkeys sent
+2026-10-23T15:18:50.0444452+02:00 | agent | request sequence=1792761530001 emoji=[👏] targetCodes=[55357,56399]
+2026-10-23T15:18:50.0548844+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=40132 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:18:50.0557557+02:00 | agent | decision paste=True elapsedMs=10
+2026-10-23T15:18:50.0994757+02:00 | agent | sendkeys sent
+2026-10-23T15:18:54.1091831+02:00 | agent | request sequence=1792761534053 emoji=[👍] targetCodes=[55357,56397]
+2026-10-23T15:18:54.1351650+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:18:54.1360155+02:00 | agent | decision paste=True elapsedMs=25
+2026-10-23T15:18:54.1746042+02:00 | agent | sendkeys sent
+2026-10-23T15:30:36.5143331+02:00 | agent | start pid=36480 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T15:30:36.5233221+02:00 | agent | winforms loaded
+2026-10-23T15:30:36.5253223+02:00 | agent | uiautomation loaded
+2026-10-23T15:30:36.5443309+02:00 | agent | waiting for requests
+2026-10-23T15:30:36.6694579+02:00 | agent | request sequence=1792762236607 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:30:36.7334535+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:30:36.7354436+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:30:39.1931607+02:00 | agent | decision paste=False elapsedMs=2518
+2026-10-23T15:30:46.8640585+02:00 | agent | start pid=11464 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:30:46.8710632+02:00 | agent | winforms loaded
+2026-10-23T15:30:46.8722785+02:00 | agent | uiautomation loaded
+2026-10-23T15:30:46.8784104+02:00 | agent | adopting recent request sequence=1792762236607 ageMs=10269
+2026-10-23T15:30:46.8798206+02:00 | agent | waiting for requests
+2026-10-23T15:30:46.8882689+02:00 | agent | request sequence=1792762236607 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:30:46.9459572+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:30:46.9483783+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:30:49.3988250+02:00 | agent | decision paste=False elapsedMs=2505
+2026-10-23T15:30:49.4692156+02:00 | agent | request sequence=1792762246904 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:30:49.4746355+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:30:49.4756521+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:30:57.2351177+02:00 | agent | start pid=37772 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:30:57.2420000+02:00 | agent | winforms loaded
+2026-10-23T15:30:57.2431494+02:00 | agent | uiautomation loaded
+2026-10-23T15:30:57.2500037+02:00 | agent | adopting recent request sequence=1792762246904 ageMs=10343
+2026-10-23T15:30:57.2520172+02:00 | agent | waiting for requests
+2026-10-23T15:30:57.2609176+02:00 | agent | request sequence=1792762246904 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:30:57.3181377+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:30:57.3205467+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:30:59.7892085+02:00 | agent | decision paste=False elapsedMs=2522
+2026-10-23T15:35:40.3218443+02:00 | agent | start pid=7612 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:35:40.3334042+02:00 | agent | winforms loaded
+2026-10-23T15:35:40.3360124+02:00 | agent | uiautomation loaded
+2026-10-23T15:35:40.3542845+02:00 | agent | adopting recent request sequence=1792762526531 ageMs=13818
+2026-10-23T15:35:40.3568867+02:00 | agent | waiting for requests
+2026-10-23T15:35:40.3704688+02:00 | agent | request sequence=1792762526531 emoji=[🆑] targetCodes=[55356,56721]
+2026-10-23T15:35:40.4472659+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:35:40.4484412+02:00 | agent | decision paste=True elapsedMs=69
+2026-10-23T15:35:40.5121931+02:00 | agent | sendkeys sent
+2026-10-23T15:35:51.7178367+02:00 | agent | request sequence=1792762551665 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T15:35:51.7489860+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36092 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:35:51.7499963+02:00 | agent | decision paste=True elapsedMs=30
+2026-10-23T15:35:51.7857626+02:00 | agent | sendkeys sent
+2026-10-23T15:35:58.4049960+02:00 | agent | request sequence=1792762558375 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-23T15:35:58.4170942+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=27480 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:35:58.4182133+02:00 | agent | decision paste=True elapsedMs=11
+2026-10-23T15:35:58.4607540+02:00 | agent | sendkeys sent
+2026-10-23T15:36:12.4031905+02:00 | agent | request sequence=1792762572371 emoji=[👍] targetCodes=[55357,56397]
+2026-10-23T15:36:12.4130609+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=27480 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:36:12.4139507+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-23T15:36:12.4570404+02:00 | agent | sendkeys sent
+2026-10-23T15:43:54.4081428+02:00 | agent | start pid=28420 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T15:43:54.4171751+02:00 | agent | winforms loaded
+2026-10-23T15:43:54.4191734+02:00 | agent | uiautomation loaded
+2026-10-23T15:43:54.4382117+02:00 | agent | waiting for requests
+2026-10-23T15:43:54.5160190+02:00 | agent | request sequence=1792763034503 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:43:54.5793612+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:43:54.5823161+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:43:57.0363347+02:00 | agent | decision paste=False elapsedMs=2514
+2026-10-23T15:44:04.7671604+02:00 | agent | start pid=38392 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:44:04.7742877+02:00 | agent | winforms loaded
+2026-10-23T15:44:04.7754329+02:00 | agent | uiautomation loaded
+2026-10-23T15:44:04.7814528+02:00 | agent | adopting recent request sequence=1792763034503 ageMs=10276
+2026-10-23T15:44:04.7827405+02:00 | agent | waiting for requests
+2026-10-23T15:44:04.7913912+02:00 | agent | request sequence=1792763034503 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:44:04.8389776+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:44:04.8411544+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:44:07.3513603+02:00 | agent | decision paste=False elapsedMs=2555
+2026-10-23T15:44:07.4189634+02:00 | agent | request sequence=1792763044800 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:44:07.4247867+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:44:07.4259096+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:44:15.1327993+02:00 | agent | start pid=32340 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:44:15.1392615+02:00 | agent | winforms loaded
+2026-10-23T15:44:15.1403786+02:00 | agent | uiautomation loaded
+2026-10-23T15:44:15.1463922+02:00 | agent | adopting recent request sequence=1792763044800 ageMs=10344
+2026-10-23T15:44:15.1476682+02:00 | agent | waiting for requests
+2026-10-23T15:44:15.1566341+02:00 | agent | request sequence=1792763044800 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:44:15.2044408+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:44:15.2066016+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:44:17.7106931+02:00 | agent | decision paste=False elapsedMs=2549
+2026-10-23T15:45:18.2177416+02:00 | agent | start pid=24812 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T15:45:18.2267479+02:00 | agent | winforms loaded
+2026-10-23T15:45:18.2282722+02:00 | agent | uiautomation loaded
+2026-10-23T15:45:18.2478161+02:00 | agent | waiting for requests
+2026-10-23T15:45:18.3119572+02:00 | agent | request sequence=1792763118292 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:45:18.3748287+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:45:18.3768297+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:45:20.8384036+02:00 | agent | decision paste=False elapsedMs=2520
+2026-10-23T15:45:28.5495822+02:00 | agent | start pid=1412 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:45:28.5572004+02:00 | agent | winforms loaded
+2026-10-23T15:45:28.5583322+02:00 | agent | uiautomation loaded
+2026-10-23T15:45:28.5643267+02:00 | agent | adopting recent request sequence=1792763118292 ageMs=10270
+2026-10-23T15:45:28.5655654+02:00 | agent | waiting for requests
+2026-10-23T15:45:28.5753335+02:00 | agent | request sequence=1792763118292 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:45:28.6275257+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:45:28.6295926+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:45:31.1344130+02:00 | agent | decision paste=False elapsedMs=2554
+2026-10-23T15:45:31.1990677+02:00 | agent | request sequence=1792763128585 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:45:31.2050946+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:45:31.2061456+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:45:38.9272938+02:00 | agent | start pid=20460 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:45:38.9336379+02:00 | agent | winforms loaded
+2026-10-23T15:45:38.9347622+02:00 | agent | uiautomation loaded
+2026-10-23T15:45:38.9410568+02:00 | agent | adopting recent request sequence=1792763128585 ageMs=10353
+2026-10-23T15:45:38.9423666+02:00 | agent | waiting for requests
+2026-10-23T15:45:38.9507075+02:00 | agent | request sequence=1792763128585 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:45:39.0017288+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:45:39.0043105+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:45:42.0085015+02:00 | agent | decision paste=False elapsedMs=3052
+2026-10-23T15:46:48.1651009+02:00 | agent | start pid=38020 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T15:46:48.1741010+02:00 | agent | winforms loaded
+2026-10-23T15:46:48.1761035+02:00 | agent | uiautomation loaded
+2026-10-23T15:46:48.1946304+02:00 | agent | waiting for requests
+2026-10-23T15:46:48.3280763+02:00 | agent | request sequence=1792763208259 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:46:48.3950745+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:46:48.3970743+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:46:50.8350985+02:00 | agent | decision paste=False elapsedMs=2500
+2026-10-23T15:46:58.5213237+02:00 | agent | start pid=41696 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:46:58.5283304+02:00 | agent | winforms loaded
+2026-10-23T15:46:58.5295212+02:00 | agent | uiautomation loaded
+2026-10-23T15:46:58.5361286+02:00 | agent | adopting recent request sequence=1792763208259 ageMs=10274
+2026-10-23T15:46:58.5374513+02:00 | agent | waiting for requests
+2026-10-23T15:46:58.5456940+02:00 | agent | request sequence=1792763208259 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:46:58.5941949+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:46:58.5963220+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:47:01.1018823+02:00 | agent | decision paste=False elapsedMs=2551
+2026-10-23T15:47:01.1712986+02:00 | agent | request sequence=1792763218556 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:47:01.1769207+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:47:01.1781374+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:47:08.8879125+02:00 | agent | start pid=11400 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:47:08.8942379+02:00 | agent | winforms loaded
+2026-10-23T15:47:08.8954751+02:00 | agent | uiautomation loaded
+2026-10-23T15:47:08.9020343+02:00 | agent | adopting recent request sequence=1792763218556 ageMs=10343
+2026-10-23T15:47:08.9034155+02:00 | agent | waiting for requests
+2026-10-23T15:47:08.9115972+02:00 | agent | request sequence=1792763218556 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:47:08.9603813+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=28644 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:47:08.9625514+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:47:11.4934817+02:00 | agent | decision paste=False elapsedMs=2577
+2026-10-23T15:48:01.6426926+02:00 | agent | start pid=32300 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T15:48:01.6526857+02:00 | agent | winforms loaded
+2026-10-23T15:48:01.6536855+02:00 | agent | uiautomation loaded
+2026-10-23T15:48:01.6726931+02:00 | agent | waiting for requests
+2026-10-23T15:48:01.7494486+02:00 | agent | request sequence=1792763281731 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:48:01.8124933+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:48:01.8144935+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:48:04.2717008+02:00 | agent | decision paste=False elapsedMs=2516
+2026-10-23T15:48:11.9947189+02:00 | agent | start pid=39556 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:48:12.0024924+02:00 | agent | winforms loaded
+2026-10-23T15:48:12.0036273+02:00 | agent | uiautomation loaded
+2026-10-23T15:48:12.0097912+02:00 | agent | adopting recent request sequence=1792763281731 ageMs=10276
+2026-10-23T15:48:12.0110626+02:00 | agent | waiting for requests
+2026-10-23T15:48:12.0194948+02:00 | agent | request sequence=1792763281731 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:48:12.0689547+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:48:12.0713803+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:48:14.5719350+02:00 | agent | decision paste=False elapsedMs=2547
+2026-10-23T15:48:14.6397212+02:00 | agent | request sequence=1792763292025 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:48:14.6450154+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:48:14.6460451+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:48:22.3624185+02:00 | agent | start pid=15096 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:48:22.3694707+02:00 | agent | winforms loaded
+2026-10-23T15:48:22.3706286+02:00 | agent | uiautomation loaded
+2026-10-23T15:48:22.3767237+02:00 | agent | adopting recent request sequence=1792763292025 ageMs=10349
+2026-10-23T15:48:22.3781278+02:00 | agent | waiting for requests
+2026-10-23T15:48:22.3865962+02:00 | agent | request sequence=1792763292025 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T15:48:22.4353533+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T15:48:22.4374508+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T15:48:24.9005540+02:00 | agent | decision paste=False elapsedMs=2508
+2026-10-23T15:48:32.3203147+02:00 | agent | start pid=35972 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T15:48:32.3314655+02:00 | agent | winforms loaded
+2026-10-23T15:48:32.3340978+02:00 | agent | uiautomation loaded
+2026-10-23T15:48:32.3447969+02:00 | agent | waiting for requests
+2026-10-23T15:54:41.6304373+02:00 | agent | request sequence=1792763681593 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T15:54:41.6991860+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:54:41.7002114+02:00 | agent | decision paste=True elapsedMs=60
+2026-10-23T15:54:41.7540265+02:00 | agent | sendkeys sent
+2026-10-23T15:54:51.2477432+02:00 | agent | request sequence=1792763691184 emoji=[👍] targetCodes=[55357,56397]
+2026-10-23T15:54:51.2718085+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:54:51.2729714+02:00 | agent | decision paste=True elapsedMs=23
+2026-10-23T15:54:51.3155091+02:00 | agent | sendkeys sent
+2026-10-23T15:54:58.4380441+02:00 | agent | request sequence=1792763698397 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-23T15:54:58.4478652+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=38644 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:54:58.4488057+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-23T15:54:58.4905528+02:00 | agent | sendkeys sent
+2026-10-23T15:55:10.0796160+02:00 | agent | request sequence=1792763710036 emoji=[😄] targetCodes=[55357,56836]
+2026-10-23T15:55:10.0892947+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=38644 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:55:10.0902174+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-23T15:55:10.1417691+02:00 | agent | sendkeys sent
+2026-10-23T15:55:18.3885679+02:00 | agent | request sequence=1792763718325 emoji=[✅] targetCodes=[9989]
+2026-10-23T15:55:18.4242984+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=1624 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:55:18.4252770+02:00 | agent | decision paste=True elapsedMs=35
+2026-10-23T15:55:18.4571477+02:00 | agent | sendkeys sent
+2026-10-23T15:55:22.2648153+02:00 | agent | request sequence=1792763722222 emoji=[❌] targetCodes=[10060]
+2026-10-23T15:55:22.2742932+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=38644 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:55:22.2752428+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-23T15:55:22.3231361+02:00 | agent | sendkeys sent
+2026-10-23T15:55:43.4550908+02:00 | agent | request sequence=1792763743386 emoji=[ℹ️] targetCodes=[8505,65039]
+2026-10-23T15:55:43.4898752+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T15:55:43.4916691+02:00 | agent | decision paste=True elapsedMs=34
+2026-10-23T15:55:43.5330420+02:00 | agent | sendkeys sent
+2026-10-23T16:12:38.9625630+02:00 | agent | start pid=37896 host=powershell ps=5.1.19041.6456 edition=Desktop
+2026-10-23T16:12:38.9725635+02:00 | agent | winforms loaded
+2026-10-23T16:12:38.9745549+02:00 | agent | uiautomation loaded
+2026-10-23T16:12:38.9935640+02:00 | agent | waiting for requests
+2026-10-23T16:12:39.0628311+02:00 | agent | request sequence=1792764759053 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T16:12:39.1269821+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T16:12:39.1289825+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T16:12:41.5870377+02:00 | agent | decision paste=False elapsedMs=2518
+2026-10-23T16:12:49.3161282+02:00 | agent | start pid=7388 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T16:12:49.3231715+02:00 | agent | winforms loaded
+2026-10-23T16:12:49.3243201+02:00 | agent | uiautomation loaded
+2026-10-23T16:12:49.3304029+02:00 | agent | adopting recent request sequence=1792764759053 ageMs=10275
+2026-10-23T16:12:49.3318275+02:00 | agent | waiting for requests
+2026-10-23T16:12:49.3404096+02:00 | agent | request sequence=1792764759053 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T16:12:49.3889512+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T16:12:49.3912054+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T16:12:51.8971007+02:00 | agent | decision paste=False elapsedMs=2551
+2026-10-23T16:12:51.9695766+02:00 | agent | request sequence=1792764769346 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T16:12:51.9752574+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T16:12:51.9762936+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T16:12:59.6855900+02:00 | agent | start pid=22948 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T16:12:59.6922515+02:00 | agent | winforms loaded
+2026-10-23T16:12:59.6933839+02:00 | agent | uiautomation loaded
+2026-10-23T16:12:59.7003606+02:00 | agent | adopting recent request sequence=1792764769346 ageMs=10351
+2026-10-23T16:12:59.7018294+02:00 | agent | waiting for requests
+2026-10-23T16:12:59.7101393+02:00 | agent | request sequence=1792764769346 emoji=[🧪] targetCodes=[55358,56810]
+2026-10-23T16:12:59.7584239+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=False clipboardEmpty=False clipboardError=[]
+2026-10-23T16:12:59.7605102+02:00 | agent | mismatch clipboardCodes=[10084,65039] clipboardLength=2
+2026-10-23T16:13:02.2276247+02:00 | agent | decision paste=False elapsedMs=2512
+2026-10-23T16:13:09.5755517+02:00 | agent | start pid=35524 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T16:13:09.5871457+02:00 | agent | winforms loaded
+2026-10-23T16:13:09.5896202+02:00 | agent | uiautomation loaded
+2026-10-23T16:13:09.6005739+02:00 | agent | waiting for requests
+2026-10-23T17:02:37.1526021+02:00 | agent | request sequence=1792767757112 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T17:02:37.2418093+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T17:02:37.2427934+02:00 | agent | decision paste=True elapsedMs=79
+2026-10-23T17:02:37.2985022+02:00 | agent | sendkeys sent
+2026-10-23T17:04:09.6107602+02:00 | agent | request sequence=1792767849572 emoji=[💪] targetCodes=[55357,56490]
+2026-10-23T17:04:09.6212010+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=23416 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T17:04:09.6221410+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-23T17:04:09.6638457+02:00 | agent | sendkeys sent
+2026-10-23T17:05:28.7966325+02:00 | agent | request sequence=1792767928729 emoji=[👍] targetCodes=[55357,56397]
+2026-10-23T17:05:28.8162117+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T17:05:28.8175056+02:00 | agent | decision paste=True elapsedMs=19
+2026-10-23T17:05:28.8491846+02:00 | agent | sendkeys sent
+2026-10-23T17:05:37.4829620+02:00 | agent | request sequence=1792767937469 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-23T17:05:37.4993207+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=23416 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T17:05:37.5001937+02:00 | agent | decision paste=True elapsedMs=15
+2026-10-23T17:05:37.5354525+02:00 | agent | sendkeys sent
+2026-10-23T17:05:41.4671273+02:00 | agent | request sequence=1792767941448 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-23T17:05:41.4783580+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=23416 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T17:05:41.4793216+02:00 | agent | decision paste=True elapsedMs=10
+2026-10-23T17:05:41.5172264+02:00 | agent | sendkeys sent
+2026-10-23T17:18:07.4385455+02:00 | agent | request sequence=1792768687393 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-23T17:18:07.4500531+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=23416 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T17:18:07.4509551+02:00 | agent | decision paste=True elapsedMs=10
+2026-10-23T17:18:07.4883584+02:00 | agent | sendkeys sent
+2026-10-23T17:22:43.9749573+02:00 | agent | start pid=37192 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T17:22:43.9878648+02:00 | agent | winforms loaded
+2026-10-23T17:22:43.9904427+02:00 | agent | uiautomation loaded
+2026-10-23T17:22:44.0017648+02:00 | agent | waiting for requests
+2026-10-23T17:30:21.1737667+02:00 | agent | start pid=39680 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T17:30:21.1848338+02:00 | agent | winforms loaded
+2026-10-23T17:30:21.1872111+02:00 | agent | uiautomation loaded
+2026-10-23T17:30:21.1980480+02:00 | agent | waiting for requests
+2026-10-23T17:51:06.7141485+02:00 | agent | start pid=28436 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T17:51:06.7260761+02:00 | agent | winforms loaded
+2026-10-23T17:51:06.7286302+02:00 | agent | uiautomation loaded
+2026-10-23T17:51:06.7400185+02:00 | agent | waiting for requests
+2026-10-23T17:51:39.1458858+02:00 | agent | request sequence=1792770699105 emoji=[💪] targetCodes=[55357,56490]
+2026-10-23T17:51:39.2276190+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T17:51:39.2285895+02:00 | agent | decision paste=True elapsedMs=73
+2026-10-23T17:51:39.2896850+02:00 | agent | sendkeys sent
+2026-10-23T18:00:50.8271958+02:00 | agent | start pid=26956 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:00:50.8390237+02:00 | agent | winforms loaded
+2026-10-23T18:00:50.8413817+02:00 | agent | uiautomation loaded
+2026-10-23T18:00:50.8516330+02:00 | agent | waiting for requests
+2026-10-23T18:06:23.2590657+02:00 | agent | start pid=4160 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:06:23.2708343+02:00 | agent | winforms loaded
+2026-10-23T18:06:23.2731377+02:00 | agent | uiautomation loaded
+2026-10-23T18:06:23.2845254+02:00 | agent | waiting for requests
+2026-10-23T18:17:14.9288307+02:00 | agent | start pid=3176 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:17:14.9397839+02:00 | agent | winforms loaded
+2026-10-23T18:17:14.9423031+02:00 | agent | uiautomation loaded
+2026-10-23T18:17:14.9529483+02:00 | agent | waiting for requests
+2026-10-23T18:32:08.8775346+02:00 | agent | start pid=41900 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:32:08.8895419+02:00 | agent | winforms loaded
+2026-10-23T18:32:08.8919499+02:00 | agent | uiautomation loaded
+2026-10-23T18:32:08.9065733+02:00 | agent | waiting for requests
+2026-10-23T18:37:45.0569975+02:00 | agent | start pid=16536 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:37:45.0682049+02:00 | agent | winforms loaded
+2026-10-23T18:37:45.0706277+02:00 | agent | uiautomation loaded
+2026-10-23T18:37:45.0794101+02:00 | agent | waiting for requests
+2026-10-23T18:39:02.7487143+02:00 | agent | start pid=37544 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:39:02.7599629+02:00 | agent | winforms loaded
+2026-10-23T18:39:02.7624540+02:00 | agent | uiautomation loaded
+2026-10-23T18:39:02.7720904+02:00 | agent | waiting for requests
+2026-10-23T18:42:33.4456114+02:00 | agent | start pid=38408 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:42:33.4568131+02:00 | agent | winforms loaded
+2026-10-23T18:42:33.4592719+02:00 | agent | uiautomation loaded
+2026-10-23T18:42:33.4691330+02:00 | agent | waiting for requests
+2026-10-23T18:49:46.3138498+02:00 | agent | start pid=21484 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:49:46.3249531+02:00 | agent | winforms loaded
+2026-10-23T18:49:46.3273493+02:00 | agent | uiautomation loaded
+2026-10-23T18:49:46.3368659+02:00 | agent | waiting for requests
+2026-10-23T18:50:14.7470881+02:00 | agent | start pid=19764 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:50:14.7587376+02:00 | agent | winforms loaded
+2026-10-23T18:50:14.7613729+02:00 | agent | uiautomation loaded
+2026-10-23T18:50:14.7711453+02:00 | agent | waiting for requests
+2026-10-23T18:59:49.2068937+02:00 | agent | start pid=17624 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T18:59:49.2176846+02:00 | agent | winforms loaded
+2026-10-23T18:59:49.2198882+02:00 | agent | uiautomation loaded
+2026-10-23T18:59:49.2299681+02:00 | agent | waiting for requests
+2026-10-23T19:02:31.1459475+02:00 | agent | request sequence=1792774951083 emoji=[💪] targetCodes=[55357,56490]
+2026-10-23T19:02:31.2130808+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:02:31.2140205+02:00 | agent | decision paste=True elapsedMs=57
+2026-10-23T19:02:31.2678690+02:00 | agent | sendkeys sent
+2026-10-23T19:06:46.8803403+02:00 | agent | start pid=2512 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T19:06:46.8917351+02:00 | agent | winforms loaded
+2026-10-23T19:06:46.8939388+02:00 | agent | uiautomation loaded
+2026-10-23T19:06:46.9027333+02:00 | agent | waiting for requests
+2026-10-23T19:32:34.9751506+02:00 | agent | start pid=13548 host=pwsh ps=7.6.7 edition=Core
+2026-10-23T19:32:34.9872555+02:00 | agent | winforms loaded
+2026-10-23T19:32:34.9899885+02:00 | agent | uiautomation loaded
+2026-10-23T19:32:35.0020171+02:00 | agent | waiting for requests
+2026-10-23T19:37:29.0077717+02:00 | agent | request sequence=1792777048957 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T19:37:29.0905514+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:37:29.0915542+02:00 | agent | decision paste=True elapsedMs=74
+2026-10-23T19:37:29.1469680+02:00 | agent | sendkeys sent
+2026-10-23T19:37:53.7808451+02:00 | agent | request sequence=1792777073758 emoji=[👍] targetCodes=[55357,56397]
+2026-10-23T19:37:53.7989224+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:37:53.8004301+02:00 | agent | decision paste=True elapsedMs=17
+2026-10-23T19:37:53.8442634+02:00 | agent | sendkeys sent
+2026-10-23T19:37:58.7817928+02:00 | agent | request sequence=1792777078707 emoji=[💪] targetCodes=[55357,56490]
+2026-10-23T19:37:58.7923669+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:37:58.7933444+02:00 | agent | decision paste=True elapsedMs=10
+2026-10-23T19:37:58.8294151+02:00 | agent | sendkeys sent
+2026-10-23T19:38:11.2629474+02:00 | agent | request sequence=1792777091244 emoji=[✅] targetCodes=[9989]
+2026-10-23T19:38:11.2828779+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:38:11.2837401+02:00 | agent | decision paste=True elapsedMs=19
+2026-10-23T19:38:11.3287200+02:00 | agent | sendkeys sent
+2026-10-23T19:38:16.4508595+02:00 | agent | request sequence=1792777096410 emoji=[❌] targetCodes=[10060]
+2026-10-23T19:38:16.4611900+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:38:16.4621096+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-23T19:38:16.5043645+02:00 | agent | sendkeys sent
+2026-10-23T19:38:26.8725882+02:00 | agent | request sequence=1792777106858 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-23T19:38:26.8988907+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:38:26.8997541+02:00 | agent | decision paste=True elapsedMs=25
+2026-10-23T19:38:26.9446873+02:00 | agent | sendkeys sent
+2026-10-23T19:38:42.0139719+02:00 | agent | request sequence=1792777121973 emoji=[😄] targetCodes=[55357,56836]
+2026-10-23T19:38:42.0238408+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:38:42.0247083+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-23T19:38:42.0692940+02:00 | agent | sendkeys sent
+2026-10-23T19:38:55.3272065+02:00 | agent | request sequence=1792777135257 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T19:38:55.3406786+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:38:55.3415222+02:00 | agent | decision paste=True elapsedMs=13
+2026-10-23T19:38:55.3770279+02:00 | agent | sendkeys sent
+2026-10-23T19:38:58.7507774+02:00 | agent | request sequence=1792777138682 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T19:38:58.7680739+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=6952 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:38:58.7688819+02:00 | agent | decision paste=True elapsedMs=16
+2026-10-23T19:38:58.7996979+02:00 | agent | sendkeys sent
+2026-10-23T19:39:06.0453638+02:00 | agent | request sequence=1792777145996 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T19:39:06.0760502+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=1624 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:39:06.0780832+02:00 | agent | decision paste=True elapsedMs=30
+2026-10-23T19:39:06.1138282+02:00 | agent | sendkeys sent
+2026-10-23T19:52:59.6386131+02:00 | agent | request sequence=1792777979591 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-23T19:52:59.6503415+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T19:52:59.6511550+02:00 | agent | decision paste=True elapsedMs=11
+2026-10-23T19:52:59.6964969+02:00 | agent | sendkeys sent
+2026-10-23T21:05:17.3746051+02:00 | agent | request sequence=1792782317352 emoji=[🧰] targetCodes=[55358,56816]
+2026-10-23T21:05:17.3850232+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=2440 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-23T21:05:17.3858288+02:00 | agent | decision paste=True elapsedMs=9
+2026-10-23T21:05:17.4428650+02:00 | agent | sendkeys sent
+2026-10-24T09:21:34.3580825+02:00 | agent | start pid=10916 host=pwsh ps=7.6.7 edition=Core
+2026-10-24T09:21:34.3665014+02:00 | agent | winforms loaded
+2026-10-24T09:21:34.3677283+02:00 | agent | uiautomation loaded
+2026-10-24T09:21:34.3803690+02:00 | agent | waiting for requests
+2026-10-24T15:38:05.7449801+02:00 | agent | request sequence=1792849085713 emoji=[😄] targetCodes=[55357,56836]
+2026-10-24T15:38:05.8213535+02:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=1744 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-24T15:38:05.8223407+02:00 | agent | decision paste=True elapsedMs=72
+2026-10-24T15:38:05.8872221+02:00 | agent | sendkeys sent
+2026-10-25T09:21:25.5880901+01:00 | agent | start pid=3176 host=pwsh ps=7.6.8 edition=Core
+2026-10-25T09:21:25.6213846+01:00 | agent | winforms loaded
+2026-10-25T09:21:25.6264932+01:00 | agent | uiautomation loaded
+2026-10-25T09:21:25.6378345+01:00 | agent | waiting for requests
+2026-10-25T14:35:33.0394534+01:00 | agent | request sequence=1792935332973 emoji=[👍] targetCodes=[55357,56397]
+2026-10-25T14:35:33.2055752+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36100 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T14:35:33.2083943+01:00 | agent | decision paste=True elapsedMs=148
+2026-10-25T14:35:33.2668356+01:00 | agent | sendkeys sent
+2026-10-25T14:35:38.8860625+01:00 | agent | request sequence=1792935338878 emoji=[👍] targetCodes=[55357,56397]
+2026-10-25T14:35:38.9012921+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T14:35:38.9022794+01:00 | agent | decision paste=True elapsedMs=15
+2026-10-25T14:35:38.9406465+01:00 | agent | sendkeys sent
+2026-10-25T14:35:45.4968096+01:00 | agent | request sequence=1792935345438 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-25T14:35:45.5225377+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36100 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T14:35:45.5242597+01:00 | agent | decision paste=True elapsedMs=26
+2026-10-25T14:35:45.5657775+01:00 | agent | sendkeys sent
+2026-10-25T14:35:49.8108043+01:00 | agent | request sequence=1792935349793 emoji=[👍] targetCodes=[55357,56397]
+2026-10-25T14:35:49.8187610+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T14:35:49.8205739+01:00 | agent | decision paste=True elapsedMs=8
+2026-10-25T14:35:49.8631617+01:00 | agent | sendkeys sent
+2026-10-25T14:36:13.9813139+01:00 | agent | request sequence=1792935373944 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-25T14:36:13.9874153+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T14:36:13.9883533+01:00 | agent | decision paste=True elapsedMs=6
+2026-10-25T14:36:14.0506742+01:00 | agent | sendkeys sent
+2026-10-25T14:36:18.3553850+01:00 | agent | request sequence=1792935378344 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-25T14:36:18.3695235+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T14:36:18.3704099+01:00 | agent | decision paste=True elapsedMs=14
+2026-10-25T14:36:18.4148953+01:00 | agent | sendkeys sent
+2026-10-25T14:37:00.4785988+01:00 | agent | request sequence=1792935420473 emoji=[👍] targetCodes=[55357,56397]
+2026-10-25T14:37:00.4940547+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T14:37:00.4949905+01:00 | agent | decision paste=True elapsedMs=15
+2026-10-25T14:37:00.5573510+01:00 | agent | sendkeys sent
+2026-10-25T15:41:46.7322331+01:00 | agent | request sequence=1792939306689 emoji=[🙏] targetCodes=[55357,56911]
+2026-10-25T15:41:46.7414189+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T15:41:46.7422507+01:00 | agent | decision paste=True elapsedMs=9
+2026-10-25T15:41:46.7916727+01:00 | agent | sendkeys sent
+2026-10-25T16:49:17.5427507+01:00 | agent | request sequence=1792943357520 emoji=[✅] targetCodes=[9989]
+2026-10-25T16:49:17.5511926+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T16:49:17.5519608+01:00 | agent | decision paste=True elapsedMs=8
+2026-10-25T16:49:17.5955104+01:00 | agent | sendkeys sent
+2026-10-25T16:53:17.4638316+01:00 | agent | request sequence=1792943597415 emoji=[ℹ️] targetCodes=[8505,65039]
+2026-10-25T16:53:17.4704779+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T16:53:17.4712705+01:00 | agent | decision paste=True elapsedMs=6
+2026-10-25T16:53:17.5356307+01:00 | agent | sendkeys sent
+2026-10-25T16:53:20.9011112+01:00 | agent | request sequence=1792943600879 emoji=[✅] targetCodes=[9989]
+2026-10-25T16:53:20.9074373+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T16:53:20.9082035+01:00 | agent | decision paste=True elapsedMs=6
+2026-10-25T16:53:20.9389101+01:00 | agent | sendkeys sent
+2026-10-25T16:53:37.7471503+01:00 | agent | request sequence=1792943617688 emoji=[⏳] targetCodes=[9203]
+2026-10-25T16:53:37.7758501+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=36100 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T16:53:37.7766498+01:00 | agent | decision paste=True elapsedMs=28
+2026-10-25T16:53:37.8181909+01:00 | agent | sendkeys sent
+2026-10-25T16:54:52.9483360+01:00 | agent | request sequence=1792943692931 emoji=[ℹ️] targetCodes=[8505,65039]
+2026-10-25T16:54:52.9571748+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=31828 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-25T16:54:52.9579544+01:00 | agent | decision paste=True elapsedMs=8
+2026-10-25T16:54:52.9886103+01:00 | agent | sendkeys sent
+2026-10-26T08:52:13.8467666+01:00 | agent | start pid=10388 host=pwsh ps=7.6.8 edition=Core
+2026-10-26T08:52:13.8625140+01:00 | agent | winforms loaded
+2026-10-26T08:52:13.8661393+01:00 | agent | uiautomation loaded
+2026-10-26T08:52:13.8798727+01:00 | agent | waiting for requests
+2026-10-26T19:30:30.3811503+01:00 | agent | request sequence=1793039430356 emoji=[🧰] targetCodes=[55358,56816]
+2026-10-26T19:30:30.5173401+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=34752 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-26T19:30:30.5183999+01:00 | agent | decision paste=True elapsedMs=122
+2026-10-26T19:30:30.5736113+01:00 | agent | sendkeys sent
+2026-10-27T09:21:30.9129502+01:00 | agent | start pid=17816 host=pwsh ps=7.6.8 edition=Core
+2026-10-27T09:21:30.9364413+01:00 | agent | winforms loaded
+2026-10-27T09:21:30.9422094+01:00 | agent | uiautomation loaded
+2026-10-27T09:21:30.9595339+01:00 | agent | waiting for requests
+2026-10-27T14:34:18.9844724+01:00 | agent | request sequence=1793108058971 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-27T14:34:19.0435995+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T14:34:19.0445742+01:00 | agent | decision paste=True elapsedMs=53
+2026-10-27T14:34:19.1091472+01:00 | agent | sendkeys sent
+2026-10-27T14:34:21.6688352+01:00 | agent | request sequence=1793108061608 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-27T14:34:21.6923406+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=False focusedProcess=31604 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T14:34:21.6932963+01:00 | agent | decision paste=True elapsedMs=23
+2026-10-27T14:34:21.7393215+01:00 | agent | sendkeys sent
+2026-10-27T14:34:23.6223326+01:00 | agent | request sequence=1793108063604 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-27T14:34:23.6338714+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T14:34:23.6347349+01:00 | agent | decision paste=True elapsedMs=11
+2026-10-27T14:34:23.6897141+01:00 | agent | sendkeys sent
+2026-10-27T14:34:26.3092164+01:00 | agent | request sequence=1793108066276 emoji=[🌟] targetCodes=[55356,57119]
+2026-10-27T14:34:26.3146979+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T14:34:26.3155833+01:00 | agent | decision paste=True elapsedMs=5
+2026-10-27T14:34:26.3590431+01:00 | agent | sendkeys sent
+2026-10-27T14:34:31.6680589+01:00 | agent | request sequence=1793108071632 emoji=[👍] targetCodes=[55357,56397]
+2026-10-27T14:34:31.6745915+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T14:34:31.6754147+01:00 | agent | decision paste=True elapsedMs=6
+2026-10-27T14:34:31.7294670+01:00 | agent | sendkeys sent
+2026-10-27T14:34:33.2298751+01:00 | agent | request sequence=1793108073177 emoji=[👍] targetCodes=[55357,56397]
+2026-10-27T14:34:33.2354460+01:00 | agent | poll flowProcesses=1 flowVisible=False flowHasFocus=True focusedProcess=25436 clipboardMatches=True clipboardEmpty=False clipboardError=[]
+2026-10-27T14:34:33.2362695+01:00 | agent | decision paste=True elapsedMs=5
+2026-10-27T14:34:33.2671121+01:00 | agent | sendkeys sent
