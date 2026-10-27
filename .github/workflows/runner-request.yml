@@ -202,6 +202,54 @@ jobs:
             }
           }
 
+      # The exporter publishes the planner's log but not this job's, so the reports are pushed
+      # to a branch instead - the same mechanism the ci workflow uses, and the only route the
+      # sandbox can read (artifact downloads are blocked, `gh run view --log` follows a signed
+      # URL it cannot reach). Nothing secret is in these files: the paste agent logs process ids
+      # and window handles, never a window title.
+      - name: Publish the reports to the dogfood-reports branch
+        if: always()
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TERMINAL_PROMPT: 0
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          $reports = Join-Path (Split-Path (Get-Location).Path -Parent) 'dogfood-reports'
+          if (Test-Path $reports) { Remove-Item $reports -Recurse -Force }
+          New-Item -ItemType Directory -Path $reports | Out-Null
+          if (Test-Path 'dogfood') {
+            Copy-Item -Path 'dogfood\*' -Destination $reports -Recurse -Force
+          }
+
+          @(
+            "commit: $env:GITHUB_SHA",
+            "run: $env:GITHUB_RUN_ID",
+            "runner: $env:RUNNER_NAME",
+            "via: runner-request",
+            "when: $((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+          ) | Set-Content -Path (Join-Path $reports 'context.txt')
+
+          Push-Location $reports
+          try {
+            git init -q
+            git checkout -q -B dogfood-reports
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -A
+            git commit -q -m "dogfood: reports from $($env:GITHUB_SHA.Substring(0, 7)) (runner-request)"
+            $url = "https://x-access-token:$($env:GITHUB_TOKEN)@github.com/$($env:GITHUB_REPOSITORY).git"
+            $output = git -c credential.helper= push -f $url dogfood-reports 2>&1 | Out-String
+            $output = $output -replace [regex]::Escape($env:GITHUB_TOKEN), '***'
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "::error title=publish failed::$($output -replace '\r?\n', ' ')"
+            }
+          } finally {
+            Pop-Location
+          }
+          exit 0
+
       - name: Read the verdict
         if: always()
         run: npm run dogfood:check

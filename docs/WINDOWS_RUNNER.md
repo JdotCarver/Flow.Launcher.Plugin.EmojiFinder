@@ -9,6 +9,27 @@ GitHub's own instructions (Settings → Actions → Runners → New self-hosted 
 Windows) are correct. Follow them; this document only adds what they leave out, and what
 the agent needs.
 
+## Two ways to ask for a run
+
+| | How | When |
+|---|---|---|
+| **`ci` workflow** | put `[windows]` anywhere in a commit message | you want the machine kept current: it installs the build into Flow Launcher when `src/` changed |
+| **`runner-request` workflow** | `bash tools/github_actions_runner/request_run.sh local-windows "Job Name"` | you want one explicit verification run: no install, prints the checks' evidence into the log |
+
+The request bridge is a push-triggered workflow (`runner-request.yml`), because the harness
+token cannot call `gh workflow run`. It commits `.github/runner-request.toml`, which is the
+only path that starts it, so ordinary commits never queue a job on your PC. Logs are
+republished to the `actions-logs` branch (signed-URL downloads are blocked in the sandbox) and
+read back with `fetch_logs.sh RUN_ID`.
+
+Its workload is this repository's verification - lint, tests, build, the paste agent and the
+ranking checks for real - and it is **not** the other project's: `tools/perf/*.py` and
+`tests/test_*.py` do not exist here, and the job fails immediately if they are asked for.
+
+The session runner registers with the label `arena-session`, which is what the request bridge
+asks for; the older `flowlauncher` label is what `ci.yml` asks for. A job that stays queued
+means the label it wants is not on a running runner, not that the code is broken.
+
 ## Setup, in order
 
 1. **Create the folder under the drive root**, as GitHub says:
