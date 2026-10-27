@@ -1,0 +1,34 @@
+{
+  "capture_note": "Status is captured while Export logs is still in progress; use the final workflow conclusion for that job's result.",
+  "conclusion": null,
+  "event": "push",
+  "head_branch": "arena/cdf6971a-flow-launcher-plugin-emojifind",
+  "head_sha": "c04c96e30e9c72ccc650098263da501d9e3ba09d",
+  "id": 40512136118,
+  "jobs": [
+    {
+      "conclusion": "success",
+      "id": 122216507883,
+      "name": "Select runner",
+      "status": "completed",
+      "url": "https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder/actions/runs/40512136118/job/122216507883"
+    },
+    {
+      "conclusion": null,
+      "id": 122216578893,
+      "name": "Emoji Finder verification",
+      "status": "in_progress",
+      "url": "https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder/actions/runs/40512136118/job/122216578893"
+    },
+    {
+      "conclusion": null,
+      "id": 122217471395,
+      "name": "Export logs",
+      "status": "queued",
+      "url": "https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder/actions/runs/40512136118/job/122217471395"
+    }
+  ],
+  "name": "Runner request",
+  "status": "queued",
+  "url": "https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder/actions/runs/40512136118"
+}
