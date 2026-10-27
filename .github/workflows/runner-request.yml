@@ -149,10 +149,18 @@ jobs:
         run: npm run diagnose
         continue-on-error: true
 
-      # continue-on-error on purpose: the doctor reports on the *installed* copy, so a machine
-      # that has not installed this build yet is not a regression in this commit. Installing is
-      # the ci workflow's job, not this one's.
-      - name: Installation doctor
+      # This machine is also the dogfooding machine. A verification run that leaves the old build
+      # installed verifies the wrong thing the next time the user presses Enter - which is
+      # exactly what happened here: the doctor found an agent script from 2026-10-23 on disk
+      # while the build under test was new. The installer stops and restarts the agent, so the
+      # running process picks up the script this commit generates.
+      - name: Install into Flow Launcher
+        run: npm run package -- --install
+        continue-on-error: true
+
+      # continue-on-error on purpose: it reports on the *installed* copy, and an installation
+      # that failed for reasons of its own is reported rather than made the workload's verdict.
+      - name: Installation doctor (after install)
         run: npm run doctor
         continue-on-error: true
 
@@ -188,17 +196,18 @@ jobs:
             }
             Write-Host "--- $report ---"
             $json = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
-            if ($report -eq 'paste-agent-check.json') {
-              foreach ($hostResult in $json.results) {
-                Write-Host ("host: {0}" -f $hostResult.host)
-                foreach ($finding in $hostResult.findings) {
-                  Write-Host ("  {0} {1}" -f $(if ($finding.ok) { 'ok  ' } else { 'FAIL' }), $finding.label)
-                }
-              }
+            # Two report shapes: the paste check says ok=<bool>, the ranking check says
+            # kind=pass/fail. Printing either with the wrong field name reports 22 passing
+            # findings as failures, which is what the first version of this step did.
+            $findings = if ($report -eq 'paste-agent-check.json') {
+              foreach ($hostResult in $json.results) { $hostResult.findings }
             } else {
-              $json.PSObject.Properties | Where-Object { $_.Name -ne 'measurements' } | ForEach-Object {
-                Write-Host ("{0}: {1}" -f $_.Name, ($_.Value | Out-String).Trim())
-              }
+              $json.findings
+            }
+            foreach ($finding in $findings) {
+              $passed = if ($null -ne $finding.ok) { [bool]$finding.ok } else { $finding.kind -eq 'pass' }
+              $detail = if ($finding.detail) { " - $($finding.detail)" } elseif ($finding.message) { " - $($finding.message)" } else { '' }
+              Write-Host ("  {0} {1}{2}" -f $(if ($passed) { 'ok  ' } else { 'FAIL' }), $finding.label, $detail)
             }
           }
 
