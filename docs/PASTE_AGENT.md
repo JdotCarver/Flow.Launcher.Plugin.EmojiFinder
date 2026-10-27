@@ -210,8 +210,14 @@ paste.
   provides `--status` / `--stop` / `--start` for humans and for CI.
 - `tools/check-paste-agent.mjs` starts (or reuses) the agent, writes a request, and checks
   that it (a) publishes a heartbeat, (b) sees the request, (c) refuses to paste while the
-  clipboard does not match, (d) survives the request, (e) can be stopped. That much is
-  testable on the Windows runner without a human in front of the screen.
+  clipboard does not match, (d) refuses to paste while Flow holds focus even with the right
+  emoji on the clipboard, (e) survives the request, (f) can be stopped. That much is testable
+  on the Windows runner without a human in front of the screen.
+
+  It writes its own sentinel text to the clipboard before the cases run instead of reading the
+  clipboard to find an emoji that is not on it. The read was the fragile part: on a real machine
+  `Get-Clipboard` sat until its ten-second timeout and the whole check died before proving
+  anything.
 - Tests: script generation, request file format, sequence handling, heartbeat freshness, and
   the "agent missing" path - all pure functions, runnable on Linux.
 

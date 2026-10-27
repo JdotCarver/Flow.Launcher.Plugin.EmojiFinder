@@ -127,39 +127,75 @@ function availableHosts () {
   return hosts;
 }
 
-/** An emoji that is not on the clipboard, so a bug cannot paste into a runner window. */
-function chooseEmojiNotOnClipboard () {
-  const candidates = ['🧪', '🫧', '🛠️', '🧭'];
-  const clipboard = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Get-Clipboard'], {
+/**
+ * The emoji every case uses.
+ *
+ * Fixed, because the check no longer guesses: it puts its own sentinel text on the clipboard
+ * first, so "not already on the clipboard" is a fact rather than a race. Reading the clipboard
+ * to find an unused emoji is what broke this check on a real machine - `Get-Clipboard` sat
+ * there until the ten-second timeout, and the run died before it proved anything.
+ */
+const EMOJI = '🧪';
+
+/** Written to the clipboard before the cases run, so a paste can only produce nonsense. */
+const CLIPBOARD_SENTINEL = 'paste-agent-check';
+
+/**
+ * Cold PowerShell on a machine that is doing something else. The old ten seconds was a
+ * measurement of how quiet the machine was, not of whether the clipboard works.
+ */
+const CLIPBOARD_TIMEOUT_MILLISECONDS = 45000;
+
+/** One retry, because the clipboard is shared and can be briefly owned by another process. */
+const CLIPBOARD_ATTEMPTS = 2;
+
+/** Runs one PowerShell command and returns its stdout, or throws. */
+function runPowerShell (command) {
+  return execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', command], {
     encoding: 'utf8',
-    timeout: 10000
-  }).trim();
-
-  return candidates.find((candidate) => candidate !== clipboard) ?? candidates[0];
+    timeout: CLIPBOARD_TIMEOUT_MILLISECONDS,
+    stdio: ['ignore', 'pipe', 'ignore']
+  });
 }
 
-/** What the clipboard holds right now, so a check can put it back afterwards. */
+/**
+ * What the clipboard holds right now, or null when it cannot be read.
+ *
+ * Null is not a failure: the point of reading it at all is to put it back afterwards.
+ */
 function readClipboard () {
-  try {
-    return execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Get-Clipboard -Raw'], {
-      encoding: 'utf8',
-      timeout: 10000
-    });
-  } catch {
-    return '';
+  for (let attempt = 1; attempt <= CLIPBOARD_ATTEMPTS; attempt++) {
+    try {
+      return runPowerShell('Get-Clipboard -Raw');
+    } catch {
+      // Retry once; the clipboard can be held open by another process for a moment.
+    }
   }
+
+  return null;
 }
 
-/** Puts text on the clipboard without it being interpreted as a script fragment. */
+/**
+ * Puts text on the clipboard, unchanged and uninterpreted.
+ *
+ * The text travels as base64 so no emoji, quote or newline in it can be read as part of the
+ * script.
+ */
 function writeClipboard (text) {
   const base64 = Buffer.from(text, 'utf8').toString('base64');
+  const command = `[System.Windows.Forms.Clipboard]::SetText([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64}')))`;
 
-  execFileSync('powershell.exe', [
-    '-NoProfile',
-    '-NonInteractive',
-    '-Command',
-    `[System.Windows.Forms.Clipboard]::SetText([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64}')))`
-  ], { encoding: 'utf8', timeout: 10000 });
+  for (let attempt = 1; attempt <= CLIPBOARD_ATTEMPTS; attempt++) {
+    try {
+      runPowerShell(command);
+
+      return true;
+    } catch {
+      // Retry once, then report the failure to the caller instead of throwing.
+    }
+  }
+
+  return false;
 }
 
 /** The UTF-16 code units a text editor would show, which is what the agent logs. */
@@ -373,7 +409,9 @@ async function checkFocusGate (emoji) {
     // Everything below runs even when an assertion above failed: leaving the wildcard in place
     // would make every later paste in this run refuse, and leaving the emoji on the clipboard
     // would change what the user finds there.
-    writeClipboard(clipboardBefore);
+    if (clipboardBefore !== null) {
+      writeClipboard(clipboardBefore);
+    }
     delete process.env[FLOW_PROCESS_NAME_VARIABLE];
     ensureAgentScript(paths);
     fs.rmSync(startupLog, { force: true });
@@ -421,9 +459,36 @@ async function checkLauncher () {
 async function checkOnWindows () {
   fs.mkdirSync(DOGFOOD_DIRECTORY, { recursive: true });
 
-  const emoji = chooseEmojiNotOnClipboard();
+  const emoji = EMOJI;
   const hosts = availableHosts();
   const results = [];
+
+  // The clipboard is prepared, not interrogated: the cases below only need to know that it does
+  // *not* hold the emoji, and a sentinel this check writes answers that for certain. Reading it
+  // first is best effort - an unreadable clipboard costs the restore and nothing else.
+  const clipboardBefore = readClipboard();
+  const prepared = writeClipboard(CLIPBOARD_SENTINEL);
+
+  if (!prepared) {
+    // Without this, a paste that should have been refused could land in whichever window has
+    // focus. Refusing to run is the only safe answer, and it is a finding, not a crash.
+    return {
+      generatedAt: new Date().toISOString(),
+      platform: process.platform,
+      emoji,
+      hosts,
+      dataFolder: AGENT_DIRECTORY,
+      results: [{
+        host: 'check',
+        findings: [{
+          label: 'the check can put a known text on the clipboard',
+          ok: false,
+          detail: `the clipboard did not accept the write after ${CLIPBOARD_ATTEMPTS} attempts; nothing was run, because a paste could not be confined`
+        }],
+        logTail: []
+      }]
+    };
+  }
 
   try {
     for (const host of hosts) {
@@ -433,6 +498,10 @@ async function checkOnWindows () {
     results.push(await checkFocusGate(emoji));
     results.push(await checkLauncher());
   } finally {
+    if (clipboardBefore !== null) {
+      writeClipboard(clipboardBefore);
+    }
+
     // The user's agent and its files were never touched, so there is nothing to restore. Only
     // the evidence is copied out, by diagnose, before this folder goes.
     fs.rmSync(AGENT_DIRECTORY, { recursive: true, force: true });
