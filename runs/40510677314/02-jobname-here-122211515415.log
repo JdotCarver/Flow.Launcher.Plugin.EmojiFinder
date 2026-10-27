@@ -1,0 +1,148 @@
+﻿2026-10-27T13:17:16.6070595Z Current runner version: '2.338.2'
+2026-10-27T13:17:16.6075477Z Runner name: 'DESKTOP-SK3RC8N-session'
+2026-10-27T13:17:16.6075871Z Runner group name: 'Default'
+2026-10-27T13:17:16.6076338Z Machine name: 'DESKTOP-SK3RC8N'
+2026-10-27T13:17:16.6078792Z ##[group]GITHUB_TOKEN Permissions
+2026-10-27T13:17:16.6080031Z Contents: write
+2026-10-27T13:17:16.6080334Z Metadata: read
+2026-10-27T13:17:16.6080599Z ##[endgroup]
+2026-10-27T13:17:16.6081629Z Secret source: Actions
+2026-10-27T13:17:16.6082081Z Cache mode: write
+2026-10-27T13:17:16.6082414Z Prepare workflow directory
+2026-10-27T13:17:16.6304047Z Prepare all required actions
+2026-10-27T13:17:16.6329265Z Getting action download info
+2026-10-27T13:17:17.2814213Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-27T13:17:18.0630727Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-10-27T13:17:19.1148913Z Complete job name: jobname here
+2026-10-27T13:17:19.1799648Z ##[group]Run actions/checkout@v4
+2026-10-27T13:17:19.1800539Z with:
+2026-10-27T13:17:19.1800902Z   fetch-depth: 0
+2026-10-27T13:17:19.1801386Z   repository: JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:17:19.1805191Z   token: ***
+2026-10-27T13:17:19.1805574Z   ssh-strict: true
+2026-10-27T13:17:19.1805943Z   ssh-user: git
+2026-10-27T13:17:19.1806319Z   persist-credentials: true
+2026-10-27T13:17:19.1806820Z   clean: true
+2026-10-27T13:17:19.1807229Z   sparse-checkout-cone-mode: true
+2026-10-27T13:17:19.1807674Z   fetch-tags: false
+2026-10-27T13:17:19.1808063Z   show-progress: true
+2026-10-27T13:17:19.1808455Z   lfs: false
+2026-10-27T13:17:19.1808810Z   submodules: false
+2026-10-27T13:17:19.1809207Z   set-safe-directory: true
+2026-10-27T13:17:19.1809640Z   allow-unsafe-pr-checkout: false
+2026-10-27T13:17:19.1810240Z ##[endgroup]
+2026-10-27T13:17:19.6403590Z Syncing repository: JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:17:19.6404545Z ##[group]Getting Git version info
+2026-10-27T13:17:19.6405095Z Working directory is 'C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\Flow.Launcher.Plugin.EmojiFinder\Flow.Launcher.Plugin.EmojiFinder'
+2026-10-27T13:17:19.6637303Z [command]"C:\Program Files\Git\cmd\git.exe" version
+2026-10-27T13:17:19.6807436Z git version 2.53.0.windows.1
+2026-10-27T13:17:19.6832165Z ##[endgroup]
+2026-10-27T13:17:19.6841434Z Copying 'C:\Users\<user>\.gitconfig' to 'C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\_temp\6d9c3704-893b-4be8-b2ff-55cfeaff6d2c\.gitconfig'
+2026-10-27T13:17:19.6852727Z Temporarily overriding HOME='C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\_temp\6d9c3704-893b-4be8-b2ff-55cfeaff6d2c' before making global git config changes
+2026-10-27T13:17:19.6853716Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-27T13:17:19.6860393Z [command]"C:\Program Files\Git\cmd\git.exe" config --global --add safe.directory C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\Flow.Launcher.Plugin.EmojiFinder\Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:17:19.7055181Z Deleting the contents of 'C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\Flow.Launcher.Plugin.EmojiFinder\Flow.Launcher.Plugin.EmojiFinder'
+2026-10-27T13:17:19.7059499Z ##[group]Initializing the repository
+2026-10-27T13:17:19.7066627Z [command]"C:\Program Files\Git\cmd\git.exe" init C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\Flow.Launcher.Plugin.EmojiFinder\Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:17:19.7376243Z Initialized empty Git repository in C:/actions-runners/JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session/_work/Flow.Launcher.Plugin.EmojiFinder/Flow.Launcher.Plugin.EmojiFinder/.git/
+2026-10-27T13:17:19.7407533Z [command]"C:\Program Files\Git\cmd\git.exe" remote add origin https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:17:19.7629559Z ##[endgroup]
+2026-10-27T13:17:19.7630124Z ##[group]Disabling automatic garbage collection
+2026-10-27T13:17:19.7636140Z [command]"C:\Program Files\Git\cmd\git.exe" config --local gc.auto 0
+2026-10-27T13:17:19.7822847Z ##[endgroup]
+2026-10-27T13:17:19.7823141Z ##[group]Setting up auth
+2026-10-27T13:17:19.7831992Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-27T13:17:19.8026769Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-27T13:17:20.1346452Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-27T13:17:20.1551569Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-27T13:17:20.4720533Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-27T13:17:20.4917208Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-27T13:17:20.8058776Z [command]"C:\Program Files\Git\cmd\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-10-27T13:17:20.8297547Z ##[endgroup]
+2026-10-27T13:17:20.8297840Z ##[group]Fetching the repository
+2026-10-27T13:17:20.8307282Z [command]"C:\Program Files\Git\cmd\git.exe" -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-10-27T13:17:22.4815451Z From https://github.com/JdotCarver/Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:17:22.4816171Z  * [new branch]      arena/cdf6971a-flow-launcher-plugin-emojifind -> origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:17:22.4816950Z  * [new branch]      branch          -> origin/branch
+2026-10-27T13:17:22.4817191Z  * [new branch]      dogfood-reports -> origin/dogfood-reports
+2026-10-27T13:17:22.4817409Z  * [new branch]      main            -> origin/main
+2026-10-27T13:17:22.4817604Z  * [new tag]         v0.0.1          -> v0.0.1
+2026-10-27T13:17:22.4817779Z  * [new tag]         v0.0.2          -> v0.0.2
+2026-10-27T13:17:22.4817956Z  * [new tag]         v0.0.3          -> v0.0.3
+2026-10-27T13:17:22.4818149Z  * [new tag]         v1.0.0          -> v1.0.0
+2026-10-27T13:17:22.4818324Z  * [new tag]         v1.1.0          -> v1.1.0
+2026-10-27T13:17:22.4818493Z  * [new tag]         v1.2.0          -> v1.2.0
+2026-10-27T13:17:22.5069794Z [command]"C:\Program Files\Git\cmd\git.exe" branch --list --remote origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:17:22.5244551Z   origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:17:22.5271832Z [command]"C:\Program Files\Git\cmd\git.exe" rev-parse refs/remotes/origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:17:22.5445789Z 5b6731af1413dd59103c61f9527917772f7bfcbe
+2026-10-27T13:17:22.5466333Z ##[endgroup]
+2026-10-27T13:17:22.5466575Z ##[group]Determining the checkout info
+2026-10-27T13:17:22.5466962Z ##[endgroup]
+2026-10-27T13:17:22.5474422Z [command]"C:\Program Files\Git\cmd\git.exe" sparse-checkout disable
+2026-10-27T13:17:22.5711640Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-10-27T13:17:22.5912645Z ##[group]Checking out the ref
+2026-10-27T13:17:22.5919321Z [command]"C:\Program Files\Git\cmd\git.exe" checkout --progress --force -B arena/cdf6971a-flow-launcher-plugin-emojifind refs/remotes/origin/arena/cdf6971a-flow-launcher-plugin-emojifind
+2026-10-27T13:17:23.6203479Z Updating files:  92% (3568/3862)
+2026-10-27T13:17:23.6316453Z Updating files:  93% (3592/3862)
+2026-10-27T13:17:23.6428216Z Updating files:  94% (3631/3862)
+2026-10-27T13:17:23.6547952Z Updating files:  95% (3669/3862)
+2026-10-27T13:17:23.6669864Z Updating files:  96% (3708/3862)
+2026-10-27T13:17:23.6791946Z Updating files:  97% (3747/3862)
+2026-10-27T13:17:23.6944906Z Updating files:  98% (3785/3862)
+2026-10-27T13:17:23.7065068Z Updating files:  99% (3824/3862)
+2026-10-27T13:17:23.7065250Z Updating files: 100% (3862/3862)
+2026-10-27T13:17:23.7065410Z Updating files: 100% (3862/3862), done.
+2026-10-27T13:17:23.7160320Z Switched to a new branch 'arena/cdf6971a-flow-launcher-plugin-emojifind'
+2026-10-27T13:17:23.7181842Z branch 'arena/cdf6971a-flow-launcher-plugin-emojifind' set up to track 'origin/arena/cdf6971a-flow-launcher-plugin-emojifind'.
+2026-10-27T13:17:23.7213136Z ##[endgroup]
+2026-10-27T13:17:23.7420010Z [command]"C:\Program Files\Git\cmd\git.exe" log -1 --format=%H
+2026-10-27T13:17:23.7587241Z 5b6731af1413dd59103c61f9527917772f7bfcbe
+2026-10-27T13:17:23.7840068Z ##[group]Run $resolved = $null
+2026-10-27T13:17:23.7840288Z $resolved = $null
+2026-10-27T13:17:23.7840459Z foreach ($candidate in @('py', 'python', 'python3')) {
+2026-10-27T13:17:23.7840684Z   $command = Get-Command $candidate -ErrorAction SilentlyContinue
+2026-10-27T13:17:23.7840884Z   if (-not $command) { continue }
+2026-10-27T13:17:23.7841088Z   $executable = & $command.Source -c "import sys; print(sys.executable)" 2>$null
+2026-10-27T13:17:23.7841316Z   if ($LASTEXITCODE -eq 0 -and $executable) {
+2026-10-27T13:17:23.7841472Z     $resolved = "$executable".Trim()
+2026-10-27T13:17:23.7841607Z     break
+2026-10-27T13:17:23.7841706Z   }
+2026-10-27T13:17:23.7841795Z }
+2026-10-27T13:17:23.7841947Z if (-not $resolved) { throw "No usable Python found on this runner." }
+2026-10-27T13:17:23.7842226Z "PYTHON=$resolved" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+2026-10-27T13:17:23.7842436Z & $resolved --version
+2026-10-27T13:17:23.7847191Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:17:23.7847374Z ##[endgroup]
+2026-10-27T13:17:24.0014207Z Python 3.13.14
+2026-10-27T13:17:24.0563758Z ##[group]Run # Family and architecture only: the exact build is a finding aid for
+2026-10-27T13:17:24.0564085Z # Family and architecture only: the exact build is a finding aid for
+2026-10-27T13:17:24.0564322Z # an attacker, and these logs are public. See tools/machine_label.py.
+2026-10-27T13:17:24.0564783Z & $env:PYTHON -c "import sqlite3, sys; sys.path.insert(0, 'tools'); from machine_label import describe_machine; print('python', sys.version.split()[0], '| sqlite', sqlite3.sqlite_version, '|', describe_machine())"
+2026-10-27T13:17:24.0567436Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-27T13:17:24.0567634Z env:
+2026-10-27T13:17:24.0567784Z   PYTHON: C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe
+2026-10-27T13:17:24.0567991Z ##[endgroup]
+2026-10-27T13:17:24.2266660Z Traceback (most recent call last):
+2026-10-27T13:17:24.2284329Z   File "<string>", line 1, in <module>
+2026-10-27T13:17:24.2284866Z     import sqlite3, sys; sys.path.insert(0, 'tools'); from machine_label import describe_machine; print('python', sys.version.split()[0], '| sqlite', sqlite3.sqlite_version, '|', describe_machine())
+2026-10-27T13:17:24.2285321Z                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-27T13:17:24.2285550Z ModuleNotFoundError: No module named 'machine_label'
+2026-10-27T13:17:24.2840696Z ##[error]Process completed with exit code 1.
+2026-10-27T13:17:24.2999027Z Post job cleanup.
+2026-10-27T13:17:24.3824548Z [command]"C:\Program Files\Git\cmd\git.exe" version
+2026-10-27T13:17:24.4000103Z git version 2.53.0.windows.1
+2026-10-27T13:17:24.4033573Z Copying 'C:\Users\<user>\.gitconfig' to 'C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\_temp\a4c2748c-5434-44b8-993c-d2586bc1c752\.gitconfig'
+2026-10-27T13:17:24.4047696Z Temporarily overriding HOME='C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\_temp\a4c2748c-5434-44b8-993c-d2586bc1c752' before making global git config changes
+2026-10-27T13:17:24.4048621Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-27T13:17:24.4055562Z [command]"C:\Program Files\Git\cmd\git.exe" config --global --add safe.directory C:\actions-runners\JdotCarver-Flow.Launcher.Plugin.EmojiFinder-session\_work\Flow.Launcher.Plugin.EmojiFinder\Flow.Launcher.Plugin.EmojiFinder
+2026-10-27T13:17:24.4258326Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-27T13:17:24.4458009Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-27T13:17:24.7618639Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-27T13:17:24.7791427Z http.https://github.com/.extraheader
+2026-10-27T13:17:24.7819147Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --unset-all http.https://github.com/.extraheader
+2026-10-27T13:17:24.8022474Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-27T13:17:25.1264103Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-27T13:17:25.1455145Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-27T13:17:25.4748499Z Cleaning up orphan processes
+2026-10-27T13:17:25.4837195Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
