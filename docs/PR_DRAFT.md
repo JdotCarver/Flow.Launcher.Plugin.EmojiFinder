@@ -6,26 +6,16 @@ Paste the body below into the PR description. Everything in <angle brackets> or 
 "Showcase placeholder" block is for you to replace or delete.
 -->
 
-# Paste to Cursor, Custom emoji Aliases, and a much cheaper query
+# Paste to Cursor, Custom emoji Aliases, Frecency and a much cheaper query
 
-This PR keeps everything the plugin already does — type <kbd>E</kbd>, search, press Enter, emoji
-on the clipboard — and adds the things it could not do before:
+I am happy to announce that this PR adds three things Emoji Finder could not do before while also cutting the cost of a keystroke down. 
+We have :
+- The ability to insert the emoji directly at the cursor's position
+- The ability to set custom words for the emojis to match with
+- A highly relevant "most used" page upon opening the extension
+- The payload is **now 98 % smaller** and a query is now more than **60% faster.**
+Everything below is measured, on both a VM and my own dev machine, with the measurement scripts shipped in the repository.
 
-- **paste the emoji where your cursor is**, instead of leaving you to press <kbd>Ctrl</kbd>+<kbd>V</kbd>;
-- **aliases**, so an emoji answers to the words *you* use for it;
-- **your own emoji first** on an empty query, because a picker you use daily should remember what
-  you pick.
-
-It also cuts the cost of a keystroke hard: the result payload is **98 % smaller** and a query now
-costs a third of what it did. Everything below is measured, on a real machine, with the scripts
-that take the measurements shipped in the repository.
-
-> [!NOTE]
-> **The action keyword is read, never assumed.** <kbd>E</kbd> is only the default: it can be
-> changed in Flow's settings like any other plugin's, so every command the plugin shows or copies
-> quotes the keyword this installation actually answers to (`readActionKeyword`). Portable Flow
-> Launcher installs are supported the same way, since nothing here looks at where Flow Launcher
-> lives.
 
 ---
 
@@ -125,10 +115,9 @@ and the file is small enough that reading it on every keystroke stays free.
 > order visibly changes.
 > Replace this block with `![Your own emoji first](docs/media/frecency.gif)`.
 
-## The query path costs a third of what it did
+## 🧰 Benchmarks
 
 Flow starts a fresh `node` process for every keystroke, so everything is measured per process.
-Bold is the new number; the factor is `before ÷ after`.
 
 | Measurement | Before | After | Faster by |
 |---|---|---|---|
@@ -142,8 +131,6 @@ Bold is the new number; the factor is `before ÷ after`.
 | No match, end to end | 75.6 ms | **49.9 ms** | **1.52×** |
 | `find()` — empty query | 12.47 ms | **1.57 ms** | **7.9×** |
 | `find()` — `a` | 10.54 ms | **1.40 ms** | **7.5×** |
-| `find()` — `face` | 3.10 ms | **0.21 ms** | **14.8×** |
-| `find()` — `smile` | 2.28 ms | **0.14 ms** | **16.3×** |
 | `find()` — `red heart` | 2.17 ms | **0.13 ms** | **16.7×** |
 | Copy action | a second node process plus a PowerShell spawn | **~0 ms**, done by Flow in-process | **instant** |
 
@@ -169,36 +156,13 @@ Paste Mode changes what Enter does, which is wrong for the occasional emoji you 
 clipboard only. The context menu now has **Copy only**: the same emoji, without the
 <kbd>Ctrl</kbd>+<kbd>V</kbd>, still recorded as a pick.
 
----
-
-## Things we fixed along the way
-
-- **Emoji in the context menu were mojibake.** Flow reads a plugin's stdout with the console code
-  page rather than UTF-8, so everything printed is now ASCII JSON (`\ud83d\udcaa`), which any code
-  page carries and JSON decodes back to the emoji.
-- **The right-arrow menu can hand over the whole command.** **Add an alias for this emoji** copies
-  the finished command, caret-ready, so the same keystrokes work whether you type them or let the
-  menu do it.
-- **“Open my aliases file” opens it.** The file is created if this is the first time — with its
-  `_HowToUse`, `_Note` and `_examplealias` entries — and opened with the program associated with
-  JSON.
-- **Settings live in the folder Flow reads.** Flow names a non-.NET plugin's settings folder after
-  the plugin (`Emoji Finder`), and the name now comes from `plugin.json`.
-- **The data files say whose they are:** `user-aliases.json` and `user-frecency.json`.
-- **A dropdown shows the value it stores.** The Enter Mode options are `Copy Mode` / `Paste Mode`,
-  and both spellings are understood.
-- **An empty query shows your emoji only**, instead of mixing the whole emoji table into your list.
 
 ---
 
-## Testing
+## Tests
 
 > [!NOTE]
-> **Where this was tested.** A real Windows 11 machine, with the plugin installed into Flow Launcher
-> 2.1.4 and driven by hand, plus a self-hosted GitHub Actions runner on that same machine so the
-> Windows-only paths run on every push. PowerShell matters here, so the matrix is pinned: the paste
-> agent is proven under **both** `powershell.exe` 5.1 and `pwsh` 7, and the `wscript` launcher
-> separately.
+> I ran tests on my Windows 10 machine, with Flow Launcher 2.1.4 in Installed mode
 
 | Check | Result |
 |---|---|
@@ -217,18 +181,6 @@ The tests are behavioural: the query path never writes and actions always do, `f
 ordering properties across the whole emoji corpus, stdout is ASCII-only, every printed command uses
 the installation's own keyword, and the context menu's entries are asserted as an ordered list.
 
----
-
-## Reviewing this
-
-The core of the change is small: `src/utils/find.ts` (search), `src/utils/pluginData.ts` (the two
-files and the keyword), `src/actions/` (query, copy, paste, aliases) and
-`src/utils/pasteAgent.ts` (the agent script is generated from a template string, so it reviews as
-text). The rest is tooling under `tools/` and the documents under `docs/` that record the
-measurements.
-
-Happy to split this into smaller PRs — paste, aliases/frecency, and performance — if that is easier
-to review.
 
 *Thank you for your consideration.*
 
