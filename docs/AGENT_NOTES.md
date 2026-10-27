@@ -72,9 +72,17 @@ Working notes for the Arena agent. Keep this short and useful; delete anything s
   JSON and Node could not parse it. Write reports to a file instead.
 - Tracing: `src/utils/trace.ts` writes JSONL only when `trace.on` sits next to
   plugin.json (`npm run package -- --trace`, gitignored). Never on the query path.
-- The paste agent accepts **either** "no visible Flow window" **or** "focus is not in a
-  Flow process" (UI Automation). The second exists because a minimised Flow keeps
-  `MainWindowHandle` non-zero forever.
+- **`MainWindowHandle` is not a signal for Flow Launcher.** It is 0 even while Flow's window
+  is on screen (measured: 672 polls out of 672), so any rule of the form "no visible Flow
+  window OR …" is unconditionally true and its other half never runs. The paste agent now
+  gates on focus alone: the clipboard holds the emoji AND the focused window is not Flow's.
+  Removing a dead half of a condition is worth more than adding a third signal to it.
+- **Flow hides, it does not close.** A keystroke sent while Flow still has focus lands in its
+  query box and reappears the next time the launcher is opened - which looks exactly like
+  "the paste never happened, then happened into Flow". If a future action types anything,
+  it must wait for focus to leave Flow first.
+- **Logs are plain text in the user's profile: identify windows by pid and handle, never by
+  title.** A title is the user's own text (a document name, a message subject).
 - Never use `Get-Content`/`Add-Content`/`Set-Content` for data the plugin and the agent
   exchange: their default encoding differs between Windows PowerShell 5.1 and PowerShell 7,
   and that difference silently destroyed every emoji for a whole afternoon. Use

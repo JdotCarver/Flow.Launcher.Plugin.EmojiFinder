@@ -20,7 +20,9 @@
 //   3. it picks up a request file and logs the sequence number;
 //   4. the emoji survives the trip through that file with the right code points;
 //   5. it refuses to paste when the clipboard does not hold the emoji;
-//   6. it is still alive afterwards.
+//   6. it refuses to paste while Flow Launcher has focus, even with the right emoji on the
+//      clipboard (the bug of 2026-10-27: the keystroke landed in Flow's hidden query box);
+//   7. it is still alive afterwards.
 //
 // What it deliberately does not prove: that Ctrl+V lands in the right window. That needs a
 // human and a focused application; docs/DOGFOODING.md covers that side.
@@ -40,6 +42,7 @@ import process from 'node:process';
 import {
   AGENT_DIRECTORY_VARIABLE,
   AGENT_LAUNCHER_FILE_NAME,
+  FLOW_PROCESS_NAME_VARIABLE,
   ensureAgentLauncher,
   ensureAgentScript,
   HEARTBEAT_STALE_AFTER_MILLISECONDS,
@@ -133,6 +136,30 @@ function chooseEmojiNotOnClipboard () {
   }).trim();
 
   return candidates.find((candidate) => candidate !== clipboard) ?? candidates[0];
+}
+
+/** What the clipboard holds right now, so a check can put it back afterwards. */
+function readClipboard () {
+  try {
+    return execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Get-Clipboard -Raw'], {
+      encoding: 'utf8',
+      timeout: 10000
+    });
+  } catch {
+    return '';
+  }
+}
+
+/** Puts text on the clipboard without it being interpreted as a script fragment. */
+function writeClipboard (text) {
+  const base64 = Buffer.from(text, 'utf8').toString('base64');
+
+  execFileSync('powershell.exe', [
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    `[System.Windows.Forms.Clipboard]::SetText([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64}')))`
+  ], { encoding: 'utf8', timeout: 10000 });
 }
 
 /** The UTF-16 code units a text editor would show, which is what the agent logs. */
@@ -267,6 +294,95 @@ async function checkHost (host, emoji) {
 }
 
 /**
+ * Proves the focus gate on a real machine.
+ *
+ * The script is regenerated with `EMOJI_PASTE_AGENT_FLOW_PROCESS=*`, so every process counts
+ * as Flow Launcher - including whichever window has focus. The clipboard then holds exactly
+ * the emoji that is requested, which is the state the old rule pasted in, and the agent has to
+ * refuse: `decision paste=False`.
+ *
+ * Nothing is typed either way, because a refused paste sends no keystroke. That is what makes
+ * this safe to run with a real window focused, unlike a test that proves the positive case.
+ */
+async function checkFocusGate (emoji) {
+  const paths = resolveAgentPaths();
+  const findings = [];
+  const host = resolvePowerShellHost();
+  const clipboardBefore = readClipboard();
+  const startupLog = path.join(paths.directory, 'agent-startup-focusgate.log');
+
+  let agent = null;
+  try {
+    process.env[FLOW_PROCESS_NAME_VARIABLE] = '*';
+    ensureAgentScript(paths);
+
+    const stopped = await waitUntilStopped(paths);
+    findings.push({ label: 'no agent is running before the focus gate is checked', ok: stopped });
+
+    const logOffset = existingBytes(paths.log);
+
+    try {
+      agent = spawn(
+        host,
+        ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', paths.script],
+        { stdio: ['ignore', 'ignore', fs.openSync(startupLog, 'a')], windowsHide: true }
+      );
+    } catch (error) {
+      findings.push({ label: 'the focus gate agent starts', ok: false, detail: error.message });
+    }
+
+    findings.push({ label: 'the focus gate agent starts and publishes a heartbeat', ok: await waitForHeartbeat(paths) });
+
+    // The emoji goes on the clipboard *before* the request: the old rule required the clipboard
+    // to match, so this is exactly the state that used to paste inside the launcher.
+    writeClipboard(emoji);
+    requestPaste(emoji, paths);
+
+    await new Promise((resolve) => setTimeout(resolve, REQUEST_SETTLE_MILLISECONDS));
+
+    const log = readFromByteOffset(paths.log, logOffset);
+
+    // One poll line has to report both halves of the condition that used to paste: Flow holding
+    // focus and the clipboard holding the emoji. Either half alone proves nothing.
+    const sawBothHalves = /poll (?=.*flowHasFocus=True)(?=.*clipboardMatches=True).*/.test(log);
+    const refused = log.includes('decision paste=False');
+
+    findings.push({
+      label: 'a poll sees Flow holding focus and the clipboard holding the emoji at the same time',
+      ok: sawBothHalves,
+      detail: sawBothHalves ? '' : 'no poll line reported flowHasFocus=True with clipboardMatches=True: the probe, the process match, or the clipboard write is not working'
+    });
+    findings.push({
+      label: 'agent refuses to paste in that state, which is the bug of 2026-10-27',
+      ok: refused,
+      detail: refused ? '' : 'the agent pasted into whichever window had focus instead of refusing'
+    });
+
+    // The script that will be installed is the one that has to be free of titles, so the
+    // assertion is made against it rather than against this run's log.
+    const installedScript = readIfPresent(paths.script);
+    findings.push({
+      label: 'the installed agent names no window title anywhere',
+      ok: installedScript !== '' && !installedScript.includes('.Current.Name') && !/\btitle=/.test(installedScript),
+      detail: installedScript === '' ? 'no agent script on disk' : 'the agent script reads or logs a window title'
+    });
+  } finally {
+    agent?.kill();
+    await new Promise((resolve) => setTimeout(resolve, HEARTBEAT_STALE_AFTER_MILLISECONDS + 1000));
+
+    // Everything below runs even when an assertion above failed: leaving the wildcard in place
+    // would make every later paste in this run refuse, and leaving the emoji on the clipboard
+    // would change what the user finds there.
+    writeClipboard(clipboardBefore);
+    delete process.env[FLOW_PROCESS_NAME_VARIABLE];
+    ensureAgentScript(paths);
+    fs.rmSync(startupLog, { force: true });
+  }
+
+  return { host: `focus gate (${host})`, findings, startLine: null, startupLog: null, logTail: [] };
+}
+
+/**
  * Starts the agent the way the plugin does when it finds none: through the window-less
  * launcher.
  *
@@ -314,6 +430,7 @@ async function checkOnWindows () {
       results.push(await checkHost(host, emoji));
     }
 
+    results.push(await checkFocusGate(emoji));
     results.push(await checkLauncher());
   } finally {
     // The user's agent and its files were never touched, so there is nothing to restore. Only

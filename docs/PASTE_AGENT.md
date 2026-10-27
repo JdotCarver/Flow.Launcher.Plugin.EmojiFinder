@@ -65,15 +65,53 @@ user presses Enter on a result
           -> writes request.json with the next sequence number
           -> exits. Nothing is started, nothing can be killed.
 agent   -> notices the new sequence within 50 ms
-          -> waits until Flow is out of the way (same two signals as today: no visible Flow
-             window, or focus belongs to a non-Flow process)
-          -> checks the clipboard really holds the emoji (ignoring FE0E/FE0F/200D)
+          -> waits until the clipboard holds the emoji (ignoring FE0E/FE0F/200D) AND the
+             window with focus belongs to a process other than Flow Launcher
+          -> logs the destination (process id and window handle, never the title)
           -> sends Ctrl+V, then goes back to waiting
 ```
 
 Because the agent is already running, the per-paste cost is one poll interval plus Ctrl+V,
 not the 300–450 ms that starting PowerShell costs. Paste should feel instant, and it is
 faster than the design we were trying to rescue.
+
+## The focus gate, and the bug it fixed (2026-10-27)
+
+The first version of this decision was:
+
+```
+paste when (no visible Flow window) OR (focus belongs to a non-Flow process)
+                       AND the clipboard holds the emoji
+```
+
+The first half was always true. `Get-Process -Name 'Flow.Launcher*'` reports a
+`MainWindowHandle` of **0** for Flow Launcher even while its window is on screen - 672 polls out
+of 672 in a full day of dogfooding - so the focus test never ran, and every request pasted on
+its first poll, 9-80 ms after it was written.
+
+Sometimes that poll landed while Flow still had focus, because Flow hides its window after an
+action rather than closing it. The keystroke then went into Flow's hidden query box, and the
+emoji was there the next time the launcher was opened. Reported as *"the paste agent is failing
+to recognise that the focus has switched"*.
+
+Repeating an emoji made it reliable: the gate also requires the clipboard to match, and on a
+repeat the clipboard already holds that emoji, so the first poll at ~9 ms was already satisfied -
+no waiting for Flow's copy, no waiting for focus to move.
+
+The rule now has one shape, with no alternative branch to be fooled by:
+
+```
+paste when the clipboard holds the emoji AND the focused window is not Flow Launcher's
+```
+
+When the automation probe cannot say which window has focus, the agent waits
+`FOCUS_PROBE_UNAVAILABLE_DELAY_MILLISECONDS` (250 ms) and then pastes blind, logging that it did.
+That case never occurs on a normal Windows install - the probe is a .NET assembly load - but
+pasting blind immediately is precisely the bug above, so even the fallback waits.
+
+The cost is honest: the paste now fires when Flow lets go of focus, not the instant the request
+arrives. That is tens of milliseconds in normal use, and it is the whole reason the keystroke
+lands where the user is looking.
 
 ## Why a file and not a pipe
 
@@ -164,7 +202,7 @@ paste.
 ## What this changes in the code
 
 - `src/utils/pasteAgent.ts` builds the agent script, writes it to `%LOCALAPPDATA%`, and owns
-  the request/heartbeat paths. The PowerShell decision logic (two focus signals, clipboard
+  the request/heartbeat paths. The PowerShell decision logic (focus gate, clipboard
   comparison, timeouts) came across almost unchanged from the old per-paste helper.
 - `src/actions/paste.ts` writes the request. No process is started, so the action returns in
   about the time it takes to write a small file.

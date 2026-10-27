@@ -60,6 +60,32 @@ const MAXIMUM_PASTE_WAIT_MILLISECONDS = 2500;
 const POLL_INTERVAL_MILLISECONDS = 50;
 
 /**
+ * The name Flow Launcher's process runs under.
+ *
+ * Flow keeps this process alive after its window hides, so the only question the agent can
+ * ask is which window has focus - the process itself is always there.
+ */
+export const FLOW_PROCESS_NAME = 'Flow.Launcher*';
+
+/**
+ * Environment variable that renames the process the agent treats as Flow Launcher.
+ *
+ * Only the checks set it, and only to `*`: with every process counted as Flow, the agent must
+ * refuse to paste, which is how the focus gate is proven without typing into a window.
+ */
+export const FLOW_PROCESS_NAME_VARIABLE = 'EMOJI_PASTE_AGENT_FLOW_PROCESS';
+
+/**
+ * How long the agent waits before pasting blind when the automation probe never loaded.
+ *
+ * Pasting blind is the bug this replaced: a keystroke sent while Flow still held focus landed
+ * in Flow's hidden query box and reappeared when the launcher was next opened. Without the
+ * probe there is no way to know, so a paste 250 ms late is the lesser evil - and the case is
+ * logged every time it is used.
+ */
+export const FOCUS_PROBE_UNAVAILABLE_DELAY_MILLISECONDS = 250;
+
+/**
  * How old a request may be and still be pasted when the agent starts.
  *
  * The plugin starts the agent when it notices none is running, and it publishes the request
@@ -151,8 +177,12 @@ function toPowerShellLiteral (value: string): string {
  * it, the moment is gone. The file is capped and lives with the agent's own state.
  *
  * @param paths Where the agent reads requests and writes its heartbeat and log.
+ * @param flowProcessName The process name Flow Launcher runs under. Only the checks change it.
  */
-export function buildAgentScript (paths: PasteAgentPaths): string {
+export function buildAgentScript (
+  paths: PasteAgentPaths,
+  flowProcessName: string = FLOW_PROCESS_NAME
+): string {
   return `
 $ErrorActionPreference = 'SilentlyContinue'
 
@@ -162,6 +192,11 @@ $logPath = '${toPowerShellLiteral(paths.log)}'
 $pollMilliseconds = ${POLL_INTERVAL_MILLISECONDS}
 $pasteWindowMilliseconds = ${MAXIMUM_PASTE_WAIT_MILLISECONDS}
 $startupGraceMilliseconds = ${STARTUP_GRACE_MILLISECONDS}
+$blindDelayMilliseconds = ${FOCUS_PROBE_UNAVAILABLE_DELAY_MILLISECONDS}
+
+# Flow Launcher's process, not its ID: it is started once and stays, so matching the name is
+# the only thing that survives a restart of the launcher.
+$flowProcessName = '${toPowerShellLiteral(flowProcessName)}'
 
 # Every file read and write below goes through .NET with an explicit UTF-8 encoding.
 # Get-Content/Add-Content/Set-Content take their encoding from the host's defaults, and those
@@ -229,6 +264,37 @@ try {
   Write-Trace ('uiautomation-error: ' + $_.Exception.Message)
 }
 
+# Which process owns the window with focus, or -1 when that cannot be answered.
+function Get-FocusedProcessId {
+  if (-not $focusProbeAvailable) { return -1 }
+  try {
+    $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+    if ($null -ne $focused) { return [int]$focused.Current.ProcessId }
+  } catch { }
+  return -1
+}
+
+# The window handle of the focused element, for the log only. 0 when it cannot be found.
+#
+# The focused element is usually a control inside a window (a text box), which reports no
+# handle of its own, so its ancestors are walked until one has a handle. Bounded on purpose:
+# a walk with no depth limit is a loop waiting to happen.
+#
+# The title is never read: it is the user's text, and the log is plain text on disk.
+function Get-FocusedWindowHandle {
+  if (-not $focusProbeAvailable) { return 0 }
+  try {
+    $element = [System.Windows.Automation.AutomationElement]::FocusedElement
+    $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+    for ($depth = 0; $depth -lt 12; $depth++) {
+      if ($null -eq $element) { break }
+      if ($element.Current.NativeWindowHandle -ne 0) { return [int]$element.Current.NativeWindowHandle }
+      $element = $walker.GetParent($element)
+    }
+  } catch { }
+  return 0
+}
+
 # Requests older than the startup grace are not pasted: after a restart the agent picks up
 # from wherever the sequence number is now, so yesterday's request cannot fire twice. A
 # request younger than that is the reason this process was started at all - the plugin
@@ -259,28 +325,35 @@ if ($x) {
 
 $lastHeartbeat = [DateTime]::MinValue
 
+# Why the gate is focus-only, and why the window handle is not a signal
+# ---------------------------------------------------------------------
+# The rule used to be "no visible Flow window OR focus went elsewhere". The first half was
+# always true: the process reports no main window even while its window is on screen
+# (measured: 672 polls out of 672 across a full day of dogfooding), so the focus test never
+# ran and every request pasted on its first poll.
+#
+# When that poll landed while Flow still held focus - which is what a repeated emoji produces,
+# because the clipboard already holds it and the gate opens at ~9 ms instead of waiting for
+# Flow's copy - the keystroke went into Flow's hidden query box. Flow hides rather than closes
+# on Enter, so the emoji was there when the launcher was next opened: the bug reported as
+# "the paste agent is failing to recognise that the focus has switched".
 function Send-Paste([string] $targetEmoji) {
   $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
   $shouldPaste = $false
   $lastState = ''
   $loggedMismatch = $false
+  $loggedBlind = $false
+  $beforeFlowProcess = -1
 
   while ($stopwatch.ElapsedMilliseconds -lt $pasteWindowMilliseconds) {
-    $flowProcessIds = @()
-    $flowVisible = $false
-    foreach ($flowProcess in @(Get-Process -Name 'Flow.Launcher*' -ErrorAction SilentlyContinue)) {
-      $flowProcessIds += $flowProcess.Id
-      if ($flowProcess.MainWindowHandle -ne 0) { $flowVisible = $true }
-    }
-
-    $focusedProcessId = -1
-    if ($focusProbeAvailable) {
-      try {
-        $focusedElement = [System.Windows.Automation.AutomationElement]::FocusedElement
-        if ($null -ne $focusedElement) { $focusedProcessId = $focusedElement.Current.ProcessId }
-      } catch { }
-    }
+    $flowProcessIds = @(Get-Process -Name $flowProcessName -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
+    $focusedProcessId = Get-FocusedProcessId
     $flowHasFocus = ($focusedProcessId -ne -1) -and ($flowProcessIds -contains $focusedProcessId)
+
+    # The last app that had focus while it was not Flow. Flow keeps its process, so this is
+    # what the user was in a moment ago; it is logged beside the destination to make an
+    # after-the-fact report readable.
+    if (($focusedProcessId -ne -1) -and (-not $flowHasFocus)) { $beforeFlowProcess = $focusedProcessId }
 
     $clipboardText = ''
     $clipboardError = ''
@@ -297,7 +370,7 @@ function Send-Paste([string] $targetEmoji) {
       $clipboardMatches = ((Get-ComparableText $clipboardText) -eq (Get-ComparableText $targetEmoji))
     }
 
-    $state = 'flowProcesses={0} flowVisible={1} flowHasFocus={2} focusedProcess={3} clipboardMatches={4} clipboardEmpty={5} clipboardError=[{6}]' -f $flowProcessIds.Count, $flowVisible, $flowHasFocus, $focusedProcessId, $clipboardMatches, ($clipboardText -eq ''), $clipboardError
+    $state = 'flowProcesses={0} flowHasFocus={1} focusedProcess={2} clipboardMatches={3} clipboardEmpty={4} clipboardError=[{5}]' -f $flowProcessIds.Count, $flowHasFocus, $focusedProcessId, $clipboardMatches, ($clipboardText -eq ''), $clipboardError
     if ($state -ne $lastState) {
       Write-Trace ('poll ' + $state)
       $lastState = $state
@@ -311,8 +384,20 @@ function Send-Paste([string] $targetEmoji) {
       $loggedMismatch = $true
     }
 
-    # Either signal is enough: "no visible window" or "focus went elsewhere".
-    if ((-not $flowVisible -or -not $flowHasFocus) -and $clipboardMatches) {
+    # The gate: the clipboard holds the emoji AND Flow is not the window with focus.
+    #
+    # Nothing else counts as ready. See docs/PASTE_AGENT.md for why "no visible Flow window"
+    # was removed from this rule instead of being kept beside it.
+    if ($clipboardMatches -and (-not $focusProbeAvailable)) {
+      if (-not $loggedBlind) {
+        Write-Trace ('focus probe unavailable: pasting after the blind delay of {0} ms' -f $blindDelayMilliseconds)
+        $loggedBlind = $true
+      }
+      if ($stopwatch.ElapsedMilliseconds -ge $blindDelayMilliseconds) {
+        $shouldPaste = $true
+        break
+      }
+    } elseif ($clipboardMatches -and ($focusedProcessId -ne -1) -and (-not $flowHasFocus)) {
       $shouldPaste = $true
       break
     }
@@ -323,6 +408,10 @@ function Send-Paste([string] $targetEmoji) {
   Write-Trace ('decision paste={0} elapsedMs={1}' -f $shouldPaste, $stopwatch.ElapsedMilliseconds)
 
   if ($shouldPaste) {
+    # Where it is about to go: the process and the window handle, never the title. Without a
+    # destination in the log, "it pasted somewhere unexpected" costs another round trip.
+    Write-Trace ('destination pid={0} hwnd=0x{1:x} beforeFlowProcess={2}' -f (Get-FocusedProcessId), (Get-FocusedWindowHandle), $beforeFlowProcess)
+
     Start-Sleep -Milliseconds 20
     try {
       [System.Windows.Forms.SendKeys]::SendWait('^v')
@@ -369,8 +458,11 @@ while ($true) {
  * Rewriting it on every paste would be pointless disk traffic, and replacing the file while
  * the agent is running is harmless anyway - PowerShell has already read it.
  */
-export function ensureAgentScript (paths: PasteAgentPaths = resolveAgentPaths()): string {
-  const script = buildAgentScript(paths);
+export function ensureAgentScript (
+  paths: PasteAgentPaths = resolveAgentPaths(),
+  flowProcessName: string = resolveFlowProcessName()
+): string {
+  const script = buildAgentScript(paths, flowProcessName);
 
   fs.mkdirSync(paths.directory, { recursive: true });
 
@@ -391,6 +483,23 @@ export function ensureAgentScript (paths: PasteAgentPaths = resolveAgentPaths())
 /** Where the launcher lives: beside the agent script, in the per-user data folder. */
 export function agentLauncherPath (paths: PasteAgentPaths = resolveAgentPaths()): string {
   return path.join(paths.directory, AGENT_LAUNCHER_FILE_NAME);
+}
+
+/**
+ * The process name the agent treats as Flow Launcher.
+ *
+ * `EMOJI_PASTE_AGENT_FLOW_PROCESS` overrides it, which is how the checks prove the focus
+ * gate: with `*` every process counts as Flow, so the agent must refuse to paste even when
+ * the clipboard holds exactly the emoji it was asked for.
+ */
+export function resolveFlowProcessName (environment: NodeJS.ProcessEnv = process.env): string {
+  const overridden = environment[FLOW_PROCESS_NAME_VARIABLE]?.trim();
+
+  if (overridden !== undefined && overridden !== '') {
+    return overridden;
+  }
+
+  return FLOW_PROCESS_NAME;
 }
 
 /**

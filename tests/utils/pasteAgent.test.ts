@@ -13,6 +13,9 @@ import { afterEach, describe, expect, test } from 'vitest';
 import {
   buildAgentScript,
   ensureAgentScript,
+  FLOW_PROCESS_NAME,
+  FOCUS_PROBE_UNAVAILABLE_DELAY_MILLISECONDS,
+  resolveFlowProcessName,
   HEARTBEAT_STALE_AFTER_MILLISECONDS,
   AGENT_DIRECTORY_VARIABLE,
   AGENT_LAUNCHER_FILE_NAME,
@@ -73,13 +76,47 @@ describe('buildAgentScript', () => {
     expect(script).toContain('request sequence=');
   });
 
-  test('keeps the two focus signals and the clipboard comparison that were already proven', () => {
+  test('keeps the clipboard comparison that was already proven', () => {
     const script = buildAgentScript(createPaths());
 
-    expect(script).toContain("Get-Process -Name 'Flow.Launcher*'");
-    expect(script).toContain('MainWindowHandle');
     expect(script).toContain('[\\uFE0E\\uFE0F\\u200D]');
     expect(script).toContain('SendWait(\'^v\')');
+  });
+
+  test('pastes only when the clipboard matches and Flow has lost focus', () => {
+    const script = buildAgentScript(createPaths());
+
+    // "flowVisible" used to be half of the rule, and MainWindowHandle reports 0 for Flow
+    // Launcher even while its window is on screen, so that half was always true and the focus
+    // test never ran. A paste fired while Flow still held focus landed in Flow's hidden query
+    // box and reappeared the next time the launcher was opened.
+    expect(script).not.toContain('MainWindowHandle');
+    expect(script).not.toContain('$flowVisible');
+    expect(script).toContain('$clipboardMatches -and ($focusedProcessId -ne -1) -and (-not $flowHasFocus)');
+  });
+
+  test("treats Flow's process name as a value that can be pointed elsewhere", () => {
+    const script = buildAgentScript(createPaths());
+
+    expect(script).toContain('Get-Process -Name $flowProcessName');
+    expect(script).toContain(`$flowProcessName = '${FLOW_PROCESS_NAME}'`);
+  });
+
+  test('names the destination window without recording what it says', () => {
+    const script = buildAgentScript(createPaths());
+
+    // Process and handle are enough to recognise a window afterwards; the title is the user's
+    // own text, and this log is plain text in their profile.
+    expect(script).toContain('destination pid={0} hwnd=0x{1:x}');
+    expect(script).not.toContain('.Current.Name');
+  });
+
+  test('pastes blind only after a delay, and only when the focus probe never loaded', () => {
+    const script = buildAgentScript(createPaths());
+
+    expect(script).toContain('$clipboardMatches -and (-not $focusProbeAvailable)');
+    expect(script).toContain(`$blindDelayMilliseconds = ${FOCUS_PROBE_UNAVAILABLE_DELAY_MILLISECONDS}`);
+    expect(script).toContain('pasting after the blind delay');
   });
 
   test('adopts a request made moments before it started, and ignores older ones', () => {
@@ -305,6 +342,21 @@ describe('resolvePowerShellHost', () => {
   test('falls back to the Windows PowerShell every machine has', () => {
     expect(resolvePowerShellHost({ PATH: os.tmpdir() })).toBe('powershell.exe');
     expect(resolvePowerShellHost({})).toBe('powershell.exe');
+  });
+});
+
+describe('resolveFlowProcessName', () => {
+  test('looks for Flow Launcher by default', () => {
+    expect(resolveFlowProcessName({})).toBe(FLOW_PROCESS_NAME);
+    expect(resolveFlowProcessName({})).toBe('Flow.Launcher*');
+  });
+
+  test('honours the environment override the checks use to prove the focus gate', () => {
+    expect(resolveFlowProcessName({ EMOJI_PASTE_AGENT_FLOW_PROCESS: '*' })).toBe('*');
+  });
+
+  test('ignores an empty override rather than matching nothing', () => {
+    expect(resolveFlowProcessName({ EMOJI_PASTE_AGENT_FLOW_PROCESS: '  ' })).toBe(FLOW_PROCESS_NAME);
   });
 });
 
