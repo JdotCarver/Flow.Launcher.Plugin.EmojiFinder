@@ -173,6 +173,35 @@ jobs:
           Write-Host "--- last $($lines.Count) lines of the agent log ---"
           foreach ($line in $lines) { Write-Host $line }
 
+      # The reports are written into the runner's own workspace, which disappears with it, and
+      # artifact downloads are blocked in the sandbox. Printing them is what makes a green run
+      # citable: which findings passed, and the numbers the ranking check measured.
+      - name: Evidence
+        if: always()
+        shell: pwsh
+        run: |
+          foreach ($report in @('paste-agent-check.json', 'ranking-check.json')) {
+            $path = Join-Path 'dogfood' $report
+            if (-not (Test-Path $path)) {
+              Write-Host "--- no ${report} ---"
+              continue
+            }
+            Write-Host "--- $report ---"
+            $json = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+            if ($report -eq 'paste-agent-check.json') {
+              foreach ($hostResult in $json.results) {
+                Write-Host ("host: {0}" -f $hostResult.host)
+                foreach ($finding in $hostResult.findings) {
+                  Write-Host ("  {0} {1}" -f $(if ($finding.ok) { 'ok  ' } else { 'FAIL' }), $finding.label)
+                }
+              }
+            } else {
+              $json.PSObject.Properties | Where-Object { $_.Name -ne 'measurements' } | ForEach-Object {
+                Write-Host ("{0}: {1}" -f $_.Name, ($_.Value | Out-String).Trim())
+              }
+            }
+          }
+
       - name: Read the verdict
         if: always()
         run: npm run dogfood:check
